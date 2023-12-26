@@ -1,8 +1,9 @@
 import React from 'react';
 import styles from './Settings.module.scss';
 import {getAdminAjaxUrl, getAxios, getImagesUrl} from "../../../shared/scripts/utils";
-import {Alert, Button, Form, Select, Spin, Switch} from 'antd';
+import {Alert, Button, Form, Select, Spin, Switch, Tooltip} from 'antd';
 import BaseComponent from "../../components/BaseComponent/BaseComponent";
+import {ReloadOutlined} from "@ant-design/icons";
 
 const axios = getAxios();
 
@@ -126,7 +127,7 @@ class Settings extends BaseComponent {
                 </Form.Item>
                 <Form.Item label={'دسته بندی پیشفرض انتشار'}>
                     <Select
-                        className={styles.input}
+                        className={`${styles.input} ${styles.select}`}
                         options={this.state.categories}
                         value={this.state.category}
                         size={'large'}
@@ -169,6 +170,15 @@ class Settings extends BaseComponent {
 
     /**
      * @since 1.0.0
+     */
+    refreshIcon = () => {
+        return <Tooltip title={'بارگذاری مجدد'}>
+            <ReloadOutlined className={styles.refresh} onClick={this.fetch} />
+        </Tooltip>
+    };
+
+    /**
+     * @since 1.0.0
      * @returns {Element}
      */
     render() {
@@ -176,6 +186,7 @@ class Settings extends BaseComponent {
         return (
             <div className={styles.container}>
                 {this.header()}
+                {this.refreshIcon()}
                 <Spin spinning={loading}>
                     <div className={styles.formWrapper}>
                         {this.form()}

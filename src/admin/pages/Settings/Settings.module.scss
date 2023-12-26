@@ -7,11 +7,19 @@
   margin: 45px auto;
   border-radius: 12px;
   overflow: hidden;
+  position: relative;
   @include mq-max('md') {
     width: 92%;
     margin-top: 40px;
     margin-left: 24px;
   }
+}
+
+.refresh {
+  position: absolute;
+  left: 25px;
+  top: 25px;
+  cursor: pointer;
 }
 
 .header {
@@ -34,6 +42,10 @@
 
 .titleSettings {
   margin: 0 12px;
+}
+
+.select {
+  cursor: pointer !important;
 }
 
 

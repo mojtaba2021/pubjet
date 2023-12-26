@@ -31,7 +31,7 @@ class Actions extends Singleton {
                 font-style: normal;
                 font-display: swap;
             }
-            .mF0ELrBPqJ9R6bt1N3mw * {
+            .mF0ELrBPqJ9R6bt1N3mw *, .ant-tooltip-inner, .ant-select-dropdown div {
                 font-family: 'Vazirmatn';
             }
         </style>
