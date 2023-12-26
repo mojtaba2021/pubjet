@@ -1,0 +1,136 @@
+<?php
+
+namespace triboon\pubjet\includes\traits;
+
+use triboon\pubjet\includes\enums\EnumAjaxPrivType;
+
+defined('ABSPATH') || exit;
+
+trait Utils {
+
+    /**
+     * @return void
+     * @since  1.0
+     * @author Pishook
+     */
+    public function ajax($name, $callback, $type = EnumAjaxPrivType::Both, $priority = 15) {
+        if (EnumAjaxPrivType::LoggedIn === $type) {
+            add_action('wp_ajax_pubjet-' . $name, $callback, $priority);
+        } else if (EnumAjaxPrivType::Anonymous === $type) {
+            add_action('wp_ajax_nopriv_pubjet-' . $name, $callback, $priority);
+        } else if (EnumAjaxPrivType::Both === $type) {
+            add_action('wp_ajax_pubjet-' . $name, $callback, $priority);
+            add_action('wp_ajax_nopriv_pubjet-' . $name, $callback, $priority);
+        }
+    }
+
+    /**
+     * @return void
+     * @since  1.0
+     * @author Pish00k
+     */
+    public function checkNonce($nonce = false) {
+        if (!$nonce) {
+            $nonce = $this->post('security');
+        }
+        if (!wp_verify_nonce($nonce, 'pubjet-nonce')) {
+            $this->permissionError();
+        }
+    }
+
+    /**
+     * @return void
+     * @since  1.0
+     * @author Pishook
+     */
+    public function permissionError() {
+        $this->error('شما دسترسی لازم برای انجام این عملیات را ندارید.');
+    }
+
+    /**
+     * @return void
+     * @since  1.0
+     * @author Pishook
+     */
+    public function error($message, $args = []) {
+        pubjet_ajax_error($message, $args);
+    }
+
+    /**
+     * @return void
+     * @since  1.0
+     * @author Pishook
+     */
+    public function success($data = []) {
+        pubjet_ajax_success($data);
+    }
+
+    /**
+     * @return void
+     * @since  1.0
+     * @author Pishook
+     */
+    public function checkAdminPermission() {
+        if (!is_user_logged_in()) {
+            $this->permissionError();
+        }
+        if (!pubjet_is_admin()) {
+            $this->permissionError();
+        }
+    }
+
+    /**
+     * @return string|array
+     * @since  1.0
+     * @author Pishook
+     */
+    public function option($key, $default = '') {
+        return pubjet_option($key, $default);
+    }
+
+    /**
+     * @return boolean
+     * @since  1.0
+     * @author Pishook
+     */
+    public function doingAjax() {
+        return (defined('DOING_AJAX') && DOING_AJAX);
+    }
+
+    /**
+     * @param        $name
+     * @param string $default
+     *
+     * @return mixed|string
+     */
+    public function get($name, $default = '') {
+        return (isset($_GET[$name]) && !empty($_GET[$name])) ? sanitize_text_field($_GET[$name]) : $default;
+    }
+
+    /**
+     * @param        $name
+     * @param string $default
+     *
+     * @return mixed|string
+     */
+    public function post($name, $default = '') {
+        return (isset($_POST[$name]) && !empty($_POST[$name])) ? sanitize_textarea_field($_POST[$name]) : $default;
+    }
+
+    /**
+     * @return bool
+     * @since  1.0
+     * @author Pishook
+     */
+    public function formatBoolean($value) {
+        if (is_bool($value)) {
+            return $value;
+        }
+        if (in_array($value, ['off', 'no', 'false'])) {
+            return false;
+        }
+
+        return true;
+    }
+
+}

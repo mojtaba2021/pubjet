@@ -1,0 +1,17 @@
+@import "../../../shared/styles/variables";
+@import "../../../shared/styles/mixins";
+
+.pubjet-react-modal {
+  padding: 0 !important;
+  .pubjet-modal-title {
+    padding: 15px;
+    background-color: rgba(204, 204, 204, 0.5);
+    border: 1px solid #d0d6d8;
+  }
+  .pubjet-modal-content {
+    padding: 17px;
+  }
+  @include mq-max('md') {
+    width: 100% !important;
+  }
+}

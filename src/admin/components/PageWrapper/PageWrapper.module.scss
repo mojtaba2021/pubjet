@@ -1,0 +1,34 @@
+@import '../../../shared/styles/mixins';
+@import '../../../shared/styles/variables';
+
+
+.wrapper {
+  margin-left: 25px;
+  background-color: white;
+  height: 100%;
+  margin-top: 25px;
+  min-height: 500px;
+  border-radius: 6px;
+  @include mq-max('md') {
+    margin-left: 10px;
+    margin-top: 0;
+  }
+  &__content {
+    padding: 20px;
+  }
+  &__header {
+    background-color: #f7fafc;
+    //border-bottom: 1px solid #e3e8ee;
+    clear: both;
+    color: #697386;
+    display: block;
+    font-weight: 700;
+    margin: 0;
+    overflow: hidden;
+    padding: 2px 15px;
+    width: auto;
+  }
+  &__title {
+
+  }
+}

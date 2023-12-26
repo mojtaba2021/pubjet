@@ -1,0 +1,17 @@
+.tel-input-wrapper {
+  .intl-tel-input {
+    width: 100%;
+    .arrow.down {
+      display: none !important;
+    }
+    &.allow-dropdown.separate-dial-code {
+      .selected-flag {
+        display: flex;
+        .selected-dial-code {
+          padding-left: 5px;
+          padding-right: 5px;
+        }
+      }
+    }
+  }
+}

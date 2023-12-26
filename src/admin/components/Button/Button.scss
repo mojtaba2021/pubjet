@@ -1,0 +1,9 @@
+@import "../../../shared/styles/variables";
+@import "../../../shared/styles/mixins";
+
+.pubjet-btn {
+  &-lg {
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+  }
+}

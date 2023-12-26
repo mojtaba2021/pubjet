@@ -1,0 +1,41 @@
+@import "./variables";
+
+@mixin mq($size) {
+  $value: map-get($breakpoints, $size);
+  $sm: map-get($breakpoints, 'sm');
+  @if ($value < $sm) {
+    @media (max-width: $value) {
+      @content;
+    }
+  } @else {
+    @media (min-width: $value) {
+      @content;
+    }
+  }
+}
+
+@mixin mq-max($size) {
+  $value: map-get($breakpoints, $size);
+  @media (max-width: $value) {
+    @content;
+  }
+}
+
+@mixin mq-min($size) {
+  $value: map-get($breakpoints, $size);
+  @media (min-width: $value) {
+    @content;
+  }
+}
+
+@mixin ChaparWrapper() {
+  .triboon-wrapper {
+    @content;
+  }
+}
+
+@mixin WordpressAdmin() {
+  .wp-admin {
+    @content;
+  }
+}

@@ -1,0 +1,33 @@
+@import "../../../shared/styles/variables";
+@import "../../../shared/styles/mixins";
+
+.alertWrapper {
+  border: none !important;
+  border-radius: 12px !important;
+  background-color: transparent !important;
+
+  :global {
+    .anticon {
+      &-exclamation-circle {
+        color: $black-200 !important;
+      }
+    }
+  }
+}
+
+.icon {
+  color: red;
+  font-size: 40px;
+  display: block;
+  margin-bottom: 15px;
+}
+
+.text {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.button {
+
+}

@@ -1,0 +1,15 @@
+@import "../../../shared/styles/variables";
+@import "../../../shared/styles/mixins";
+
+.pubjet-input-label {
+  label {
+    display: block;
+  }
+  input[type=text], input[type=tel] {
+    width: 100%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    direction: ltr;
+    text-align: left;
+  }
+}

@@ -1,0 +1,22 @@
+@import '../../../shared/styles/mixins';
+@import '../../../shared/styles/variables';
+
+.wrapper {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-gap: 15px;
+  grid-row-gap:20px;
+  max-width: 350px;
+  :global {
+    .label {
+      white-space: pre;
+      font-weight: bold;
+    }
+    .value {
+      color: #aaa3a3;
+      @include mq-max('md') {
+        word-break: break-all !important;
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+@import "../../../shared/styles/variables";
+@import "../../../shared/styles/mixins";
+
+.pubjet-card {
+  &-header {
+    font-size: 1.2rem;
+  }
+}

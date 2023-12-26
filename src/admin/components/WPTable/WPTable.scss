@@ -1,0 +1,36 @@
+@import "../../../shared/styles/variables";
+@import "../../../shared/styles/mixins";
+
+.pubjet-table {
+  th, td {
+    white-space: nowrap;
+  }
+  #the-list {
+    td {
+      padding-top: 14px;
+      padding-bottom: 14px;
+    }
+  }
+  .text-center {
+    text-align: center !important;
+  }
+  &-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: -ms-autohiding-scrollbar
+  }
+}
+.pubjet-pagination-wrapper {
+  display: flex;
+  a {
+    margin-left: 3px;
+  }
+  .selected {
+    a {
+      opacity: .3;
+      pointer-events: none;
+    }
+  }
+}

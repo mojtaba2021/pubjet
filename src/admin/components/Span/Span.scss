@@ -1,0 +1,14 @@
+.pubjet-span {
+  padding: 4px;
+  border-radius: 8px;
+  margin-top: 3px !important;
+  margin-bottom: 3px;
+  &-green {
+    background-color: #08b600;
+    color: white;
+  }
+  &-red {
+    color: white;
+    background-color: red;
+  }
+}

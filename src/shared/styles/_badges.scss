@@ -1,0 +1,15 @@
+.triboon-badge {
+  padding: 7px;
+  &-success {
+    background-color: rgb(82, 196, 26);
+  }
+  &-warning {
+    background-color: #fa8c16;
+  }
+  &-danger {
+    background-color: #ff4d4f;
+  }
+  &-success, &-danger {
+    color: white;
+  }
+}

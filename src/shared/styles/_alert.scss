@@ -1,0 +1,47 @@
+.triboon-alert {
+  position: relative;
+  padding: 1rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0;
+  &-primary {
+    border-color: #b6d4fe;
+    background-color: #E1F0FF !important;
+    color: #3699FF !important;
+  }
+  &-info {
+    color: #055160;
+    background-color: #cff4fc;
+    border-color: #b6effb;
+  }
+  &-success {
+    background-color: #e8ffd5 !important;
+    color: #45c51b !important;
+    border: 1px solid #5fdd3e;
+  }
+  &-danger {
+    background-color: #FFE2E5 !important;
+    color: #F64E60 !important;
+    border: 1px solid #f13548;
+  }
+  &-warning {
+    border-color: #ffecb5;
+    background-color: #FFF4DE !important;
+    color: #FFA800 !important;
+  }
+  &-light, &-secondary {
+    color: #41464b;
+    background-color: #e2e3e5;
+    border-color: #d3d6d8;
+  }
+  &.wpn-rounded {
+    border-radius: 11px;
+  }
+  .wpn-video {
+    margin-bottom: 10px;
+    iframe {
+      width: 100% !important;
+      height: 250px !important;
+    }
+  }
+}
