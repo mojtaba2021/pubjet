@@ -41,7 +41,7 @@ class Ajax extends Singleton {
 
         if (is_writeable(pubjet_debug_dir())) {
             unlink(pubjet_debug_dir()); // Delete debug file
-        } else  {
+        } else {
             $this->error('خطا در حذف فایل. دسترسی حذف فایل از سمت هاست محدود شده است');
         }
 

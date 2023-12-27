@@ -16,7 +16,7 @@ class ReportagePost extends Singleton {
      * @since 1.0.0
      */
     public function __construct() {
-        add_action("publish_" . PUBJET_POST_TYPE, [$this, "afterPublishReportage"]);
+        add_action("publish_" . pubjet_post_type(), [$this, "afterPublishReportage"]);
     }
 
     public static function get_post_date($prefrred_date) {
@@ -253,7 +253,6 @@ class ReportagePost extends Singleton {
                 return false;
             }
         }
-
 
         // Upload by "sideloading": "the same way as an uploaded file is handled by media_handle_upload"
         $args = [
