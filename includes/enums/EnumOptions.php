@@ -17,4 +17,6 @@ class EnumOptions {
 
     const ActivationVersion = 'pubjet_activation_version';
 
+    const CopyrightStatus = 'pubjet_copyright_status';
+
 }

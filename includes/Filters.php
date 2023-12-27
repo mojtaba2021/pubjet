@@ -50,12 +50,11 @@ class Filters extends Singleton {
      */
     public function filterTheContent($content) {
 
-        if (PUBJET_SHOW_COPYRIGHT !== true) {
+        if (!pubjet_show_copyright()) {
             return $content;
         }
 
-        $reportage_id = get_post_meta(get_the_ID(), 'pubjet_reportage_id', true);
-        if (empty($reportage_id)) {
+        if (!pubjet_is_reportage(get_the_ID())) {
             return $content;
         }
 

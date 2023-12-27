@@ -805,3 +805,14 @@ function pubjet_find_post_id_by_reportage_id($reportage_id) {
 function pubjet_get_request_method() {
     return strtoupper(pubjet_isset_value($_SERVER['REQUEST_METHOD']));
 }
+
+/**
+ * @return boolean
+ */
+function pubjet_show_copyright() {
+    $status = get_option(\triboon\pubjet\includes\enums\EnumOptions::CopyrightStatus);
+    if (empty($status)) {
+        return true;
+    }
+    return $status !== 'hide';
+}

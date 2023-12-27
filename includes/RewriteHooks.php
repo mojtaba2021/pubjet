@@ -4,6 +4,7 @@ namespace triboon\pubjet\includes;
 
 use DateTime;
 use DateTimeZone;
+use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\traits\Utils;
 
 if (!defined("ABSPATH")) exit;
@@ -19,6 +20,44 @@ class RewriteHooks extends Singleton {
         add_action('pubjet-api_reportage', [$this, 'reportageRequest'], 15);
         add_action('pubjet-api_check-missed-reportage', [$this, 'checkMissedReportage'], 15);
         add_action('pubjet-api_version', [$this, 'checkPluginVersion'], 15);;
+        add_action('pubjet-api_copyright', [$this, 'toggleCopyright'], 15);
+    }
+
+    /**
+     * @return void
+     */
+    public function toggleCopyright() {
+        $data = $this->check(['POST', 'PATCH']);
+        if (is_array($data) && isset($data['error'])) {
+            wp_send_json_error(pubjet_isset_value($data['message']), pubjet_isset_value($data['status']));
+        }
+
+        pubjet_log('Change Copyright Status');
+        pubjet_log($data);
+
+        if (empty(pubjet_isset_value($data->id))) {
+            wp_send_json_error('Post not found', 404);
+        }
+
+        $reportage_post_id = pubjet_find_post_id_by_reportage_id($data->id);
+        if (empty($reportage_post_id)) {
+            wp_send_json_error('Post not found', 404);
+        }
+
+        $new_status = pubjet_isset_value($data->status, 'show');
+        if ('hide' === $new_status) {
+            // Hide copyright
+            update_option(EnumOptions::CopyrightStatus, 'hide');
+        } else {
+            // Show copyright
+            delete_option(EnumOptions::CopyrightStatus);
+        }
+
+        $this->success([
+                           'wpPostId'    => $reportage_post_id,
+                           'reportageId' => pubjet_isset_value($data->id),
+                           'status'      => $new_status,
+                       ]);
     }
 
     /**
