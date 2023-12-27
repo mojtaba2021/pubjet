@@ -785,3 +785,15 @@ function pubjet_is_reportage($post_id) {
     $reportage_post_id = get_post_meta($post_id, \triboon\pubjet\includes\enums\EnumPostMetakeys::ReportageId, true);
     return !empty($reportage_post_id);
 }
+
+/**
+ * @param $reportage_id
+ *
+ * @return void|bool|integer
+ */
+function pubjet_find_post_id_by_reportage_id($reportage_id) {
+    global $wpdb;
+    $sql  = "SELECT `post_id` FROM  {$wpdb->postmeta} WHERE `meta_key` = %s AND `meta_value` = %s LIMIT 1";
+    $psql = $wpdb->prepare($sql, \triboon\pubjet\includes\enums\EnumPostMetakeys::ReportageId, $reportage_id);
+    return $wpdb->get_var($psql);
+}

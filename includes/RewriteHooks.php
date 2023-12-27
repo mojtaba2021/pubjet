@@ -4,7 +4,6 @@ namespace triboon\pubjet\includes;
 
 use DateTime;
 use DateTimeZone;
-use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\traits\Utils;
 
 if (!defined("ABSPATH")) exit;
@@ -20,6 +19,40 @@ class RewriteHooks extends Singleton {
         add_action('pubjet-api_reportage', [$this, 'reportageRequest'], 15);
         add_action('pubjet-api_check-missed-reportage', [$this, 'checkMissedReportage'], 15);
         add_action('pubjet-api_version', [$this, 'checkPluginVersion'], 15);;
+        add_action('pubjet-api_delete-reportage', [$this, 'deleteReportage'], 15);;
+    }
+
+    /**
+     * @return void
+     */
+    public function deleteReportage() {
+        $reportage = $this->check(['DELETE', 'POST']);
+        if (is_array($reportage) && isset($reportage['error'])) {
+            wp_send_json_error(pubjet_isset_value($reportage['message']), pubjet_isset_value($reportage['status']));
+        }
+
+        pubjet_log($reportage);
+        $reportage_post_id = pubjet_find_post_id_by_reportage_id(pubjet_isset_value($reportage->id));
+        pubjet_log('Delete Reportage Post: ' . $reportage_post_id);
+
+        if (empty($reportage_post_id)) {
+            wp_send_json_error('Post not found.', 404);
+        }
+
+        $post = get_post($reportage_post_id);
+        if ($post->post_type !== pubjet_post_type()) {
+            wp_send_json_error('Post not found.', 404);
+        }
+
+        $result = wp_delete_post($reportage_post_id, true);
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message(), 500);
+        }
+
+        $this->success([
+                           'wpPostId'    => absint($reportage_post_id),
+                           'reportageId' => absint(pubjet_isset_value($reportage->id)),
+                       ]);
     }
 
     /**
@@ -31,23 +64,6 @@ class RewriteHooks extends Singleton {
                        ]);
     }
 
-
-    public function isValidHttpMethod($valid_methods = ['POST']) {
-        return in_array($_SERVER['REQUEST_METHOD'], $valid_methods);
-    }
-
-    public function getRequestData() {
-        $stream = fopen('php://input', 'r');
-        if ($stream) {
-            $rawData = '';
-            while ($chunk = fread($stream, $_SERVER['CONTENT_LENGTH'])) {
-                $rawData .= $chunk;
-            }
-            fclose($stream);
-            return json_decode($rawData, true);
-        }
-        return [];
-    }
 
     /**
      * @return void
@@ -162,6 +178,50 @@ class RewriteHooks extends Singleton {
 
         return pubjet_token() == $header_token;
 
+    }
+
+    public function isValidHttpMethod($valid_methods = ['POST']) {
+        return in_array($_SERVER['REQUEST_METHOD'], $valid_methods);
+    }
+
+    public function getRequestData() {
+        $stream = fopen('php://input', 'r');
+        if ($stream) {
+            $rawData = '';
+            while ($chunk = fread($stream, $_SERVER['CONTENT_LENGTH'])) {
+                $rawData .= $chunk;
+            }
+            fclose($stream);
+            return json_decode($rawData, true);
+        }
+        return [];
+    }
+
+    /**
+     * @return array|bool|object
+     */
+    private function check($method) {
+        if (!is_array($method)) {
+            $method = [$method];
+        }
+
+        if (!$this->isValidHttpMethod($method)) {
+            return [
+                'error'   => true,
+                'status'  => 401,
+                'message' => "The request method is invalid",
+            ];
+        }
+
+        if (!$this->isTokenValid()) {
+            return [
+                'error'   => true,
+                'status'  => 401,
+                'message' => "The token is not valid!",
+            ];
+        }
+
+        return (object)$this->getRequestData();
     }
 
 }
