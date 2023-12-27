@@ -6,5 +6,6 @@ namespace triboon\pubjet\includes\enums;
 defined('ABSPATH') || exit;
 
 class EnumPostMetakeys {
-    const ReportageId = 'pubjet_reportage_id';
+    const ReportageId         = 'pubjet_reportage_id';
+    const ReportageContentUrl = 'pubjet_reportage_content_url';
 }

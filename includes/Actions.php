@@ -15,12 +15,6 @@ class Actions extends Singleton {
         add_action("wp_head", [$this, "publishMissedSchedulePosts"], 15);
         add_action("wp_footer", [$this, "addScriptToReportage"], 15);
         add_action("admin_head", [$this, "pluginFont"], 15);
-//        add_action('admin_head', function() {
-//         pubjet_log([
-//                    'name' => 'siavash',
-//                    'family' => 'ebrahimi',
-//                       ]);
-//        });
     }
 
     /**

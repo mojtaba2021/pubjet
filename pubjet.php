@@ -141,6 +141,7 @@ if (!class_exists('Pubjet')) {
             require_once ABSPATH . 'wp-admin/includes/upgrade.php';
             require_once PUBJET_INC_DIR . 'functions.php';
             require_once PUBJET_INC_DIR . 'autoload.php';
+            require_once PUBJET_DIR . 'vendor/autoload.php';
         }
 
         /**

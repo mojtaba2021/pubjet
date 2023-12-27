@@ -99,13 +99,26 @@ class RewriteHooks extends Singleton {
 
         $reportage = (object)$this->getRequestData();
 
-        $response = ReportagePost::insert($reportage);
-        if (!$response) {
-            wp_send_json_error($response);
+        pubjet_log($reportage);
+
+        $wp_post_id = ReportagePost::insert($reportage);
+
+        if (!$wp_post_id) {
+            pubjet_log('Error: ' . $wp_post_id->get_error_message());
+            wp_send_json_error($wp_post_id);
+        }
+
+        // Log
+        if (!empty($reportage->wp_post_id)) {
+            // Update
+            pubjet_log('Post updated successfully. Post ID: ' . $reportage->wp_post_id);
+        } else {
+            // Insert
+            pubjet_log('Post created successfully. New Post ID: ' . $wp_post_id);
         }
 
         // Success
-        wp_send_json_success($response);
+        wp_send_json_success($wp_post_id);
     }
 
     public function finishRequest() {
@@ -137,7 +150,7 @@ class RewriteHooks extends Singleton {
      */
     public function isTokenValid() {
 
-        if (pubjet_is_debug_mode()) {
+        if (pubjet_is_dev_mode()) {
             return true;
         }
 

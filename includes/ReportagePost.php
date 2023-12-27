@@ -7,6 +7,7 @@ if (!defined("ABSPATH")) exit;
 use DateTime;
 use DateTimeZone;
 use Statickidz\GoogleTranslate;
+use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 
 class ReportagePost extends Singleton {
@@ -42,12 +43,12 @@ class ReportagePost extends Singleton {
      */
     public static function update($thereportage) {
 
-        if (!isset($thereportage->wp_post_id)) {
+        if (!isset($thereportage->wp_post_id) || !$thereportage->wp_post_id) {
             return false;
         }
 
         $post_id      = intval($thereportage->wp_post_id);
-        $reportage_id = get_post_meta($post_id, 'pubjet_reportage_id', true);
+        $reportage_id = get_post_meta($post_id, EnumPostMetakeys::ReportageId, true);
 
         if (!get_post($thereportage->wp_post_id) || $reportage_id != $thereportage->id) {
             return false;
@@ -68,7 +69,7 @@ class ReportagePost extends Singleton {
             $args['post_date_gmt'] = $post_date;
         }
 
-        $reportage_url = get_post_meta($post_id, 'pubjet_reportage_content_url', true);
+        $reportage_url = get_post_meta($post_id, EnumPostMetakeys::ReportageContentUrl, true);
         if ($reportage_url !== $thereportage->content_file) {
 
             $post_content = self::get_content_file($thereportage);
@@ -78,7 +79,7 @@ class ReportagePost extends Singleton {
             $args['post_content'] = $post_content['content'] ?? '';
 
             $args['meta_input'] = [
-                'pubjet_reportage_content_url' => $thereportage->content_file,
+                EnumPostMetakeys::ReportageContentUrl => $thereportage->content_file,
             ];
 
         }
@@ -99,7 +100,7 @@ class ReportagePost extends Singleton {
             return self::update($reportage);
         }
 
-        $def_category = get_option('pubjet_default_category');
+        $def_category = get_option(EnumOptions::DefaultCategory);
 
         $post_content = self::get_content_file($reportage);
         $post_content = self::get_post_content($post_content, $reportage->title);
@@ -108,7 +109,7 @@ class ReportagePost extends Singleton {
         $post_status = self::get_post_status($post_date);
 
         $args = [
-            'post_type'     => sanitize_text_field(PUBJET_POST_TYPE),
+            'post_type'     => sanitize_text_field(pubjet_post_type()),
             'post_title'    => isset($post_content['title']) ? sanitize_text_field($post_content['title']) : '',
             'post_status'   => sanitize_text_field($post_status),
             'post_content'  => $post_content['content'] ?? '',
@@ -116,8 +117,8 @@ class ReportagePost extends Singleton {
             'tags_input'    => isset($reportage->tags) && is_array($reportage->tags) ? map_deep($reportage->tags, 'sanitize_text_field') : [],
             'post_category' => (int)$def_category > 0 ? [intval($def_category)] : '',
             'meta_input'    => [
-                'pubjet_reportage_id'          => intval($reportage->id),
-                'pubjet_reportage_content_url' => sanitize_url($reportage->content_file),
+                EnumPostMetakeys::ReportageId         => intval($reportage->id),
+                EnumPostMetakeys::ReportageContentUrl => sanitize_url($reportage->content_file),
             ],
         ];
 
@@ -323,7 +324,7 @@ class ReportagePost extends Singleton {
         if (empty($reportage_id)) {
             return;
         }
-        $this->publish_reportage_request($post_id, $reportage_id);
+        $this->publishReportageRequest($post_id, $reportage_id);
     }
 
     /**
@@ -332,7 +333,12 @@ class ReportagePost extends Singleton {
      *
      * @return mixed
      */
-    public function publish_reportage_request($post_id, $reportage_id) {
+    public function publishReportageRequest($post_id, $reportage_id) {
+
+        if (pubjet_is_dev_mode()) {
+            return;
+        }
+
         $url = PUBJET_API_ROOT . '/exsternal/wp/reportages/' . $reportage_id . '/publish';
 
         $args = [

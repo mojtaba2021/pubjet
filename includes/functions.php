@@ -763,3 +763,15 @@ function pubjet_token() {
      */
     return apply_filters('pubjet_token', get_option(\triboon\pubjet\includes\enums\EnumOptions::Token));
 }
+
+/**
+ * @return string
+ */
+function pubjet_post_type() {
+    /**
+     * The pubjet_post_type filter.
+     *
+     * @since 1.0.0
+     */
+    return apply_filters('pubjet_post_type', PUBJET_POST_TYPE);
+}
