@@ -797,3 +797,11 @@ function pubjet_find_post_id_by_reportage_id($reportage_id) {
     $psql = $wpdb->prepare($sql, \triboon\pubjet\includes\enums\EnumPostMetakeys::ReportageId, $reportage_id);
     return $wpdb->get_var($psql);
 }
+
+
+/**
+ * @return string
+ */
+function pubjet_get_request_method() {
+    return strtoupper(pubjet_isset_value($_SERVER['REQUEST_METHOD']));
+}

@@ -19,14 +19,13 @@ class RewriteHooks extends Singleton {
         add_action('pubjet-api_reportage', [$this, 'reportageRequest'], 15);
         add_action('pubjet-api_check-missed-reportage', [$this, 'checkMissedReportage'], 15);
         add_action('pubjet-api_version', [$this, 'checkPluginVersion'], 15);;
-        add_action('pubjet-api_delete-reportage', [$this, 'deleteReportage'], 15);;
     }
 
     /**
      * @return void
      */
     public function deleteReportage() {
-        $reportage = $this->check(['DELETE', 'POST']);
+        $reportage = $this->check(['DELETE']);
         if (is_array($reportage) && isset($reportage['error'])) {
             wp_send_json_error(pubjet_isset_value($reportage['message']), pubjet_isset_value($reportage['status']));
         }
@@ -104,6 +103,14 @@ class RewriteHooks extends Singleton {
     }
 
     public function reportageRequest() {
+
+        // =================== Delete Reportage =================
+        if ('DELETE' === pubjet_get_request_method()) {
+            $this->deleteReportage();
+            return;
+        }
+
+        // =================== Insert or Update ===================
 
         if (!$this->isValidHttpMethod(['POST', 'PATCH'])) {
             wp_send_json_error("The request method is invalid", 401);
