@@ -8,6 +8,15 @@ const composeEnhancers =
         window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) ||
     compose;
 
-export const state = {};
+export const state = {
+    options: {
+        token: '',
+        debug: false,
+        category: '',
+        categories: [],
+        modal: false,
+    },
+    modal: false,
+};
 
 export default createStore(state, composeEnhancers(applyMiddleware(thunk)));

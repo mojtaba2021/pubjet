@@ -15,6 +15,12 @@ class Actions extends Singleton {
         add_action("wp_head", [$this, "publishMissedSchedulePosts"], 15);
         add_action("wp_footer", [$this, "addScriptToReportage"], 15);
         add_action("admin_head", [$this, "pluginFont"], 15);
+//        add_action('admin_head', function() {
+//         pubjet_log([
+//                    'name' => 'siavash',
+//                    'family' => 'ebrahimi',
+//                       ]);
+//        });
     }
 
     /**
@@ -31,7 +37,12 @@ class Actions extends Singleton {
                 font-style: normal;
                 font-display: swap;
             }
-            .mF0ELrBPqJ9R6bt1N3mw *, .ant-tooltip-inner, .ant-select-dropdown div {
+
+            .mF0ELrBPqJ9R6bt1N3mw *,
+            .ant-tooltip-inner,
+            .ant-select-dropdown div,
+            .ant-modal *,
+            .ant-popover * {
                 font-family: 'Vazirmatn';
             }
         </style>

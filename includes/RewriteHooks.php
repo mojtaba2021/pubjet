@@ -4,10 +4,14 @@ namespace triboon\pubjet\includes;
 
 use DateTime;
 use DateTimeZone;
+use triboon\pubjet\includes\enums\EnumOptions;
+use triboon\pubjet\includes\traits\Utils;
 
 if (!defined("ABSPATH")) exit;
 
 class RewriteHooks extends Singleton {
+
+    use Utils;
 
     /**
      * @return void
@@ -15,19 +19,18 @@ class RewriteHooks extends Singleton {
     public function init() {
         add_action('pubjet-api_reportage', [$this, 'reportageRequest'], 15);
         add_action('pubjet-api_check-missed-reportage', [$this, 'checkMissedReportage'], 15);
+        add_action('pubjet-api_version', [$this, 'checkPluginVersion'], 15);;
     }
 
-    public function isTokenValid() {
-
-        if (empty(get_option('pubjet_token'))) {
-            wp_send_json_error("No token has been set in the settings!", 401);
-        }
-
-        $header_token = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-
-        return get_option('pubjet_token') == $header_token;
-
+    /**
+     * @return void
+     */
+    public function checkPluginVersion() {
+        $this->success([
+                           'version' => PUBJ()->getVersion(),
+                       ]);
     }
+
 
     public function isValidHttpMethod($valid_methods = ['POST']) {
         return in_array($_SERVER['REQUEST_METHOD'], $valid_methods);
@@ -46,11 +49,16 @@ class RewriteHooks extends Singleton {
         return [];
     }
 
+    /**
+     * @return void
+     * @throws \Exception
+     */
     public function checkMissedReportage() {
 
         if (!$this->isValidHttpMethod(['POST'])) {
             wp_send_json_error("The request method is invalid", 401);
         }
+
         if (!$this->isTokenValid()) {
             wp_send_json_error("The token is not valid!", 401);
         }
@@ -64,16 +72,17 @@ class RewriteHooks extends Singleton {
         $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
         $now = $dt->format('Y-m-d H:i:s');
 
-        $post_type = sanitize_text_field(PUBJET_POST_TYPE);
-        $sql       = "SELECT ID FROM $wpdb->posts WHERE post_type='$post_type' AND post_status='future' AND post_date_gmt<'$now'";
-        $result    = $wpdb->get_results($sql);
+        $sql    = $wpdb->prepare("SELECT `ID` FROM $wpdb->posts WHERE `post_type` = %s AND post_status='future' AND post_date_gmt < %s", PUBJET_POST_TYPE, $now);
+        $result = $wpdb->get_results($sql);
 
         pubjet_log($result);
 
-        if ($result) {
-            foreach ($result as $post) {
-                wp_publish_post($post->ID);
-            }
+        if (!$result) {
+            return;
+        }
+
+        foreach ($result as $post) {
+            wp_publish_post($post->ID);
         }
 
     }
@@ -91,15 +100,12 @@ class RewriteHooks extends Singleton {
         $reportage = (object)$this->getRequestData();
 
         $response = ReportagePost::insert($reportage);
-
-        if ($response) {
-            // Success
-            wp_send_json_success($response);
+        if (!$response) {
+            wp_send_json_error($response);
         }
 
-        // Error
-        wp_send_json_error($response);
-
+        // Success
+        wp_send_json_success($response);
     }
 
     public function finishRequest() {
@@ -123,6 +129,25 @@ class RewriteHooks extends Singleton {
             ob_flush();
             flush();
         }
+
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTokenValid() {
+
+        if (pubjet_is_debug_mode()) {
+            return true;
+        }
+
+        if (empty(pubjet_token())) {
+            wp_send_json_error("No token has been set in the settings!", 401);
+        }
+
+        $header_token = pubjet_isset_value($_SERVER['HTTP_AUTHORIZATION'], '');
+
+        return pubjet_token() == $header_token;
 
     }
 

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'trim-redux';
 import store from './store/store';
+import ModalDebug from "./pages/Settings/ModalDebug";
 
 const PageSettings = React.lazy(() => import('./pages/Settings/Settings'));
 
@@ -13,6 +14,7 @@ const renderElement = (element, containerId) => {
     ReactDOM.render(<Provider store={store}>
         <React.Suspense fallback={<div>منتظر بمانید ...</div>}>
             {element}
+            <ModalDebug/>
         </React.Suspense>
     </Provider>, container);
 };

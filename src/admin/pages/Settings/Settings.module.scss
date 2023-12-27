@@ -46,6 +46,11 @@
 
 .select {
   cursor: pointer !important;
+  :global {
+    .ant-select-selection-item {
+      cursor: pointer;
+    }
+  }
 }
 
 
@@ -79,4 +84,8 @@
 .alert {
   text-align: center;
   margin-bottom: 16px;
+}
+
+.viewDebug {
+  cursor: pointer;
 }

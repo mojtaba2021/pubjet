@@ -1,60 +1,62 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import './Button.scss';
+import {Button as AntButton} from 'antd';
+import styles from './Button.module.scss';
 
 const Button = props => {
-  const {
-    id,
-    children,
-    onClick,
-    type,
-    large,
-    className,
-    block,
-    disabled,
-    loading,
-    style,
-  } = props;
-  return (
-      <button
-          id={id ? id : ''}
-          className={`
-            button button-${type}
-            ${large ? 'pubjet-btn-lg' : ''}
-            ${className} 
-            ${disabled ? 'pubjet-disabled' : ''} 
-            ${block ? 'pubjet-btn-block' : ''}
-            ${loading ? 'pubjet-disabled' : ''}
-          `}
-          onClick={onClick}
-          style={style}
-      >
-        {loading ? pubjet_params.i18n['please-wait'] : children}
-      </button>
-  );
+    const {
+        children,
+        onClick,
+        type,
+        className,
+        block,
+        disabled,
+        loading,
+        size,
+        icon,
+        buttonProps
+    } = props;
+    return (
+        <AntButton
+            className={`${className} ${styles.button}`}
+            type={type}
+            disabled={disabled}
+            onClick={onClick}
+            loading={loading}
+            block={block}
+            size={size}
+            icon={icon}
+            {...buttonProps}
+        >
+            {loading ? pubjet_params.i18n['pwait'] : children}
+        </AntButton>
+    );
 };
 
 Button.propTypes = {
-  id: PropTypes.string,
-  type: PropTypes.string,
-  block: PropTypes.bool,
-  disabled: PropTypes.bool,
-  onClick: PropTypes.func,
-  large: PropTypes.bool,
-  loading: PropTypes.bool,
-  className: PropTypes.string,
-  style: PropTypes.oneOfType([PropTypes.object, PropTypes.bool,]),
+    type: PropTypes.string,
+    size: PropTypes.string,
+    block: PropTypes.bool,
+    disabled: PropTypes.bool,
+    onClick: PropTypes.func,
+    large: PropTypes.bool,
+    icon: PropTypes.oneOfType([PropTypes.object, PropTypes.element, PropTypes.bool]),
+    loading: PropTypes.bool,
+    className: PropTypes.string,
+    style: PropTypes.oneOfType([PropTypes.object, PropTypes.bool,]),
+    buttonProps: PropTypes.object,
 };
 
 Button.defaultProps = {
-  id: '',
-  type: 'primary',
-  block: false,
-  disabled: false,
-  large: false,
-  className: '',
-  loading: false,
-  style: {},
+    type: 'primary',
+    block: true,
+    disabled: false,
+    large: false,
+    className: '',
+    loading: false,
+    size: 'large',
+    icon: false,
+    buttonProps: {},
 };
 
 export default Button;

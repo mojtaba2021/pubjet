@@ -1,0 +1,23 @@
+.button {
+  margin-top: 15px;
+}
+
+.wrapper {
+  margin-top: 15px;
+}
+
+.input {
+  text-align: left;
+  direction: ltr;
+}
+
+.buttonsWrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  :global {
+    .ant-btn {
+      width: 65px !important;
+    }
+  }
+}

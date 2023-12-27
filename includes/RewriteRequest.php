@@ -6,6 +6,9 @@ if (!defined("ABSPATH")) exit;
 
 class RewriteRequest extends Singleton {
 
+    /**
+     * @var string
+     */
     public static $prefix = 'pubjet-api';
 
     /**
@@ -17,11 +20,19 @@ class RewriteRequest extends Singleton {
         add_action('template_include', [$this, "setTemplateInclude"], 15);
     }
 
+    /**
+     * @return void
+     */
     public function setRewriteRules() {
         add_rewrite_rule('^' . self::$prefix . '/([^/]*)/?([^/]*)/?', 'index.php?pubjet_rest_query=$matches[1]&pubjet_rest_param=$matches[2]', 'top');
         flush_rewrite_rules();
     }
 
+    /**
+     * @param $query_vars
+     *
+     * @return mixed
+     */
     public function setQueryVars($query_vars) {
         $query_vars[] = 'pubjet_rest_query';
         $query_vars[] = 'pubjet_rest_param';

@@ -1,9 +1,13 @@
 import React from 'react';
 import styles from './Settings.module.scss';
-import {getAdminAjaxUrl, getAxios, getImagesUrl} from "../../../shared/scripts/utils";
-import {Alert, Button, Form, Select, Spin, Switch, Tooltip} from 'antd';
+import {getAxios, getImagesUrl} from "../../../shared/scripts/utils";
+import {Alert, Button, Form, Select, Space, Spin, Switch, Tooltip} from 'antd';
 import BaseComponent from "../../components/BaseComponent/BaseComponent";
-import {ReloadOutlined} from "@ant-design/icons";
+import {EyeOutlined, ReloadOutlined, SaveOutlined} from "@ant-design/icons";
+import {changeInput, loadOptions, saveOptions} from "./Actions";
+
+import {connect} from "trim-redux";
+import {openGlobalModal} from "../../store/Actions";
 
 const axios = getAxios();
 
@@ -32,31 +36,7 @@ class Settings extends BaseComponent {
      */
     fetch = () => {
         this.setState({error: false, loading: true}, () => {
-            axios.get(getAdminAjaxUrl(), {
-                params: {
-                    action: 'pubjet-get-options',
-                    security: pubjet_params.nonce,
-                },
-            }).then(response => {
-                if (response.success) {
-                    const {token, debug, category, categories} = response.payload;
-                    this.setState({
-                        token,
-                        debug,
-                        category,
-                        categories,
-                    }, () => {
-                        if (this.state.category) {
-                            const found = this.state.categories.find(item => item.value == this.state.category);
-                            if (found) {
-                                this.setState({category: found});
-                            }
-                        }
-                    });
-                } else {
-                    this.setState({error: true,});
-                }
-            }).catch(err => {
+            loadOptions().catch(err => {
                 this.setState({error: true,});
             }).finally(() => {
                 this.setState({loading: false,});
@@ -69,20 +49,10 @@ class Settings extends BaseComponent {
      */
     save = () => {
         this.setState({error: false, saving: true,}, () => {
-            axios.post(getAdminAjaxUrl(), {
-                action: 'pubjet-save-options',
-                token: this.state.token,
-                debug: this.state.debug,
-                category: this.state.category ? this.state.category.value : '',
-                security: pubjet_params.nonce,
-            }).then(response => {
-                if (response.success) {
-                    this.setState({saved: true,});
-                } else {
-                    this.setState({error: true,});
-                }
-            }).catch(err => {
-                this.setState({error: true,});
+            saveOptions().then(response => {
+                this.setState({saved: true,});
+            }).catch(error => {
+                this.setState({error: true, saved: false,});
             }).finally(() => {
                 this.setState({saving: false,});
             });
@@ -120,32 +90,46 @@ class Settings extends BaseComponent {
      * @since 1.0.0
      */
     form = () => {
+        const {token, debug, category, categories} = this.props.options;
         return <form>
             <Form className={styles.form} layout={`vertical`} autoComplete="off">
                 <Form.Item label={'کلید دسترسی تریبون'}>
-                    {this.renderInput({name: 'token', className: styles.input})}
+                    {this.renderInput({
+                        name: 'token',
+                        value: token,
+                        className: styles.input,
+                        onChange: (e) => {
+                            changeInput('token', e.target.value);
+                        },
+                    })}
                 </Form.Item>
                 <Form.Item label={'دسته بندی پیشفرض انتشار'}>
                     <Select
                         className={`${styles.input} ${styles.select}`}
-                        options={this.state.categories}
-                        value={this.state.category}
+                        options={categories}
+                        value={category}
                         size={'large'}
                         showSearch={true}
                         labelInValue={true}
                         onChange={value => {
-                            this.setState({
-                                category: value,
-                            });
+                            changeInput('category', value);
                         }}
                     />
                 </Form.Item>
                 <Form.Item label={'حالت اشکال زدایی'}>
-                    <Switch checked={this.state.debug} onChange={(checked) => {
-                        this.setState({
-                            debug: checked,
-                        });
-                    }} size={'default'}/>
+                    <Space>
+                        <Switch checked={debug} onChange={(checked) => {
+                            changeInput('debug', checked);
+                        }} size={'default'}/>
+                        {debug && <Tooltip title={'مشاهده لاگ درخواست ها'}>
+                            <EyeOutlined
+                                className={styles.viewDebug} style={{fontSize: '18px'}}
+                                onClick={() => {
+                                    openGlobalModal('debug');
+                                }}
+                            />
+                        </Tooltip>}
+                    </Space>
                 </Form.Item>
             </Form>
         </form>;
@@ -163,6 +147,7 @@ class Settings extends BaseComponent {
             size={'large'}
             loading={saving}
             onClick={this.save}
+            icon={<SaveOutlined />}
         >
             ذخیره تغییرات
         </Button>
@@ -173,7 +158,7 @@ class Settings extends BaseComponent {
      */
     refreshIcon = () => {
         return <Tooltip title={'بارگذاری مجدد'}>
-            <ReloadOutlined className={styles.refresh} onClick={this.fetch} />
+            <ReloadOutlined className={styles.refresh} onClick={this.fetch}/>
         </Tooltip>
     };
 
@@ -199,4 +184,8 @@ class Settings extends BaseComponent {
     }
 }
 
-export default Settings;
+const mstp = (state) => ({
+    options: state.options,
+});
+
+export default connect(mstp)(Settings);

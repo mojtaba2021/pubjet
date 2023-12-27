@@ -17,17 +17,74 @@ class Ajax extends Singleton {
         $this->ajax('get-options', [$this, 'getOptions'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('update-options', [$this, 'updateOptions'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('save-options', [$this, 'saveOptions'], EnumAjaxPrivType::LoggedIn);
-        $this->ajax('find-categories', [$this, 'getCategories'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('get-debug', [$this, 'getDebug'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('delete-debug', [$this, 'deleteDebug'], EnumAjaxPrivType::LoggedIn);
     }
 
     /**
      * @return void
      */
-    public function getCategories() {
+    public function deleteDebug() {
         $this->checkNonce($this->get('security'));
 
+        /**
+         * The pubjet_before_delete_debug action.
+         *
+         * @since 1.0.0
+         */
+        do_action('pubjet_before_delete_debug');
 
-        $this->success($result);
+        // Check if file exists
+        if (!file_exists(pubjet_debug_dir())) {
+            $this->success();
+        }
+
+        if (is_writeable(pubjet_debug_dir())) {
+            unlink(pubjet_debug_dir()); // Delete debug file
+        } else  {
+            $this->error('خطا در حذف فایل. دسترسی حذف فایل از سمت هاست محدود شده است');
+        }
+
+        /**
+         * The pubjet_after_delete_debug action.
+         *
+         * @since 1.0.0
+         */
+        do_action('pubjet_after_delete_debug');
+
+        $this->success();
+    }
+
+    /**
+     * @return void
+     */
+    public function getDebug() {
+        $this->checkNonce($this->get('security'));
+
+        /**
+         * The pubjet_get_debug action.
+         *
+         * @since 1.0.0
+         */
+        do_action('pubjet_get_debug');
+
+        // Check if debug file exists
+        if (!file_exists(pubjet_debug_dir()) || !is_readable(pubjet_debug_dir())) {
+            $this->success(['text' => '',]);
+        }
+
+        $content = file_get_contents(pubjet_debug_dir());
+
+        /**
+         * The pubjet_debug_content filter.
+         *
+         * @since 1.0.0
+         */
+        $content = apply_filters('pubjet_debug_content', $content);
+
+        $this->success([
+                           'text' => $content,
+                       ]);
     }
 
     /**
@@ -114,7 +171,7 @@ class Ajax extends Singleton {
         do_action('pubjet_after_get_options', $options);
 
         $this->success(array_merge($options, [
-            'categories' => $formatted_categories
+            'categories' => $formatted_categories,
         ]));
 
     }

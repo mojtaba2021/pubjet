@@ -7,6 +7,7 @@ if (!defined("ABSPATH")) exit;
 use DateTime;
 use DateTimeZone;
 use Statickidz\GoogleTranslate;
+use triboon\pubjet\includes\enums\EnumPostMetakeys;
 
 class ReportagePost extends Singleton {
 
@@ -34,6 +35,11 @@ class ReportagePost extends Singleton {
 
     }
 
+    /**
+     * @param $thereportage
+     *
+     * @return bool
+     */
     public static function update($thereportage) {
 
         if (!isset($thereportage->wp_post_id)) {
@@ -82,6 +88,11 @@ class ReportagePost extends Singleton {
         return boolval($update);
     }
 
+    /**
+     * @param $reportage
+     *
+     * @return bool|int|\WP_Error
+     */
     public static function insert($reportage) {
 
         if ($reportage->wp_post_id = self::reportage_exists($reportage->id)) {
@@ -136,12 +147,16 @@ class ReportagePost extends Singleton {
 
     public static function reportage_exists($reportage_id) {
         global $wpdb;
-        $tbl     = $wpdb->prefix . 'postmeta';
-        $post_id = $wpdb->get_col($wpdb->prepare("SELECT post_id FROM $tbl where meta_key ='pubjet_reportage_id' and meta_value like '%d' LIMIT 1", $reportage_id));
-
+        $post_id = $wpdb->get_col($wpdb->prepare("SELECT `post_id` FROM {$wpdb->postmeta} where `meta_key` = %s AND `meta_value` = %s LIMIT 1", EnumPostMetakeys::ReportageId, $reportage_id));
         return is_array($post_id) ? reset($post_id) : $post_id;
     }
 
+    /**
+     * @param $content
+     * @param $title
+     *
+     * @return array
+     */
     public static function get_post_content($content, $title) {
         $content                         = self::handle_images($content);
         $post_content                    = self::nomalize_html($content['html_file']);
@@ -150,6 +165,11 @@ class ReportagePost extends Singleton {
         return $post_content;
     }
 
+    /**
+     * @param $reportage
+     *
+     * @return string
+     */
     public static function get_post_name($reportage) {
         $post_name = $reportage->title;
         $trans     = new GoogleTranslate();
@@ -161,9 +181,7 @@ class ReportagePost extends Singleton {
         $post_content = preg_replace('/\s*<a/', '<a', $post_content);
         $post_content = preg_replace('/<\/a>\s*/', '</a>', $post_content);
         $post_content = str_replace("\n\r", "", $post_content);
-        $post_content = str_replace("\n", "", $post_content);
-
-        return $post_content;
+        return str_replace("\n", "", $post_content);
     }
 
     public static function handle_images($html_content) {
@@ -249,7 +267,9 @@ class ReportagePost extends Singleton {
         @unlink($tmp);
 
         // Error uploading
-        if (is_wp_error($attachment_id)) return false;
+        if (is_wp_error($attachment_id)) {
+            return false;
+        }
 
         // Success, return attachment ID (int)
         return (int)$attachment_id;
@@ -299,11 +319,11 @@ class ReportagePost extends Singleton {
      * @return void
      */
     public function afterPublishReportage($post_id) {
-        $reportage_id = get_post_meta($post_id, 'pubjet_reportage_id', true);
-
-        if (!empty($reportage_id)) {
-            $this->publish_reportage_request($post_id, $reportage_id);
+        $reportage_id = get_post_meta($post_id, EnumPostMetakeys::ReportageId, true);
+        if (empty($reportage_id)) {
+            return;
         }
+        $this->publish_reportage_request($post_id, $reportage_id);
     }
 
     /**
@@ -317,7 +337,7 @@ class ReportagePost extends Singleton {
 
         $args = [
             'headers'     => [
-                'Authorization' => 'api-key ' . PUBJET_API_TOKEN,
+                'Authorization' => 'api-key ' . pubjet_token(),
                 'Content-Type'  => 'application/json',
             ],
             'body'        => json_encode(['url' => get_the_permalink($post_id)]),
@@ -330,6 +350,5 @@ class ReportagePost extends Singleton {
         pubjet_log([$response, $url, $args]);
 
         return json_decode(wp_remote_retrieve_body($response), true);
-
     }
 }

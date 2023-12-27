@@ -1,7 +1,7 @@
 import NProgress from 'nprogress';
 import copy from 'copy-text-to-clipboard';
 import axios from './axios';
-
+import {message as AntMessage} from 'antd';
 const $ = jQuery;
 
 // Jump to top
@@ -77,7 +77,7 @@ export const isRTL = () => {
  * @since 1.0
  * @param message
  */
-export const showErrorMessage = (message, toastOptions = {}) => {
+export const showErrorMessage = (message) => {
     let result = '';
     if ($.isArray(message)) {
         for (let i = 0; i < message.length; i++) {
@@ -86,19 +86,10 @@ export const showErrorMessage = (message, toastOptions = {}) => {
     } else {
         result = message;
     }
-    $.toast({
-        position: 'bottom-right',
-        textAlign: 'center',
-        bgColor: '#ffc64b',
-        textColor: '#333',
-        loader: true,
-        loaderBg: '#cf9e2a',
-        text: result,
-        stack: false,
-        hideAfter: 6000,
-        allowToastClose: false,
-        ...pubjet_params.toast_options,
-        ...toastOptions,
+    const [messageApi, contextHolder] = AntMessage.useMessage();
+    messageApi.open({
+        type: 'error',
+        content: message,
     });
 };
 
@@ -107,17 +98,12 @@ export const showErrorMessage = (message, toastOptions = {}) => {
  * @param text
  * @param options
  */
-export const showSuccessMessage = (text, options) => {
-    const toastOptions = {
-        position: 'bottom-center',
-        textAlign: 'center',
-        bgColor: '#000',
-        textColor: '#fff',
-        text: text,
-        loader: true,
-        stack: false,
-    };
-    $.toast(toastOptions);
+export const showSuccessMessage = (text) => {
+    const [messageApi, contextHolder] = AntMessage.useMessage();
+    messageApi.open({
+        type: 'success',
+        content: text,
+    });
 };
 
 /**

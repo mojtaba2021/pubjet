@@ -701,15 +701,15 @@ function pubjet_wrap_a($args) {
  */
 function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
 
-    if (PUBJET_DEBUG_MODE === false) {
+    if (!pubjet_is_debug_mode()) {
         return;
     }
 
     if (is_array($entry) || is_object($entry)) {
-        $entry = json_encode($entry);
+        $entry = print_r($entry, true);
     }
 
-    $file  = PUBJET_DIR_PATH . 'debug.txt';
+    $file  = pubjet_debug_dir();
     $file  = fopen($file, 'a');
     $bytes = fwrite($file, $method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n");
     fclose($file);
@@ -738,4 +738,28 @@ function pubjet_options() {
         'debug'    => get_option(\triboon\pubjet\includes\enums\EnumOptions::DebugMode, false,),
         'category' => get_option(\triboon\pubjet\includes\enums\EnumOptions::DefaultCategory, ''),
     ]);
+}
+
+/**
+ * @return string
+ */
+function pubjet_debug_dir() {
+    /**
+     * The pubjet_debug_dir filter.
+     *
+     * @since 1.0.0
+     */
+    return apply_filters('pubjet_debug_dir', PUBJET_DIR_PATH . 'debug.txt');
+}
+
+/**
+ * @return string
+ */
+function pubjet_token() {
+    /**
+     * The pubjet_token filter.
+     *
+     * @since 1.0.0
+     */
+    return apply_filters('pubjet_token', get_option(\triboon\pubjet\includes\enums\EnumOptions::Token));
 }
