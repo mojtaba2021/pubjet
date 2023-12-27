@@ -15,6 +15,18 @@ class Filters extends Singleton {
         add_filter("display_post_states", [$this, "displayPostStates"], 15, 2);
         add_filter('parse_query', [$this, "adminFilterPosts"], 15);
         add_filter("the_content", [$this, "filterTheContent"], 0, 2);
+        add_filter('post_row_actions', [$this, 'regenerateThumbnail'], 15, 2);
+    }
+
+    /**
+     * @return void
+     */
+    public function regenerateThumbnail($actions, $post) {
+        if (!pubjet_is_reportage($post->ID)) {
+            return $actions;
+        }
+        $actions['rethumb'] = sprintf('<button type="button" class="button-link pubjet-regthumb" data-post-id="%s">تولید مجدد تصویر شاخص</button>', $post->ID);
+        return $actions;
     }
 
     /**

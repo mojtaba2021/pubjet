@@ -127,8 +127,8 @@ class Actions extends Singleton {
      */
     public function registerMenu() {
         add_menu_page(
-            'تنظیمات پاب‌جت',
-            'تنظیمات پاب‌جت',
+            'پاب جت',
+            'پاب جت',
             'manage_options',
             'pubjet_settings',
             [$this, 'pubjetSettingsPageCallback'],

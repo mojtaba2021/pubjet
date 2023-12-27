@@ -185,7 +185,7 @@ class ReportagePost extends Singleton {
         return str_replace("\n", "", $post_content);
     }
 
-    public static function handle_images($html_content) {
+    public static function handle_images($html_content, $just_thumbnail = false) {
         preg_match_all('/<img[^>]+>/i', $html_content, $result);
         $featured_image_isset = false;
         $featured_image_id    = null;
@@ -197,13 +197,26 @@ class ReportagePost extends Singleton {
 
                 $src = $matches[1];
 
-                $attach_id = self::upload_from_url(str_replace('\\"', '', $src));
-                if ($featured_image_isset == false) {
+                if ($just_thumbnail) {
+
+                    $attach_id            = self::upload_from_url(str_replace('\\"', '', $src));
                     $featured_image_id    = $attach_id;
-                    $featured_image_isset = true;
+                    $html_content         = str_replace($src, wp_get_attachment_url($attach_id), $html_content);
+
+                    break;
+
+                } else {
+                    $attach_id = self::upload_from_url(str_replace('\\"', '', $src));
+
+                    if ($featured_image_isset == false) {
+                        $featured_image_id    = $attach_id;
+                        $featured_image_isset = true;
+                    }
+
+                    $html_content = str_replace($src, wp_get_attachment_url($attach_id), $html_content);
                 }
 
-                $html_content = str_replace($src, wp_get_attachment_url($attach_id), $html_content);
+
             }
 
         }

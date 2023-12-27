@@ -602,6 +602,13 @@ export const getAxios = () => {
 };
 
 /**
+ * @since 1.0.0
+ */
+export const getSecurityNonce = () => {
+    return pubjet_params.nonce;
+};
+
+/**
  * @param redirect
  */
 export const redirectWithRefererPriority = (redirect) => {

@@ -775,3 +775,13 @@ function pubjet_post_type() {
      */
     return apply_filters('pubjet_post_type', PUBJET_POST_TYPE);
 }
+
+/**
+ * @param $post_id
+ *
+ * @return bool
+ */
+function pubjet_is_reportage($post_id) {
+    $reportage_post_id = get_post_meta($post_id, \triboon\pubjet\includes\enums\EnumPostMetakeys::ReportageId, true);
+    return !empty($reportage_post_id);
+}

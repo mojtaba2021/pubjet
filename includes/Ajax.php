@@ -4,6 +4,7 @@ namespace triboon\pubjet\includes;
 
 use triboon\pubjet\includes\enums\EnumAjaxPrivType;
 use triboon\pubjet\includes\enums\EnumOptions;
+use triboon\pubjet\includes\enums\EnumPostMetakeys;
 use triboon\pubjet\includes\traits\Utils;
 
 class Ajax extends Singleton {
@@ -19,13 +20,69 @@ class Ajax extends Singleton {
         $this->ajax('save-options', [$this, 'saveOptions'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('get-debug', [$this, 'getDebug'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('delete-debug', [$this, 'deleteDebug'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('reg-thumb', [$this, 'regThumbnail'], EnumAjaxPrivType::LoggedIn);
+    }
+
+    /**
+     * @return void
+     */
+    public function regThumbnail() {
+        $this->checkNonce($this->post('security'));
+
+        if (empty($this->post('postId'))) {
+            $this->error('Permission error.');
+        }
+
+        $post = get_post($this->post('postId'));
+        if (!$post) {
+            $this->error('Post not found.');
+        }
+
+        // Check if this post is reportage
+        if (!pubjet_is_reportage($post->ID)) {
+            $this->error('Post is not a reportage.');
+        }
+
+        /**
+         * The pubjet_generate_post_thumbnail action.
+         *
+         * @since 1.0.0
+         */
+        do_action('pubjet_generate_post_thumbnail', $post->ID, $post);
+
+        $triboon_panel_reportage_content = get_post_meta($post->ID, EnumPostMetakeys::ReportageContentUrl, true);
+        if (empty($triboon_panel_reportage_content)) {
+            $this->error('Reportage content is empty.');
+        }
+
+        $reportage      = [
+            'content_file' => $triboon_panel_reportage_content,
+        ];
+        $post_content   = ReportagePost::get_content_file((object)$reportage);
+        $post_thumbnail = ReportagePost::handle_images($post_content, true);
+
+        if (empty($post_thumbnail['featured_img_id'])) {
+            pubjet_log($post_thumbnail);
+            $this->error('Error creating post thumbnail.');
+        }
+
+        $post_attach_id = get_post_thumbnail_id($post);
+        if ($post_attach_id) {
+            // Delete old featured image
+            wp_delete_attachment($post_attach_id, true);
+        }
+
+        // Set new thumbnail
+        set_post_thumbnail($post->ID, intval($post_thumbnail['featured_img_id']));
+
+        $this->success($post_thumbnail);
     }
 
     /**
      * @return void
      */
     public function deleteDebug() {
-        $this->checkNonce($this->get('security'));
+        $this->checkNonce($this->post('security'));
 
         /**
          * The pubjet_before_delete_debug action.

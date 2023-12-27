@@ -1,7 +1,7 @@
 @import './variables';
 @import './mixins';
 
-.triboon {
+.pubjet {
   &-feather-star {
     &.filled {
       color: orange;
@@ -55,15 +55,15 @@
   }
 }
 
-.triboon-modal-blocker {
+.pubjet-modal-blocker {
   z-index: 99999999;
   background-color: rgba(0, 0, 0, 0.1);
-  .triboon-modal {
+  .pubjet-modal {
     background-color: white !important;
   }
 }
 
-.triboon-modal {
+.pubjet-modal {
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
   -o-box-shadow: none;

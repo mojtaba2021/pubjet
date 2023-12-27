@@ -1,11 +1,11 @@
 @import './variables';
 @import './mixins';
 
-.triboon-dropdown {
+.pubjet-dropdown {
   position: relative;
   display: inline-block;
   &:hover {
-    .triboon-dropdown-content {
+    .pubjet-dropdown-content {
       display: block;
     }
   }
