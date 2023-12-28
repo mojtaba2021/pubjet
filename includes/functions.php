@@ -836,6 +836,7 @@ function pubjet_strings() {
         'general'                 => 'عمومی',
         'debug'                   => 'اشکال زدایی',
         'advanced'                => 'پیشرفته',
+        'saved'                   => 'ذخیره شد',
     ]);
 }
 

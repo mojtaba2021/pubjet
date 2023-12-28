@@ -117,7 +117,7 @@ module.exports = {
                     options: {
                         name: '[name].[ext]',
                         limit: 1000000,
-                        publicPath: process.env.PUBLIC_PATH + '/assets/images',
+                        publicPath: process.env.PUBLIC_PATH + '/assets/img',
                     },
                 },
             },

@@ -2,6 +2,11 @@ import NProgress from 'nprogress';
 import copy from 'copy-text-to-clipboard';
 import axios from './axios';
 import {message as AntMessage} from 'antd';
+
+AntMessage.config({
+    top: 50,
+});
+
 const $ = jQuery;
 
 // Jump to top
@@ -86,11 +91,7 @@ export const showErrorMessage = (message) => {
     } else {
         result = message;
     }
-    const [messageApi, contextHolder] = AntMessage.useMessage();
-    messageApi.open({
-        type: 'error',
-        content: message,
-    });
+    AntMessage.error(result, 3);
 };
 
 /**
@@ -99,11 +100,7 @@ export const showErrorMessage = (message) => {
  * @param options
  */
 export const showSuccessMessage = (text) => {
-    const [messageApi, contextHolder] = AntMessage.useMessage();
-    messageApi.open({
-        type: 'success',
-        content: text,
-    });
+    AntMessage.success(text, 3);
 };
 
 /**
@@ -113,15 +110,15 @@ export const showSuccessMessage = (text) => {
  */
 export const showLoadingBar = (text = '') => {
     const toastOptions = {
-        position: 'bottom-center',
-        textAlign: 'center',
-        bgColor: '#000',
-        textColor: '#fff',
-        text: text ? text : pubjet_params.i18n['please-wait'],
-        loader: false,
-        hideAfter: false,
-        allowToastClose: false,
-        stack: false,
+        position          : 'bottom-center',
+        textAlign         : 'center',
+        bgColor           : '#000',
+        textColor         : '#fff',
+        text              : text ? text : pubjet_params.i18n['please-wait'],
+        loader            : false,
+        hideAfter         : false,
+        allowToastClose   : false,
+        stack             : false,
         showHideTransition: 'slide',
     };
     $.toast(toastOptions);
@@ -288,9 +285,9 @@ export const getDashboardNonce = () => {
  */
 export const showLoadingModal = () => {
     $('.modal').modal({
-        showClose: false,
-        clickClose: false,
-        escapeClose: false,
+        showClose   : false,
+        clickClose  : false,
+        escapeClose : false,
         fadeDuration: 100,
     });
 };
@@ -327,8 +324,8 @@ export const hideLoading = () => {
  */
 export const initTableStoreData = () => {
     return {
-        data: [],
-        filter: {
+        data      : [],
+        filter    : {
             search: '',
         },
         pagination: initPaginationStoreData(),
@@ -340,9 +337,9 @@ export const initTableStoreData = () => {
  */
 export const initPaginationStoreData = () => {
     return {
-        perPage: 25,
+        perPage    : 25,
         currentPage: 1,
-        totalItems: 0,
+        totalItems : 0,
     };
 };
 
@@ -441,14 +438,14 @@ export const validateDynamicFields = ($wrapper) => {
  * @type {{}}
  */
 export const OTPActionTypes = {
-    Subscribed: 'subscribe_newsletter',
-    Unsubscribed: 'unsubscribe_newsletter',
-    Signup: 'signup_otp',
-    Login: 'login_otp',
-    ResetPassword: 'rpass_otp',
-    DownloadFile: 'download_file',
-    ForceVerify: 'force_verify_otp',
-    EditMobile: 'edit_mobile',
+    Subscribed        : 'subscribe_newsletter',
+    Unsubscribed      : 'unsubscribe_newsletter',
+    Signup            : 'signup_otp',
+    Login             : 'login_otp',
+    ResetPassword     : 'rpass_otp',
+    DownloadFile      : 'download_file',
+    ForceVerify       : 'force_verify_otp',
+    EditMobile        : 'edit_mobile',
     VerifyBillingPhone: 'verify_billing_phone',
 };
 
@@ -459,8 +456,8 @@ export const OTPActionTypes = {
 export const showLoginModal = () => {
     $('#triboon-modal-login').modal({
         fadeDuration: 90,
-        clickClose: pubjet_params.login_signup_modal.outside_close,
-        escapeClose: false,
+        clickClose  : pubjet_params.login_signup_modal.outside_close,
+        escapeClose : false,
     });
 };
 
@@ -492,8 +489,8 @@ export const hideLoadingSpinner = () => {
  */
 export function getQueryParameterByName(name, url = window.location.href) {
     name = name.replace(/[\[\]]/g, '\\$&');
-    const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-        results = regex.exec(url);
+    const regex   = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+          results = regex.exec(url);
     if (!results) {
         return null;
     }

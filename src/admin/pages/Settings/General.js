@@ -7,6 +7,7 @@ import SaveAlert from "./SaveAlert";
 import Form from "./Form";
 import {SaveOutlined} from "@ant-design/icons";
 import {loadOptions, saveOptions} from "./Actions";
+import {showSuccessMessage} from "../../../shared/scripts/utils";
 
 class General extends BaseComponent {
 

@@ -21,6 +21,25 @@ class RewriteHooks extends Singleton {
         add_action('pubjet-api_version', [$this, 'checkPluginVersion'], 15);;
         add_action('pubjet-api_copyright', [$this, 'toggleCopyright'], 15);
         add_action('pubjet-api_check-missed-reportage', [$this, 'checkMissedReportage'], 15);
+        add_action('pubjet-api_siteinfo', [$this, 'siteInfo'], 15);
+    }
+
+    /**
+     * @return void
+     */
+    public function siteInfo() {
+        $data = $this->check(['GET'], false);
+        if (is_array($data) && isset($data['error'])) {
+            wp_send_json_error(pubjet_isset_value($data['message']), pubjet_isset_value($data['status']));
+        }
+
+        $result = [
+            'title' => get_bloginfo('name'),
+            'descr' => get_bloginfo('description'),
+            'url'   => get_bloginfo('wpurl'),
+        ];
+
+        $this->success($result);
     }
 
     /**

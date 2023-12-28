@@ -36,7 +36,10 @@ class Actions extends Singleton {
             .ant-tooltip-inner,
             .ant-select-dropdown div,
             .ant-modal *,
-            .ant-popover * {
+            .ant-popover *,
+            .ant-message *,
+            #pubjet-page-settings-content noscript
+            {
                 font-family: 'Vazirmatn';
             }
         </style>

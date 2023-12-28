@@ -5,7 +5,7 @@ import {
     getAxios,
     getSecurityNonce,
     showErrorMessage,
-    pubjet__
+    pubjet__, showSuccessMessage
 } from "../../../shared/scripts/utils";
 import {Button, Form, Space, Spin, Switch, Tooltip} from "antd";
 import styles from "./Debug.module.scss";
@@ -139,6 +139,7 @@ class Debug extends BaseComponent {
             <Form.Item label={pubjet__('enable')}>
                 <Switch checked={debug} onChange={(checked) => {
                     changeInput('debug', checked);
+                    showSuccessMessage(pubjet__('saved'));
                     saveOptions();
                 }} size={'default'}/>
             </Form.Item>

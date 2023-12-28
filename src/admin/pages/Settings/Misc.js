@@ -2,7 +2,7 @@ import React from 'react';
 import {Form, Switch} from "antd";
 import {changeInput, saveOptions} from "./Actions";
 import {connect} from "trim-redux";
-import {pubjet__} from "../../../shared/scripts/utils";
+import {pubjet__, showSuccessMessage} from "../../../shared/scripts/utils";
 
 import styles from './Misc.module.scss';
 
@@ -14,6 +14,7 @@ const Misc = props => {
                 <Switch checked={uninstall} onChange={(checked) => {
                     changeInput('uninstall', checked);
                     saveOptions();
+                    showSuccessMessage(pubjet__('saved'));
                 }} size={'default'}/>
             </Form.Item>
         </Form>

@@ -38,7 +38,6 @@ const Form = props => {
                 options={categories}
                 value={category}
                 size={'large'}
-                showSearch={true}
                 labelInValue={true}
                 onChange={value => {
                     changeInput('category', value);
