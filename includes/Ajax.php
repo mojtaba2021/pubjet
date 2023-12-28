@@ -30,17 +30,17 @@ class Ajax extends Singleton {
         $this->checkNonce($this->post('security'));
 
         if (empty($this->post('postId'))) {
-            $this->error('Permission error.');
+            $this->error(pubjet__('missing-params'));
         }
 
         $post = get_post($this->post('postId'));
         if (!$post) {
-            $this->error('Post not found.');
+            $this->error(pubjet__('post-not-found'));
         }
 
         // Check if this post is reportage
         if (!pubjet_is_reportage($post->ID)) {
-            $this->error('Post is not a reportage.');
+            $this->error(pubjet__('post-not-reportage'));
         }
 
         /**
@@ -52,7 +52,7 @@ class Ajax extends Singleton {
 
         $triboon_panel_reportage_content = get_post_meta($post->ID, EnumPostMetakeys::ReportageContentUrl, true);
         if (empty($triboon_panel_reportage_content)) {
-            $this->error('Reportage content is empty.');
+            $this->error(pubjet__('empty-reportage-content'));
         }
 
         $reportage      = [
@@ -99,7 +99,7 @@ class Ajax extends Singleton {
         if (is_writeable(pubjet_debug_dir())) {
             unlink(pubjet_debug_dir()); // Delete debug file
         } else {
-            $this->error('خطا در حذف فایل. دسترسی حذف فایل از سمت هاست محدود شده است');
+            $this->error(pubjet__('delete-permission-limit'));
         }
 
         /**
@@ -160,6 +160,7 @@ class Ajax extends Singleton {
         update_option(EnumOptions::Token, $this->post('token'));
         update_option(EnumOptions::DebugMode, $this->formatBoolean($this->post('debug')));
         update_option(EnumOptions::DefaultCategory, $this->post('category'));
+        update_option(EnumOptions::UninstallCleanup, $this->formatBoolean($this->post('uninstall')));
 
         /**
          * The pubjet_after_save_options filter.

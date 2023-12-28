@@ -1,9 +1,7 @@
 import React from 'react';
-import styles from "./Settings.module.scss";
+import styles from "./Form.module.scss";
 import {changeInput} from "./Actions";
-import {Select, Space, Switch, Tooltip, Form as AntForm, Input} from "antd";
-import {EyeOutlined} from "@ant-design/icons";
-import {openGlobalModal} from "../../store/Actions";
+import {Form as AntForm, Input, Select} from "antd";
 import {connect} from "trim-redux";
 
 const {TextArea} = Input;
@@ -46,21 +44,6 @@ const Form = props => {
                     changeInput('category', value);
                 }}
             />
-        </AntForm.Item>
-        <AntForm.Item label={'حالت اشکال زدایی'}>
-            <Space>
-                <Switch checked={debug} onChange={(checked) => {
-                    changeInput('debug', checked);
-                }} size={'default'}/>
-                {debug && <Tooltip title={'مشاهده لاگ درخواست ها'}>
-                    <EyeOutlined
-                        className={styles.viewDebug} style={{fontSize: '18px'}}
-                        onClick={() => {
-                            openGlobalModal('debug');
-                        }}
-                    />
-                </Tooltip>}
-            </Space>
         </AntForm.Item>
     </AntForm>;
 };

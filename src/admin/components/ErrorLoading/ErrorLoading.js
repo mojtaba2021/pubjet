@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Alert, Button, Typography} from 'antd';
 import {ReloadOutlined} from '@ant-design/icons';
 import styles from './ErrorLoading.module.scss';
-import {translate} from '../../../shared/scripts/utils';
+import {pubjet__} from '../../../shared/scripts/utils';
 
 const {Text} = Typography;
 
@@ -45,8 +45,8 @@ ErrorLoading.propTypes = {
 };
 
 ErrorLoading.defaultProps = {
-  message    : translate('error'),
-  reloadText : translate('refresh'),
+  message    : pubjet__('error'),
+  reloadText : pubjet__('refresh'),
   buttonProps: {},
   alertProps : {},
   textProps  : {},

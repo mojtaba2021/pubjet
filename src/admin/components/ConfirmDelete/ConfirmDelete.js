@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Button, Popconfirm} from 'antd';
-import {translate} from '../../../shared/scripts/utils';
+import {pubjet__} from '../../../shared/scripts/utils';
 
 const ConfirmDelete = props => {
   const {
@@ -37,11 +37,11 @@ ConfirmDelete.propTypes = {
 };
 
 ConfirmDelete.defaultProps = {
-  title      : translate('delete'),
-  description: translate('confirm-delete-data'),
-  okText     : translate('delete'),
-  cancelText : translate('cancel'),
-  content    : <Button type={'text'} danger={true}>{translate('delete')}</Button>,
+  title      : pubjet__('delete'),
+  description: pubjet__('confirm-delete-data'),
+  okText     : pubjet__('delete'),
+  cancelText : pubjet__('cancel'),
+  content    : <Button type={'text'} danger={true}>{pubjet__('delete')}</Button>,
   onConfirm  : () => {
   },
   onCancel   : () => {

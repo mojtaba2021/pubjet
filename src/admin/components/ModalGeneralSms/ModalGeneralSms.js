@@ -7,7 +7,7 @@ import {MessageOutlined} from '@ant-design/icons';
 import {ModalSizes} from '../../../shared/scripts/constants';
 import {showSuccessMessage} from '../../../shared/scripts/utils';
 import AntModal from '../AntModal/AntModal';
-import {translate} from '../../../shared/scripts/utils';
+import {pubjet__} from '../../../shared/scripts/utils';
 import SmsInput from '../SmsInput/SmsInput';
 import InputLabel from '../InputLabel/InputLabel';
 
@@ -26,7 +26,7 @@ class ModalGeneralSms extends AntModal {
    * @since 1.0.0
    */
   title = () => {
-    return translate('send-sms');
+    return pubjet__('send-sms');
   };
 
   /**
@@ -61,7 +61,7 @@ class ModalGeneralSms extends AntModal {
     const {text, phone} = this.state;
     this.setState({error: false, loading: true}, () => {
       sendSms(phone, text).then(response => {
-        showSuccessMessage(translate('sms-sent'));
+        showSuccessMessage(pubjet__('sms-sent'));
       }).catch(error => {
         this.setState({error});
       }).finally(() => {
@@ -79,7 +79,7 @@ class ModalGeneralSms extends AntModal {
     return (
         <div className={styles.wrapper}>
           <Form layout={'vertical'} className={styles.form}>
-            <Form.Item label={translate('mobile-number')}>
+            <Form.Item label={pubjet__('mobile-number')}>
               {this.renderInput({name: 'phone'})}
             </Form.Item>
           </Form>
@@ -91,10 +91,10 @@ class ModalGeneralSms extends AntModal {
               }}
           />
           <Popconfirm
-              title={translate('are-you-sure-sms')}
+              title={pubjet__('are-you-sure-sms')}
               trigger={'click'}
-              cancelText={translate('cancel')}
-              okText={`${translate('yes')}, ${translate('send-sms')}`}
+              cancelText={pubjet__('cancel')}
+              okText={`${pubjet__('yes')}, ${pubjet__('send-sms')}`}
               onConfirm={this.handleSend}
           >
             <Button
@@ -105,7 +105,7 @@ class ModalGeneralSms extends AntModal {
                 icon={<MessageOutlined/>}
                 loading={loading}
             >
-              {translate('send-sms')}
+              {pubjet__('send-sms')}
             </Button>
           </Popconfirm>
         </div>

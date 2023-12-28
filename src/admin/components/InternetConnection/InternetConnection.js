@@ -3,7 +3,7 @@ import Alert from 'antd/lib/alert';
 import {WifiOutlined} from '@ant-design/icons';
 import {getAdminAjaxUrl} from '../../../shared/scripts/utils';
 import styles from './InternetConnection.module.scss';
-import {translate} from '../../../shared/scripts/utils';
+import {pubjet__} from '../../../shared/scripts/utils';
 
 class InternetConnection extends Component {
 
@@ -69,7 +69,7 @@ class InternetConnection extends Component {
             type={'error'}
             banner={true}
             className={styles.alert}
-            description={translate('internet-disconnect')}
+            description={pubjet__('internet-disconnect')}
             icon={<WifiOutlined/>}
         />
     );

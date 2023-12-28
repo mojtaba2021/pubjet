@@ -31,9 +31,9 @@ class GoogleTranslate
      * @param string $source
      *            Original language of the text on notation xx. For example: es, en, it, fr...
      * @param string $target
-     *            Language to which you want to translate the text in format xx. For example: es, en, it, fr...
+     *            Language to which you want to pubjet__ the text in format xx. For example: es, en, it, fr...
      * @param string $text
-     *            Text that you want to translate
+     *            Text that you want to pubjet__
      *
      * @return string a simple string with the translation of the text in the target language
      */
@@ -54,11 +54,11 @@ class GoogleTranslate
      * @internal
      *
      * @param string $source
-     *            Original language taken from the 'translate' function
+     *            Original language taken from the 'pubjet__' function
      * @param string $target
-     *            Target language taken from the ' translate' function
+     *            Target language taken from the ' pubjet__' function
      * @param string $text
-     *            Text to translate taken from the 'translate' function
+     *            Text to pubjet__ taken from the 'pubjet__' function
      *
      * @return object[] The response of the translation service in JSON format
      */
@@ -68,7 +68,7 @@ class GoogleTranslate
         if (strlen($text) >= 5000)
             throw new \Exception("Maximum number of characters exceeded: 5000");
 
-        // Google translate URL
+        // Google pubjet__ URL
         $url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t";
 
         $fields = array(

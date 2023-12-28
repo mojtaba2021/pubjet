@@ -734,9 +734,10 @@ function pubjet_options() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_options', [
-        'token'    => get_option(\triboon\pubjet\includes\enums\EnumOptions::Token, ''),
-        'debug'    => get_option(\triboon\pubjet\includes\enums\EnumOptions::DebugMode, false,),
-        'category' => get_option(\triboon\pubjet\includes\enums\EnumOptions::DefaultCategory, ''),
+        'token'     => get_option(\triboon\pubjet\includes\enums\EnumOptions::Token, ''),
+        'debug'     => get_option(\triboon\pubjet\includes\enums\EnumOptions::DebugMode, false,),
+        'category'  => get_option(\triboon\pubjet\includes\enums\EnumOptions::DefaultCategory, ''),
+        'uninstall' => get_option(\triboon\pubjet\includes\enums\EnumOptions::UninstallCleanup, false),
     ]);
 }
 
@@ -798,6 +799,55 @@ function pubjet_find_post_id_by_reportage_id($reportage_id) {
     return $wpdb->get_var($psql);
 }
 
+/**
+ * @since 1.0.0
+ */
+function pubjet_strings() {
+    /**
+     * The pubjet_strings hook.
+     *
+     * @since 1.0.0
+     */
+    return apply_filters('pubjet_strings', [
+        'pubjet'                  => 'پاب جت',
+        'reportage'               => 'رپورتاژ',
+        'enable'                  => 'فعال سازی',
+        'disable'                 => 'غیر فعال سازی',
+        'copy'                    => 'کپی کردن',
+        'copied'                  => 'کپی شد !',
+        'uninstall'               => 'پاکسازی اطلاعات افزونه پس از حذف',
+        'no'                      => 'خیر',
+        'yes'                     => 'بله',
+        'delete-log'              => 'حذف لاگ',
+        'delete-log-confirm'      => 'آیا از حذف فایل لاگ مطمئن هستید ؟',
+        'reload'                  => 'بارگذاری مجدد',
+        'refresh-data'            => 'بروزرسانی اطلاعات',
+        'error-occured'           => 'خطایی رخ داده است. مجددا تلاش کنید',
+        'post-not-found'          => 'نوشته پیدا نشد',
+        'rep-not-found'           => 'رپورتاژ پیدا نشد',
+        'post-not-reportage'      => 'متاسفانه عملیات انجام نشد. این نوشته رپورتاژ نیست',
+        'delete-permission-limit' => 'خطا در حذف فایل. دسترسی حذف فایل از سمت هاست محدود شده است',
+        'missing-params'          => 'برخی از پارامترهای الزامی همراه با درخواست ارسال نشده است',
+        'permission-error'        => 'شما دسترسی لازم برای انجام این عملیات را ندارید',
+        'missing-token'           => 'لطفا توکن دسترسی را در منوی تنظیمات افزونه پاب جت وارد کنید',
+        'invalid-token'           => 'توکن دسترسی اشتباه است',
+        'invalid-http-method'     => 'The request method is invalid',
+        'empty-reportage-content' => 'Reportage content is empty.',
+        'general'                 => 'عمومی',
+        'debug'                   => 'اشکال زدایی',
+        'advanced'                => 'پیشرفته',
+    ]);
+}
+
+/**
+ * @param $key
+ *
+ * @return false|mixed|string
+ */
+function pubjet__($key) {
+    $strings = pubjet_strings();
+    return pubjet_isset_value($strings[$key], $key);
+}
 
 /**
  * @return string

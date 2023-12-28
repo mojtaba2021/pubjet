@@ -7,5 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Triboon\\Pubjet\\' => array($baseDir . '/src'),
-    'Statickidz\\' => array($vendorDir . '/statickidz/php-google-translate-free/src'),
+    'Statickidz\\' => array($vendorDir . '/statickidz/php-google-pubjet__-free/src'),
 );

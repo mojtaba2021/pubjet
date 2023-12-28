@@ -1,0 +1,15 @@
+.select {
+  cursor: pointer !important;
+  :global {
+    .ant-select-selection-item {
+      cursor: pointer;
+    }
+  }
+}
+
+.input {
+  border-radius: 8px !important;
+  border: 1px solid #aaa !important;
+  height: 40px;
+  outline: none !important;
+}

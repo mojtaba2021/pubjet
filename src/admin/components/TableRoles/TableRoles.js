@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import AdminTable from '../AdminTable/AdminTable';
 import styles from './TableRoles.module.scss';
-import {getAdminAjaxUrl, getAxios, translate} from '../../../shared/scripts/utils';
+import {getAdminAjaxUrl, getAxios, pubjet__} from '../../../shared/scripts/utils';
 import {Table} from 'antd';
 
 const axios = getAxios();
@@ -55,7 +55,7 @@ class TableRoles extends AdminTable {
   columns = () => {
     return [
       {
-        title   : translate('role-name'),
+        title   : pubjet__('role-name'),
         ellipsis: true,
         render  : (value, record) => {
           return record.name;
@@ -63,7 +63,7 @@ class TableRoles extends AdminTable {
       },
       Table.EXPAND_COLUMN,
       {
-        title   : translate('count'),
+        title   : pubjet__('count'),
         ellipsis: true,
         align   : 'center',
         render  : (value, record) => {

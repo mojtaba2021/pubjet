@@ -17,6 +17,37 @@ class Filters extends Singleton {
         add_filter("the_content", [$this, "filterTheContent"], 0, 2);
         add_filter('post_row_actions', [$this, 'regenerateThumbnail'], 15, 2);
         add_filter('post_class', [$this, 'addPubjetClass'], 15, 3);
+        add_filter('plugin_row_meta', [$this, 'pluginRowMeta'], 15, 2);
+        add_filter('plugin_action_links_' . PUBJET_PLUGIN_BASE, [$this, 'pluginActionLinks'], 15);
+    }
+
+    /**
+     * @return void
+     * @since  1.0
+     * @author Pishook
+     */
+    public function pluginActionLinks($links) {
+        array_unshift($links,
+                      sprintf('<a href="%1$s">%2$s</a>', admin_url('admin.php?page=pubjet_settings'), 'تنظیمات'),
+        );
+
+        return $links;
+    }
+
+    /**
+     * @return void
+     * @since  1.0
+     * @author PishooK
+     */
+    public function pluginRowMeta($plugin_meta, $plugin_file) {
+        if (PUBJET_PLUGIN_BASE === $plugin_file) {
+            $row_meta    = [
+                'website' => '<a href="https://www.triboon.net/%D8%AE%D8%B1%DB%8C%D8%AF-%D8%B1%D9%BE%D9%88%D8%B1%D8%AA%D8%A7%DA%98-%D8%A2%DA%AF%D9%87%DB%8C/" aria-label="خرید رپورتاژ اگهی" target="_blank">خرید رپورتاژ اگهی</a>',
+            ];
+            $plugin_meta = array_merge($plugin_meta, $row_meta);
+        }
+
+        return $plugin_meta;
     }
 
     /**

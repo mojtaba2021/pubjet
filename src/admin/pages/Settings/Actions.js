@@ -1,5 +1,5 @@
 import {setStore, getStore} from "trim-redux";
-import {getAdminAjaxUrl, getAxios} from "../../../shared/scripts/utils";
+import {getAdminAjaxUrl, getAxios, getSecurityNonce} from "../../../shared/scripts/utils";
 
 const axios = getAxios();
 
@@ -27,18 +27,19 @@ export const loadOptions = () => {
         const options = getStore(getStoreKey());
         axios.get(getAdminAjaxUrl(), {
             params: {
-                action: 'pubjet-get-options',
-                security: pubjet_params.nonce,
+                action  : 'pubjet-get-options',
+                security: getSecurityNonce(),
             },
         }).then(response => {
             if (response.success) {
-                const {token, debug, category, categories} = response.payload;
+                const {token, debug, category, categories, uninstall} = response.payload;
                 setStore(getStoreKey(), {
                     ...options,
                     token,
                     debug,
                     category,
-                    categories
+                    categories,
+                    uninstall,
                 });
 
                 if (category) {
@@ -69,11 +70,12 @@ export const saveOptions = () => {
     return new Promise((resolve, reject) => {
         const options = getStore(getStoreKey());
         axios.post(getAdminAjaxUrl(), {
-            action: 'pubjet-save-options',
-            token: options.token,
-            debug: options.debug,
-            category: options.category ? options.category.value : '',
-            security: pubjet_params.nonce,
+            action   : 'pubjet-save-options',
+            token    : options.token,
+            debug    : options.debug,
+            uninstall: options.uninstall,
+            category : options.category ? options.category.value : '',
+            security : pubjet_params.nonce,
         }).then(response => {
             if (response.success) {
                 resolve(response);

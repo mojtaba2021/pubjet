@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './ModalDelete.module.scss';
 import AntModal from '../AntModal/AntModal';
 import {Alert, Button, Form} from 'antd';
-import {translate} from '../../../shared/scripts/utils';
+import {pubjet__} from '../../../shared/scripts/utils';
 import {DeleteOutlined} from '@ant-design/icons';
 import {ModalSizes} from '../../../shared/scripts/constants';
 
@@ -42,7 +42,7 @@ class ModalDelete extends AntModal {
       return null;
     }
     return <Form layout={'vertical'} className={styles.form}>
-      <Form.Item label={translate('enter-password')}>
+      <Form.Item label={pubjet__('enter-password')}>
         {this.renderInput({name: 'password', type: 'password', autoFocus: true})}
       </Form.Item>
     </Form>
@@ -62,7 +62,7 @@ class ModalDelete extends AntModal {
    * @since 1.0.0
    */
   buttonText = () => {
-    return translate('delete-data');
+    return pubjet__('delete-data');
   };
 
   /**
@@ -102,7 +102,7 @@ class ModalDelete extends AntModal {
           </div>
           {this.beforeAlert()}
           <Alert
-              description={translate('confirm-delete-data')}
+              description={pubjet__('confirm-delete-data')}
               banner={true}
               showIcon={true}
               className={styles.alert}

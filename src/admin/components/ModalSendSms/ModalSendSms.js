@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import BaseComponent from '../BaseComponent/BaseComponent';
 import axios from '../../../shared/scripts/axios';
-import {showSuccessMessage, translate} from '../../../shared/scripts/utils';
+import {showSuccessMessage, pubjet__} from '../../../shared/scripts/utils';
 import Modal from '../Modal/Modal';
 import Button from '../Button/Button';
 import TelInput from '../TelInput/TelInput';
@@ -41,7 +41,7 @@ class ModalSendSms extends BaseComponent {
       fd.append('mobile', this.props.phoneNumber);
       axios.post(pubjet_params.ajaxurl, fd).then(response => {
         if (response.success) {
-          showSuccessMessage(translate('sent'));
+          showSuccessMessage(pubjet__('sent'));
         } else {
           this.setState({error: true});
         }
@@ -73,7 +73,7 @@ class ModalSendSms extends BaseComponent {
             phoneNumber
             ?
             <InputLabel
-                label={translate('mobile-number')}
+                label={pubjet__('mobile-number')}
                 value={phoneNumber}
                 inputProps={{
                   className: mobileInputReadonly
@@ -90,7 +90,7 @@ class ModalSendSms extends BaseComponent {
 
           <div className={'pubjet-mt-2'}>
             <label className={'pubjet-d-block pubjet-mb-1'}>
-              {translate('sms-text')}
+              {pubjet__('sms-text')}
             </label>
             <textarea
                 rows={6}
@@ -102,7 +102,7 @@ class ModalSendSms extends BaseComponent {
 
           <Button onClick={this.handleSend} block={true} large={true}
                   className={'pubjet-mt-2'} loading={sending}>
-            {translate('send-sms')}
+            {pubjet__('send-sms')}
           </Button>
 
           {afterContent()}

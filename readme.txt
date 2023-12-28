@@ -1,5 +1,5 @@
 === Pubjet | پاب‌جت ===
-Contributors: yousef mohammadiani|Siavash Ebrahimi
+Contributors: yousef mohammadiani|pishookcom
 Tags: seo,reportage
 Stable tag: 2.3.0
 Tested up to: 6.3

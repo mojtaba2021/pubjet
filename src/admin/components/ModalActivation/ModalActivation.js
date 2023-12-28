@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import AntModal from '../AntModal/AntModal';
-import {translate} from '../../../shared/scripts/utils';
+import {pubjet__} from '../../../shared/scripts/utils';
 import TelegramActivationForm from '../TelegramActivationForm/TelegramActivationForm';
 
 class ModalActivation extends AntModal {
@@ -15,7 +15,7 @@ class ModalActivation extends AntModal {
    * @since 1.0.0
    */
   title = () => {
-    return translate('activation');
+    return pubjet__('activation');
   };
 
   /**

@@ -1,0 +1,27 @@
+import React from 'react';
+import {Form, Switch} from "antd";
+import {changeInput, saveOptions} from "./Actions";
+import {connect} from "trim-redux";
+import {pubjet__} from "../../../shared/scripts/utils";
+
+import styles from './Misc.module.scss';
+
+const Misc = props => {
+    const {uninstall} = props.options;
+    return (
+        <Form className={styles.wrapper} layout={'vertical'} colon={false}>
+            <Form.Item className={'pubjet-uninstall-switch-wrapper'} label={pubjet__('uninstall')}>
+                <Switch checked={uninstall} onChange={(checked) => {
+                    changeInput('uninstall', checked);
+                    saveOptions();
+                }} size={'default'}/>
+            </Form.Item>
+        </Form>
+    );
+};
+
+const mstp = (state) => ({
+    options: state.options
+});
+
+export default connect(mstp)(Misc);

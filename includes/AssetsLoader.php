@@ -70,12 +70,12 @@ class AssetsLoader extends Singleton {
          */
         return apply_filters('pubjet_script_vars', [
             'ajaxurl'    => admin_url('admin-ajax.php'),
-            'rest_url'   => rest_url() . 'triboon',
+            'rest_url'   => rest_url() . 'pubjet',
             'rest_nonce' => wp_create_nonce('wp_rest'),
-            'is_rtl'     => (bool)is_rtl(),
+            'is_rtl'     => is_rtl(),
             'locale'     => get_locale(),
             'user'       => [
-                'loggedin' => (bool)is_user_logged_in(),
+                'loggedin' => is_user_logged_in(),
             ],
             'assets'     => [
                 'css'    => PUBJET_CSS_URL,
@@ -84,10 +84,7 @@ class AssetsLoader extends Singleton {
             ],
             'images_url' => PUBJET_IMAGES_URL,
             'nonce'      => wp_create_nonce('pubjet-nonce'),
-            'i18n'       => [
-                'refresh-data'  => 'بروزرسانی اطلاعات',
-                'error-occured' => 'خطایی رخ داده است. مجددا تلاش کنید',
-            ],
+            'i18n'       => pubjet_strings(),
         ]);
     }
 

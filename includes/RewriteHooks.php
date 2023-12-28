@@ -36,12 +36,12 @@ class RewriteHooks extends Singleton {
         pubjet_log($data);
 
         if (empty(pubjet_isset_value($data->id))) {
-            wp_send_json_error('Post not found', 404);
+            wp_send_json_error(pubjet__('post-not-found'), 404);
         }
 
         $reportage_post_id = pubjet_find_post_id_by_reportage_id($data->id);
         if (empty($reportage_post_id)) {
-            wp_send_json_error('Post not found', 404);
+            wp_send_json_error(pubjet__('post-not-found'), 404);
         }
 
         $new_status = pubjet_isset_value($data->status, 'show');
@@ -74,12 +74,12 @@ class RewriteHooks extends Singleton {
         pubjet_log('Delete Reportage Post: ' . $reportage_post_id);
 
         if (empty($reportage_post_id)) {
-            wp_send_json_error('Post not found.', 404);
+            wp_send_json_error(pubjet__('post-not-found'), 404);
         }
 
         $post = get_post($reportage_post_id);
         if ($post->post_type !== pubjet_post_type()) {
-            wp_send_json_error('Post not found.', 404);
+            wp_send_json_error(pubjet__('post-not-found'), 404);
         }
 
         $result = wp_delete_post($reportage_post_id, true);
@@ -103,7 +103,7 @@ class RewriteHooks extends Singleton {
         }
 
         if (empty($this->get('id'))) {
-            wp_send_json_error('Post not found.', 404);
+            wp_send_json_error(pubjet__('post-not-found'), 404);
         }
 
         pubjet_log('Get Reportage Post');
@@ -112,7 +112,7 @@ class RewriteHooks extends Singleton {
         $reportage_post_id = pubjet_find_post_id_by_reportage_id($this->get('id'));
         $reportage_post    = get_post($reportage_post_id);
         if (!$reportage_post_id || empty($reportage_post)) {
-            wp_send_json_error('Post not found.', 404);
+            wp_send_json_error(pubjet__('post-not-found'), 404);
         }
 
         $this->success([
@@ -131,7 +131,6 @@ class RewriteHooks extends Singleton {
                        ]);
     }
 
-
     /**
      * @return void
      * @throws \Exception
@@ -139,13 +138,12 @@ class RewriteHooks extends Singleton {
     public function checkMissedReportage() {
 
         if (!$this->isValidHttpMethod(['POST'])) {
-            wp_send_json_error("The request method is invalid", 401);
+            wp_send_json_error(pubjet__('invalid-http-method'), 401);
         }
 
         if (!$this->isTokenValid()) {
-            wp_send_json_error("The token is not valid!", 401);
+            wp_send_json_error(pubjet__('invalid-token'), 401);
         }
-
 
         $this->finishRequest();
 
@@ -157,8 +155,6 @@ class RewriteHooks extends Singleton {
 
         $sql    = $wpdb->prepare("SELECT `ID` FROM $wpdb->posts WHERE `post_type` = %s AND post_status='future' AND post_date_gmt < %s", PUBJET_POST_TYPE, $now);
         $result = $wpdb->get_results($sql);
-
-        pubjet_log($result);
 
         if (!$result) {
             return;
@@ -184,11 +180,11 @@ class RewriteHooks extends Singleton {
         // =================== Insert or Update ===================
 
         if (!$this->isValidHttpMethod(['POST', 'PATCH'])) {
-            wp_send_json_error("The request method is invalid", 401);
+            wp_send_json_error(pubjet__('invalid-http-method'), 401);
         }
 
         if (!$this->isTokenValid()) {
-            wp_send_json_error("The token is not valid!", 401);
+            wp_send_json_error(pubjet__('invalid-token'), 401);
         }
 
         $reportage = (object)$this->getRequestData();
@@ -249,7 +245,7 @@ class RewriteHooks extends Singleton {
         }
 
         if (empty(pubjet_token())) {
-            wp_send_json_error("No token has been set in the settings!", 401);
+            wp_send_json_error(pubjet__('missing-token'), 401);
         }
 
         $header_token = pubjet_isset_value($_SERVER['HTTP_AUTHORIZATION'], '');
@@ -287,7 +283,7 @@ class RewriteHooks extends Singleton {
             return [
                 'error'   => true,
                 'status'  => 401,
-                'message' => "The request method is invalid",
+                'message' => pubjet__('invalid-http-method'),
             ];
         }
 
@@ -295,7 +291,7 @@ class RewriteHooks extends Singleton {
             return [
                 'error'   => true,
                 'status'  => 401,
-                'message' => "The token is not valid!",
+                'message' => pubjet__('invalid-token'),
             ];
         }
 

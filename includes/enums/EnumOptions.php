@@ -19,4 +19,5 @@ class EnumOptions {
 
     const CopyrightStatus = 'pubjet_copyright_status';
 
+    const UninstallCleanup = 'pubjet_uninstall_cleanup';
 }

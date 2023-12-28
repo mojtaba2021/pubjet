@@ -3,20 +3,21 @@ import {createStore} from 'trim-redux';
 import thunk from 'redux-thunk';
 
 const composeEnhancers =
-    (process.env.NODE_ENV !== 'production' &&
-        typeof window !== 'undefined' &&
-        window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) ||
-    compose;
+          (process.env.NODE_ENV !== 'production' &&
+              typeof window !== 'undefined' &&
+              window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) ||
+          compose;
 
 export const state = {
     options: {
-        token: '',
-        debug: false,
-        category: '',
+        token     : '',
+        debug     : false,
+        category  : '',
         categories: [],
-        modal: false,
+        modal     : false,
+        uninstall : false,
     },
-    modal: false,
+    modal  : false,
 };
 
 export default createStore(state, composeEnhancers(applyMiddleware(thunk)));

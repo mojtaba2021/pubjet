@@ -4,7 +4,7 @@ import {ModalSizes} from '../../../shared/scripts/constants';
 import styles from './ModalExport.module.scss';
 import {Button, Table} from 'antd';
 import {v4 as uuid} from 'uuid';
-import {translate} from '../../../shared/scripts/utils';
+import {pubjet__} from '../../../shared/scripts/utils';
 import {FileTextOutlined, FileExcelOutlined} from '@ant-design/icons';
 
 class ModalExport extends AntModal {
@@ -13,7 +13,7 @@ class ModalExport extends AntModal {
    * @since 1.0.0
    */
   title = () => {
-    return translate('export');
+    return pubjet__('export');
   };
 
   /**
@@ -44,7 +44,7 @@ class ModalExport extends AntModal {
   columns = () => {
     return [
       {
-        title : translate('data'),
+        title : pubjet__('data'),
         render: (value, record) => {
           return record.label;
         },
@@ -81,14 +81,14 @@ class ModalExport extends AntModal {
     const types = [
       // {
       //   id     : 'excel',
-      //   label  : translate('export-excel'),
+      //   label  : pubjet__('export-excel'),
       //   onClick: this.handleExportExcel,
       //   icon   : <FileExcelOutlined />,
       // },
       {
         id     : 'csv',
         icon   : <FileTextOutlined/>,
-        label  : translate('export-csv'),
+        label  : pubjet__('export-csv'),
         type   : 'primary',
         onClick: this.handleExportCsv,
         loading: loading,

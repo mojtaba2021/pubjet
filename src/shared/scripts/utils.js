@@ -538,15 +538,6 @@ export const reloadCurrentPage = () => {
     window.location.reload();
 };
 
-
-/**
- * @since 1.0.0
- * @param key
- */
-export const translate = (key) => {
-    return pubjet_params.i18n[key];
-};
-
 /**
  * @since 1.0.0
  * @param array
@@ -606,6 +597,14 @@ export const getAxios = () => {
  */
 export const getSecurityNonce = () => {
     return pubjet_params.nonce;
+};
+
+/**
+ * @since 1.0.0
+ * @param key
+ */
+export const pubjet__ = (key) => {
+    return pubjet_params.i18n[key];
 };
 
 /**

@@ -9,14 +9,14 @@ Eliminates IP request limitations
 Install this package via [Composer](https://getcomposer.org/).
 
 ```
-composer require statickidz/php-google-translate-free
+composer require statickidz/php-google-pubjet__-free
 ```
 
-Or edit your project's `composer.json` to require `statickidz/php-google-translate-free` and then run `composer update`.
+Or edit your project's `composer.json` to require `statickidz/php-google-pubjet__-free` and then run `composer update`.
 
 ```json
 "require": {
-    "statickidz/php-google-translate-free": "^1.2.1"
+    "statickidz/php-google-pubjet__-free": "^1.2.1"
 }
 ```
 
@@ -31,7 +31,7 @@ $target = 'en';
 $text = 'buenos días';
 
 $trans = new GoogleTranslate();
-$result = $trans->translate($source, $target, $text);
+$result = $trans->pubjet__($source, $target, $text);
 
 // Good morning
 echo $result;

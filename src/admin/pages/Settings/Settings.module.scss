@@ -19,30 +19,7 @@
   margin: 0 12px;
 }
 
-.select {
-  cursor: pointer !important;
-  :global {
-    .ant-select-selection-item {
-      cursor: pointer;
-    }
-  }
-}
-
-.formWrapper {
-  padding: 16px;
-}
-
-.input {
-  border-radius: 8px !important;
-  border: 1px solid #aaa !important;
-  height: 40px;
-  outline: none !important;
-}
-
-.button {
-  height: 50px !important;
-}
-
-.viewDebug {
-  cursor: pointer;
+.tabs {
+  margin-left: 15px;
+  margin-right: 15px;
 }

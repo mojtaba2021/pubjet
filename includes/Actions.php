@@ -112,7 +112,7 @@ class Actions extends Singleton {
         ?>
         <script>
             jQuery(document).ready(function ($) {
-                jQuery(".subsubsub").append("<li class='reportages'><a href='edit.php?post_type=post&reportage=true'> | رپورتاژ <span class='count'>(<?= intval($count_post) ?>)</span></a></li>")
+                jQuery(".subsubsub").append("<li class='reportages'><a href='edit.php?post_type=post&reportage=true'> | <?php echo pubjet__('reportage'); ?> <span class='count'>(<?= intval($count_post) ?>)</span></a></li>")
             });
         </script>
         <?php
@@ -123,8 +123,8 @@ class Actions extends Singleton {
      */
     public function registerMenu() {
         add_menu_page(
-            'پاب جت',
-            'پاب جت',
+            pubjet__('pubjet'),
+            pubjet__('pubjet'),
             'manage_options',
             'pubjet_settings',
             [$this, 'pubjetSettingsPageCallback'],
