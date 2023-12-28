@@ -16,6 +16,18 @@ class Filters extends Singleton {
         add_filter('parse_query', [$this, "adminFilterPosts"], 15);
         add_filter("the_content", [$this, "filterTheContent"], 0, 2);
         add_filter('post_row_actions', [$this, 'regenerateThumbnail'], 15, 2);
+        add_filter('post_class', [$this, 'addPubjetClass'], 15, 3);
+    }
+
+    /**
+     * @return string
+     */
+    public function addPubjetClass($classes, $class, $post_id) {
+        if (!pubjet_is_reportage($post_id)) {
+            return $classes;
+        }
+        $classes[] = "pubjet-post pubjet-reportage triboon-reportage";
+        return $classes;
     }
 
     /**
@@ -58,7 +70,7 @@ class Filters extends Singleton {
             return $content;
         }
 
-        $content .= '<div class="reportage_content_copyright"><p>منتشر شده توسط <img src="' . PUBJET_DIR_URL . 'assets/img/copyright-logo.png' . '"></img> تریبون</p></div>';
+        $content .= '<div class="pubjet-copyright"><p>منتشر شده توسط <img src="' . PUBJET_DIR_URL . 'assets/img/copyright-logo.png' . '"></img> تریبون</p></div>';
 
         return $content;
 

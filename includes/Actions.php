@@ -74,29 +74,25 @@ class Actions extends Singleton {
      */
     public function addScriptToReportage() {
 
-        if (!is_singular()) {
+        if (!is_singular() || !pubjet_is_reportage(get_the_ID())) {
             return;
         }
-        $reportage_id = get_post_meta(get_the_ID(), 'pubjet_reportage_id', true);
-        if (empty($reportage_id)) {
-            return;
-        }
+
         ?>
         <style>
-            .reportage_content_copyright p {
-                margin: 0;
-                display: inline-flex;
-                align-items: center;
-                background: #eee;
-                padding: 8px;
-                border-radius: 8px;
-                margin: 12px 0;
-                font-size: 14px;
+            body .pubjet-copyright p {
+                display: inline-flex !important;
+                align-items: center !important;
+                background: #eee !important;
+                padding: 12px 16px !important;
+                border-radius: 8px !important;
+                margin: 12px 0 !important;
+                font-size: 14px !important;
             }
 
-            .reportage_content_copyright p img {
-                width: 24px;
-                margin: 0 4px;
+            body .pubjet-copyright p img {
+                width: 24px !important;
+                margin: 0 8px !important;
             }
         </style>
         <?php
@@ -107,17 +103,17 @@ class Actions extends Singleton {
      */
     public function adminFooterScripts() {
         global $wpdb;
+
         if (get_current_screen()->id != 'edit-post') {
             return;
         }
-        $post_table      = $wpdb->prefix . 'posts';
-        $post_meta_table = $wpdb->prefix . 'postmeta';
-
-        $posts      = "SELECT COUNT(*) FROM $post_table as  posts JOIN $post_meta_table as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft') AND meta.meta_key = 'pubjet_reportage_id' ";
+        $posts      = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft') AND meta.meta_key = 'pubjet_reportage_id' ";
         $count_post = $wpdb->get_var($posts);
         ?>
         <script>
-            jQuery(".subsubsub").append("<li class='reportages'><a href='edit.php?post_type=post&reportage=true'> | رپورتاژ <span class='count'>(<?= intval($count_post) ?>)</span></a></li>")
+            jQuery(document).ready(function ($) {
+                jQuery(".subsubsub").append("<li class='reportages'><a href='edit.php?post_type=post&reportage=true'> | رپورتاژ <span class='count'>(<?= intval($count_post) ?>)</span></a></li>")
+            });
         </script>
         <?php
     }

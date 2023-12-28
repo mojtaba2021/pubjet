@@ -18,9 +18,9 @@ class RewriteHooks extends Singleton {
      */
     public function init() {
         add_action('pubjet-api_reportage', [$this, 'reportageRequest'], 15);
-        add_action('pubjet-api_check-missed-reportage', [$this, 'checkMissedReportage'], 15);
         add_action('pubjet-api_version', [$this, 'checkPluginVersion'], 15);;
         add_action('pubjet-api_copyright', [$this, 'toggleCopyright'], 15);
+        add_action('pubjet-api_check-missed-reportage', [$this, 'checkMissedReportage'], 15);
     }
 
     /**
