@@ -96,6 +96,35 @@ class RewriteHooks extends Singleton {
     /**
      * @return void
      */
+    public function findReportage() {
+        $request_data = $this->check(['GET'], false);
+        if (is_array($request_data) && isset($request_data['error'])) {
+            wp_send_json_error(pubjet_isset_value($request_data['message']), pubjet_isset_value($request_data['status']));
+        }
+
+        if (empty($this->get('id'))) {
+            wp_send_json_error('Post not found.', 404);
+        }
+
+        pubjet_log('Get Reportage Post');
+        pubjet_log($_GET);
+
+        $reportage_post_id = pubjet_find_post_id_by_reportage_id($this->get('id'));
+        $reportage_post    = get_post($reportage_post_id);
+        if (!$reportage_post_id || empty($reportage_post)) {
+            wp_send_json_error('Post not found.', 404);
+        }
+
+        $this->success([
+                           'id'    => $reportage_post->ID,
+                           'title' => $reportage_post->post_title,
+                           'url'   => get_permalink($reportage_post->ID),
+                       ]);
+    }
+
+    /**
+     * @return void
+     */
     public function checkPluginVersion() {
         $this->success([
                            'version' => PUBJ()->getVersion(),
@@ -146,6 +175,9 @@ class RewriteHooks extends Singleton {
         // =================== Delete Reportage =================
         if ('DELETE' === pubjet_get_request_method()) {
             $this->deleteReportage();
+            return;
+        } else if ('GET' === pubjet_get_request_method()) {
+            $this->findReportage();
             return;
         }
 
@@ -234,7 +266,7 @@ class RewriteHooks extends Singleton {
         $stream = fopen('php://input', 'r');
         if ($stream) {
             $rawData = '';
-            while ($chunk = fread($stream, $_SERVER['CONTENT_LENGTH'])) {
+            while ($chunk = fread($stream, pubjet_isset_value($_SERVER['CONTENT_LENGTH']))) {
                 $rawData .= $chunk;
             }
             fclose($stream);
@@ -246,7 +278,7 @@ class RewriteHooks extends Singleton {
     /**
      * @return array|bool|object
      */
-    private function check($method) {
+    private function check($method, $get_request_data = true) {
         if (!is_array($method)) {
             $method = [$method];
         }
@@ -267,7 +299,11 @@ class RewriteHooks extends Singleton {
             ];
         }
 
-        return (object)$this->getRequestData();
+        if ($get_request_data) {
+            return (object)$this->getRequestData();
+        }
+
+        return true;
     }
 
 }

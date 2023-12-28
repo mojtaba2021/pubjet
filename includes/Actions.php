@@ -25,8 +25,8 @@ class Actions extends Singleton {
         <style>
             @font-face {
                 font-family: 'Vazirmatn';
-                src: url(<?php echo PUBJET_ASSETS_URL; ?>/font/Vazirmatn[wght].woff2) format('woff2 supports variations'),
-                url(<?php echo PUBJET_ASSETS_URL; ?>/font/Vazirmatn[wght].woff2) format('woff2-variations');
+                src: url(<?php echo PUBJET_ASSETS_URL; ?>/fonts/Vazirmatn[wght].woff2) format('woff2 supports variations'),
+                url(<?php echo PUBJET_ASSETS_URL; ?>/fonts/Vazirmatn[wght].woff2) format('woff2-variations');
                 font-weight: 100 900;
                 font-style: normal;
                 font-display: swap;

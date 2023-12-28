@@ -1,0 +1,33 @@
+.logo {
+  width: 150px;
+}
+
+.image {
+  width: 100%;
+}
+
+.triboon {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  width: 60px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  background: #d8e0ef;
+  padding: 12px;
+  height: 120px;
+  border-radius: 0;
+  justify-content: center;
+  font-weight: 500;
+  color: #fff;
+  position: relative;
+
+  svg {
+    width: 42px;
+    height: 42px;
+    margin: 0 8px;
+  }
+}

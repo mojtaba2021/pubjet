@@ -15,31 +15,6 @@
   }
 }
 
-.refresh {
-  position: absolute;
-  left: 25px;
-  top: 25px;
-  cursor: pointer;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  background: #d8e0ef;
-  padding: 12px;
-  height: 120px;
-  border-radius: 0;
-  justify-content: center;
-  font-weight: 500;
-  color: #fff;
-
-  svg {
-    width: 42px;
-    height: 42px;
-    margin: 0 8px;
-  }
-}
-
 .titleSettings {
   margin: 0 12px;
 }
@@ -51,19 +26,6 @@
       cursor: pointer;
     }
   }
-}
-
-
-.logo {
-  width: 150px;
-}
-
-.image {
-  width: 100%;
-}
-
-.imageWrapper {
-  width: 150px;
 }
 
 .formWrapper {
@@ -79,11 +41,6 @@
 
 .button {
   height: 50px !important;
-}
-
-.alert {
-  text-align: center;
-  margin-bottom: 16px;
 }
 
 .viewDebug {

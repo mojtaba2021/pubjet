@@ -129,7 +129,7 @@ module.exports = {
         filename: 'js/[name].[contenthash].bundle.js',
         chunkFilename: 'js/[name].[contenthash].bundle.js',
         clean: {
-            keep: /images|fonts|libs/, // Keep these assets under 'ignored/dir'.
+            keep: /images|img|fonts|libs/, // Keep these assets under 'ignored/dir'.
         },
     },
     plugins: [
