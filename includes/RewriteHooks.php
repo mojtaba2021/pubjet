@@ -33,11 +33,17 @@ class RewriteHooks extends Singleton {
             wp_send_json_error(pubjet_isset_value($data['message']), pubjet_isset_value($data['status']));
         }
 
-        $result = [
-            'title' => get_bloginfo('name'),
-            'descr' => get_bloginfo('description'),
-            'url'   => get_bloginfo('wpurl'),
-        ];
+        /**
+         * The pubjet_siteinfo filter.
+         *
+         * @since 1.0.0
+         */
+        $result = apply_filters('pubjet_siteinfo', [
+            'title'     => get_bloginfo('name'),
+            'descr'     => get_bloginfo('description'),
+            'url'       => get_bloginfo('wpurl'),
+            'wpversion' => get_bloginfo('version'),
+        ]);
 
         $this->success($result);
     }
