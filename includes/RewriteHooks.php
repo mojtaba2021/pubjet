@@ -221,7 +221,9 @@ class RewriteHooks extends Singleton {
         $wp_post_id = ReportagePost::insert($reportage);
 
         if (!$wp_post_id) {
-            pubjet_log('Error: ' . $wp_post_id->get_error_message());
+            if (is_wp_error($wp_post_id)) {
+                pubjet_log('Error: ' . $wp_post_id->get_error_message());
+            }
             wp_send_json_error($wp_post_id);
         }
 
