@@ -41,6 +41,7 @@ class Actions extends Singleton {
             .ant-popover *,
             .ant-message *,
             #pubjet-reportage-data *,
+            #pubjet-reportage-options *,
             #pubjet-page-settings-content noscript {
                 font-family: 'Vazirmatn';
             }

@@ -28,7 +28,7 @@ class Metaboxes extends Singleton {
         if ($post_id) {
             $post = get_post($post_id);
         }
-        
+
         /**
          * The pubjet_reportages filter.
          *
@@ -42,6 +42,22 @@ class Metaboxes extends Singleton {
                 'callback' => function () use ($post) {
                     ?>
                     <div id="pubjet-reportage-panel-data" data-postid="<?php echo esc_attr($post->ID); ?>"></div>
+                    <?php
+                },
+                'register' => function ($metabox) use ($post) {
+                    if (!$post || !pubjet_is_reportage($post->ID)) {
+                        return false;
+                    }
+                    return true;
+                },
+            ],
+            [
+                'id'       => 'pubjet-reportage-options',
+                'title'    => pubjet__('reportage-options'),
+                'context'  => 'side',
+                'callback' => function () use ($post) {
+                    ?>
+                    <div id="pubjet-reportage-post-options" data-postid="<?php echo esc_attr($post->ID); ?>"></div>
                     <?php
                 },
                 'register' => function ($metabox) use ($post) {

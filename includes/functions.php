@@ -837,7 +837,10 @@ function pubjet_strings() {
         'debug'                   => 'اشکال زدایی',
         'advanced'                => 'پیشرفته',
         'saved'                   => 'ذخیره شد',
-        'reportage-data'          => 'اطلاعات رپورتاژ',
+        'reportage-data'          => 'پاب جت :: اطلاعات رپورتاژ',
+        'reportage-options'       => 'پاب جت :: تنظیمات رپورتاژ',
+        'enable-nofollow'         => 'NoFollow کردن لینک ها',
+        'pwait'                   => 'لطفا منتظر بمانید ...',
     ]);
 }
 

@@ -22,6 +22,52 @@ class Ajax extends Singleton {
         $this->ajax('delete-debug', [$this, 'deleteDebug'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('reg-thumb', [$this, 'regThumbnail'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('find-reportage-panel-data', [$this, 'findReportagePanelData'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('find-reportage-options', [$this, 'findReportageOptions'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('save-reportage-options', [$this, 'saveReportageOptions'], EnumAjaxPrivType::LoggedIn);
+    }
+
+    /**
+     * @return void
+     */
+    public function saveReportageOptions() {
+
+        $this->checkNonce($this->post('security'));
+
+        if (empty($this->post('postId')) || !pubjet_is_reportage($this->post('postId'))) {
+            $this->error(pubjet__('missing-params'));
+        }
+
+        // Check if post found or not
+        $post = get_post($this->post('postId'));
+        if (empty($post)) {
+            $this->error(pubjet__('reportage-not-found'));
+        }
+
+        update_post_meta($post->ID, EnumPostMetakeys::NoFollow, $this->formatBoolean($this->post('nofollow')));
+
+        $this->success();
+    }
+
+    /**
+     * @return void
+     */
+    public function findReportageOptions() {
+        $this->checkNonce($this->get('security'));
+
+        if (empty($this->get('postId')) || !pubjet_is_reportage($this->get('postId'))) {
+            $this->error(pubjet__('missing-params'));
+        }
+
+        $post = get_post($this->get('postId'));
+        if (empty($post)) {
+            $this->error(pubjet__('reportage-not-found'));
+        }
+
+        $nofollow = get_post_meta($post->ID, EnumPostMetakeys::NoFollow, true);
+
+        $this->success([
+                           'nofollow' => boolval($nofollow),
+                       ]);
     }
 
     /**

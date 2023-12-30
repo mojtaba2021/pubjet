@@ -9,4 +9,5 @@ class EnumPostMetakeys {
     const ReportageId         = 'pubjet_reportage_id';
     const ReportageContentUrl = 'pubjet_reportage_content_url';
     const PanelData           = 'pubjet_reportage_panel_data';
+    const NoFollow            = 'pubjet_nofollow';
 }

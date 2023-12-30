@@ -42,7 +42,6 @@ class ReportageData extends BaseComponent {
                     security: getSecurityNonce(),
                 },
             }).then(response => {
-                console.log(response);
                 if (response.success) {
                     const {payload} = response;
                     this.setState({payload});
