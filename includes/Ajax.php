@@ -21,6 +21,31 @@ class Ajax extends Singleton {
         $this->ajax('get-debug', [$this, 'getDebug'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('delete-debug', [$this, 'deleteDebug'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('reg-thumb', [$this, 'regThumbnail'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('find-reportage-panel-data', [$this, 'findReportagePanelData'], EnumAjaxPrivType::LoggedIn);
+    }
+
+    /**
+     * @return void
+     */
+    public function findReportagePanelData() {
+        $this->checkNonce($this->get('security'));
+
+        // Missing params
+        if (empty($this->get('postId'))) {
+            $this->error(pubjet__('missing-params'));
+        }
+
+        $post = get_post($this->get('postId'));
+        if (empty($post) || !pubjet_is_reportage($post->ID)) {
+            $this->error(pubjet__('post-not-found'));
+        }
+
+        $panel_data = get_post_meta($post->ID, EnumPostMetakeys::PanelData, true);
+        $result     = print_r($panel_data, true);
+
+        $this->success([
+                           'data' => $result,
+                       ]);
     }
 
     /**

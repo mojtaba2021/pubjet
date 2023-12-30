@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'trim-redux';
 import store from './store/store';
+import ReportageData from "./components/ReportageData/ReportageData";
 
 const PageSettings = React.lazy(() => import('./pages/Settings/Settings'));
 
@@ -19,6 +20,7 @@ const renderElement = (element, containerId) => {
 
 const elements = [
     {selector: 'pubjet-page-settings-content', element: <PageSettings/>},
+    {selector: 'pubjet-reportage-panel-data', element: <ReportageData/>},
 ];
 
 elements.map(item => {

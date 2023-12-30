@@ -2,6 +2,7 @@
 
 namespace triboon\pubjet\includes;
 
+
 if (!defined("ABSPATH")) exit;
 
 use DateTime;
@@ -79,6 +80,7 @@ class ReportagePost extends Singleton {
             $args['post_content'] = $post_content['content'] ?? '';
 
             $args['meta_input'] = [
+                EnumPostMetakeys::PanelData           => $thereportage,
                 EnumPostMetakeys::ReportageContentUrl => $thereportage->content_file,
             ];
 
@@ -119,6 +121,7 @@ class ReportagePost extends Singleton {
             'meta_input'    => [
                 EnumPostMetakeys::ReportageId         => intval($reportage->id),
                 EnumPostMetakeys::ReportageContentUrl => sanitize_url($reportage->content_file),
+                EnumPostMetakeys::PanelData           => $reportage,
             ],
         ];
 
@@ -127,9 +130,15 @@ class ReportagePost extends Singleton {
             $args['post_date_gmt'] = sanitize_text_field($post_date);
         }
 
+        /**
+         * The pubjet_new_reportage_post_args filter.
+         *
+         * @since 1.0.0
+         */
+        $args    = apply_filters('pubjet_new_reportage_post_args', $args);
         $post_id = wp_insert_post($args);
 
-        if (!is_wp_error($post_id)) {
+        if (!is_wp_error($post_id)) { // Set post thumbnail
             if (isset($post_content['featured_img_id'])) {
                 set_post_thumbnail($post_id, intval($post_content['featured_img_id']));
             }
@@ -199,9 +208,9 @@ class ReportagePost extends Singleton {
 
                 if ($just_thumbnail) {
 
-                    $attach_id            = self::upload_from_url(str_replace('\\"', '', $src));
-                    $featured_image_id    = $attach_id;
-                    $html_content         = str_replace($src, wp_get_attachment_url($attach_id), $html_content);
+                    $attach_id         = self::upload_from_url(str_replace('\\"', '', $src));
+                    $featured_image_id = $attach_id;
+                    $html_content      = str_replace($src, wp_get_attachment_url($attach_id), $html_content);
 
                     break;
 

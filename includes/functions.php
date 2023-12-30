@@ -762,7 +762,7 @@ function pubjet_token() {
      *
      * @since 1.0.0
      */
-    return apply_filters('pubjet_token', get_option(\triboon\pubjet\includes\enums\EnumOptions::Token));
+    return apply_filters('pubjet_token', PUBJET_API_TOKEN);
 }
 
 /**
@@ -837,6 +837,7 @@ function pubjet_strings() {
         'debug'                   => 'اشکال زدایی',
         'advanced'                => 'پیشرفته',
         'saved'                   => 'ذخیره شد',
+        'reportage-data'          => 'اطلاعات رپورتاژ',
     ]);
 }
 
@@ -866,4 +867,16 @@ function pubjet_show_copyright() {
         return true;
     }
     return $status !== 'hide';
+}
+
+/**
+ * @param $data
+ *
+ * @return array
+ */
+function pubjet_array($data) {
+    if (!$data) {
+        return $data;
+    }
+    return is_array($data) ? $data : [$data];
 }

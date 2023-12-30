@@ -17,6 +17,7 @@ class Initializer extends Singleton {
         AssetsLoader::getInstance();
         RewriteHooks::getInstance();
         RewriteRequest::getInstance();
+        Metaboxes::getInstance();
     }
 
 }

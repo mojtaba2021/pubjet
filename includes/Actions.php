@@ -2,6 +2,8 @@
 
 namespace triboon\pubjet\includes;
 
+use triboon\pubjet\includes\enums\EnumOptions;
+
 defined('ABSPATH') || exit;
 
 class Actions extends Singleton {
@@ -38,8 +40,8 @@ class Actions extends Singleton {
             .ant-modal *,
             .ant-popover *,
             .ant-message *,
-            #pubjet-page-settings-content noscript
-            {
+            #pubjet-reportage-data *,
+            #pubjet-page-settings-content noscript {
                 font-family: 'Vazirmatn';
             }
         </style>
@@ -51,24 +53,22 @@ class Actions extends Singleton {
      */
     public function publishMissedSchedulePosts() {
 
-        $last_check = (int)get_option("pubjet_last_checking_missed_post", 1);
+        $last_check = (int)get_option(EnumOptions::LastCheckingMissedPosts, 1);
 
         if (time() - $last_check < 60) {
             return;
         }
 
-        update_option("pubjet_last_checking_missed_post", time());
+        update_option(EnumOptions::LastCheckingMissedPosts, time());
 
-        $url = home_url('pubjet-api/check-missed-reportage');
-
-        wp_remote_post($url, [
+        wp_remote_post(home_url('pubjet-api/check-missed-reportage'), [
+            'method'      => 'POST',
+            'data_format' => 'body',
             'headers'     => [
-                'Authorization' => PUBJET_API_TOKEN,
+                'Authorization' => pubjet_token(),
                 'Content-Type'  => 'application/json',
             ],
             'body'        => json_encode([]),
-            'method'      => 'POST',
-            'data_format' => 'body',
         ]);
     }
 

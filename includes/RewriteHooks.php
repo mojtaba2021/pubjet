@@ -4,6 +4,7 @@ namespace triboon\pubjet\includes;
 
 use DateTime;
 use DateTimeZone;
+use triboon\pubjet\includes\enums\EnumHttpMethods;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\traits\Utils;
 
@@ -57,7 +58,7 @@ class RewriteHooks extends Singleton {
             wp_send_json_error(pubjet_isset_value($data['message']), pubjet_isset_value($data['status']));
         }
 
-        pubjet_log('Change Copyright Status');
+        pubjet_log('==== Change Copyright Status ====');
         pubjet_log($data);
 
         if (empty(pubjet_isset_value($data->id))) {
@@ -94,9 +95,10 @@ class RewriteHooks extends Singleton {
             wp_send_json_error(pubjet_isset_value($reportage['message']), pubjet_isset_value($reportage['status']));
         }
 
+        pubjet_log("==== Delete Reportage Post ====");
         pubjet_log($reportage);
         $reportage_post_id = pubjet_find_post_id_by_reportage_id(pubjet_isset_value($reportage->id));
-        pubjet_log('Delete Reportage Post: ' . $reportage_post_id);
+        pubjet_log('Post: ' . $reportage_post_id);
 
         if (empty($reportage_post_id)) {
             wp_send_json_error(pubjet__('post-not-found'), 404);
@@ -131,7 +133,7 @@ class RewriteHooks extends Singleton {
             wp_send_json_error(pubjet__('post-not-found'), 404);
         }
 
-        pubjet_log('Get Reportage Post');
+        pubjet_log('===== Get Reportage Post =====');
         pubjet_log($_GET);
 
         $reportage_post_id = pubjet_find_post_id_by_reportage_id($this->get('id'));
@@ -204,7 +206,7 @@ class RewriteHooks extends Singleton {
 
         // =================== Insert or Update ===================
 
-        if (!$this->isValidHttpMethod(['POST', 'PATCH'])) {
+        if (!$this->isValidHttpMethod([EnumHttpMethods::POST, EnumHttpMethods::PATCH])) {
             wp_send_json_error(pubjet__('invalid-http-method'), 401);
         }
 
