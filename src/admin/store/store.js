@@ -16,6 +16,7 @@ export const state = {
         categories: [],
         modal     : false,
         uninstall : false,
+        nofollow  : false,
     },
     modal  : false,
 };

@@ -35,11 +35,7 @@ export const loadOptions = () => {
                 const {token, debug, category, categories, uninstall} = response.payload;
                 setStore(getStoreKey(), {
                     ...options,
-                    token,
-                    debug,
-                    category,
-                    categories,
-                    uninstall,
+                    ...response.payload
                 });
 
                 if (category) {
@@ -74,6 +70,7 @@ export const saveOptions = () => {
             token    : options.token,
             debug    : options.debug,
             uninstall: options.uninstall,
+            nofollow : options.nofollow,
             category : options.category ? options.category.value : '',
             security : pubjet_params.nonce,
         }).then(response => {

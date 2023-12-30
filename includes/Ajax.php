@@ -16,7 +16,6 @@ class Ajax extends Singleton {
      */
     public function init() {
         $this->ajax('get-options', [$this, 'getOptions'], EnumAjaxPrivType::LoggedIn);
-        $this->ajax('update-options', [$this, 'updateOptions'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('save-options', [$this, 'saveOptions'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('get-debug', [$this, 'getDebug'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('delete-debug', [$this, 'deleteDebug'], EnumAjaxPrivType::LoggedIn);
@@ -232,6 +231,7 @@ class Ajax extends Singleton {
         update_option(EnumOptions::DebugMode, $this->formatBoolean($this->post('debug')));
         update_option(EnumOptions::DefaultCategory, $this->post('category'));
         update_option(EnumOptions::UninstallCleanup, $this->formatBoolean($this->post('uninstall')));
+        update_option(EnumOptions::Nofollow, $this->formatBoolean($this->post('nofollow')));
 
         /**
          * The pubjet_after_save_options filter.
@@ -239,29 +239,6 @@ class Ajax extends Singleton {
          * @since 1.0.0
          */
         do_action('pubjet_after_save_options');
-
-        $this->success();
-    }
-
-    /**
-     * @return void
-     */
-    public function updateOptions() {
-        $this->checkNonce($this->get('security'));
-
-        /**
-         * The pubjet_before_update_options action.
-         *
-         * @since 1.0.0
-         */
-        do_action('pubjet_before_update_options');
-
-        /**
-         * The pubjet_after_update_options action.
-         *
-         * @since 1.0.0
-         */
-        do_action('pubjet_after_update_options');
 
         $this->success();
     }

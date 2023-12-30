@@ -2,6 +2,7 @@
 
 namespace triboon\pubjet\includes;
 
+use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 
 defined('ABSPATH') || exit;
@@ -96,8 +97,10 @@ class Filters extends Singleton {
             return $content;
         }
 
+        $global   = get_option(EnumOptions::Nofollow, false);
         $nofollow = get_post_meta(get_the_ID(), EnumPostMetakeys::NoFollow, true);
-        if (!$nofollow) {
+
+        if (!$nofollow && !$global) {
             return $content;
         }
 

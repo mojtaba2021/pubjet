@@ -738,6 +738,7 @@ function pubjet_options() {
         'debug'     => get_option(\triboon\pubjet\includes\enums\EnumOptions::DebugMode, false,),
         'category'  => get_option(\triboon\pubjet\includes\enums\EnumOptions::DefaultCategory, ''),
         'uninstall' => get_option(\triboon\pubjet\includes\enums\EnumOptions::UninstallCleanup, false),
+        'nofollow'  => get_option(\triboon\pubjet\includes\enums\EnumOptions::Nofollow, false),
     ]);
 }
 
