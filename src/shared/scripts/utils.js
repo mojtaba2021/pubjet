@@ -273,9 +273,17 @@ export const getAdminAjaxUrl = () => {
 
 /**
  * @since 1.0.0
+ * @param endpoint
  */
-export const getDashboardNonce = () => {
-    return pubjet_params.dashboard_nonce;
+export const findEndpointUrl = (endpoint) => {
+    return `${findSiteUrl()}/pubjet-api/${endpoint}`;
+};
+
+/**
+ * @since 1.0.0
+ */
+export const findSiteUrl = () => {
+    return pubjet_params.siteurl;
 };
 
 /**

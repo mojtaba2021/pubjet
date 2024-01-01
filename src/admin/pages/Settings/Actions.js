@@ -1,12 +1,11 @@
-import {setStore, getStore} from "trim-redux";
-import {getAdminAjaxUrl, getAxios, getSecurityNonce} from "../../../shared/scripts/utils";
+import {getStore, setStore} from "trim-redux";
+import {findEndpointUrl, getAdminAjaxUrl, getAxios, getSecurityNonce} from "../../../shared/scripts/utils";
 
 const axios = getAxios();
 
 export const getStoreKey = () => {
     return 'options';
 };
-
 
 /**
  * @since 1.0.0
@@ -81,6 +80,83 @@ export const saveOptions = () => {
             }
         }).catch(err => {
             reject(err);
+        });
+    });
+};
+
+/**
+ * @since 1.0.0
+ */
+export const doCheckToken = () => {
+    const curstate = getStore(getStoreKey());
+
+    if (!curstate.token) {
+        setStore(getStoreKey(), {
+            ...curstate,
+            checkToken: {
+                checking: false,
+                checked : false,
+                valid   : false,
+                error   : false,
+                payload : {},
+            },
+        });
+        return;
+    }
+
+    return new Promise((resolve, reject) => {
+        setStore(getStoreKey(), {
+            ...curstate,
+            checkToken: {
+                checking: true,
+                checked : false,
+                valid   : false,
+                error   : false,
+                payload : {},
+            },
+        });
+
+        axios.get(findEndpointUrl('check-token'), {
+            params   : {
+                token   : curstate.token,
+                security: getSecurityNonce(),
+            },
+            hideError: true,
+        }).then(response => {
+            if (response.success) {
+                setStore(getStoreKey(), {
+                    ...curstate,
+                    checkToken: {
+                        checked: true,
+                        valid  : true,
+                        error  : false,
+                        payload: response.payload,
+                    },
+                });
+                resolve(response);
+            } else {
+                setStore(getStoreKey(), {
+                    ...curstate,
+                    checkToken: {
+                        checked: true,
+                        valid  : false,
+                        error  : response.error,
+                        payload: {},
+                    },
+                });
+                reject(response);
+            }
+        }).catch((err) => {
+            reject(err);
+        }).finally(() => {
+            const newstate = getStore(getStoreKey());
+            setStore(getStoreKey(), {
+                ...newstate,
+                checkToken: {
+                    ...newstate.checkToken,
+                    checking: false,
+                },
+            });
         });
     });
 };

@@ -17,6 +17,12 @@ export const state = {
         modal     : false,
         uninstall : false,
         nofollow  : false,
+        checkToken: {
+            checking: false,
+            checked : false,
+            valid   : false,
+            payload : {},
+        },
     },
     modal  : false,
 };

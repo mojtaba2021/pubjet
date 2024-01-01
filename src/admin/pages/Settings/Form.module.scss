@@ -1,6 +1,7 @@
 .select {
   height: 45px !important;
   cursor: pointer !important;
+
   :global {
     .ant-select-selection-item {
       cursor: pointer;
@@ -13,4 +14,8 @@
   border: 1px solid #aaa !important;
   height: 45px;
   outline: none !important;
+}
+
+.spinner {
+  cursor: pointer;
 }

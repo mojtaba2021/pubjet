@@ -767,6 +767,18 @@ function pubjet_token() {
 }
 
 /**
+ * @return void
+ */
+function pubjet_api_root() {
+    /**
+     * The pubjet_api_root filter.
+     *
+     * @since 1.0.0
+     */
+    return apply_filters('pubjet_api_root', PUBJET_API_ROOT);
+}
+
+/**
  * @return string
  */
 function pubjet_post_type() {
@@ -810,6 +822,12 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
+        'check-token'             => 'بررسی توکن',
+        'default-category'        => 'دسته بندی پیشفرض انتشار',
+        'triboon-token'           => 'توکن دسترسی تریبون',
+        'congratulation'          => 'تبریک',
+        'valid-token'             => 'توکن وارد شده صحیح است',
+        'invalid-token'           => 'توکن وارد شده اشتباه است',
         'pubjet'                  => 'پاب جت',
         'reportage'               => 'رپورتاژ',
         'enable'                  => 'فعال سازی',

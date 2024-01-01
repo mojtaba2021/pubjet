@@ -29,7 +29,7 @@ class Ajax extends Singleton {
      * @return void
      */
     public function saveReportageOptions() {
-
+        
         $this->checkNonce($this->post('security'));
 
         if (empty($this->post('postId')) || !pubjet_is_reportage($this->post('postId'))) {

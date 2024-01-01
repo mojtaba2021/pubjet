@@ -133,4 +133,40 @@ trait Utils {
         return true;
     }
 
+    /**
+     * @param $url
+     * @param $method
+     * @param $headers
+     * @param $body
+     *
+     * @return \WP_Error|array
+     */
+    public function request($url, $method = 'GET', $headers = [], $body = []) {
+        $args = [
+            'method'  => $method,
+            'headers' => $headers,
+            'body'    => $body,
+        ];
+
+        $response = wp_remote_request($url, $args);
+
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        $response_code = wp_remote_retrieve_response_code($response);
+        $response_body = json_decode(wp_remote_retrieve_body($response));
+
+        return ['code' => $response_code, 'body' => $response_body];
+    }
+
+    /**
+     * @param $value
+     *
+     * @return void
+     */
+    public function endpointHandler($endpoint, $callback, $priority = 15) {
+        add_action('pubjet-api_' . $endpoint, $callback, $priority);
+    }
+
 }

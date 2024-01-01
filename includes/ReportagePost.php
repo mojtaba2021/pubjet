@@ -360,7 +360,7 @@ class ReportagePost extends Singleton {
             return;
         }
 
-        $url = PUBJET_API_ROOT . '/exsternal/wp/reportages/' . $reportage_id . '/publish';
+        $url = pubjet_api_root() . '/exsternal/wp/reportages/' . $reportage_id . '/publish';
 
         $args = [
             'headers'     => [

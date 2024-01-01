@@ -18,11 +18,79 @@ class RewriteHooks extends Singleton {
      * @return void
      */
     public function init() {
-        add_action('pubjet-api_reportage', [$this, 'reportageRequest'], 15);
-        add_action('pubjet-api_version', [$this, 'checkPluginVersion'], 15);;
-        add_action('pubjet-api_copyright', [$this, 'toggleCopyright'], 15);
-        add_action('pubjet-api_check-missed-reportage', [$this, 'checkMissedReportage'], 15);
-        add_action('pubjet-api_siteinfo', [$this, 'siteInfo'], 15);
+        $this->endpointHandler('reportage', [$this, 'reportageRequest'], 15);
+        $this->endpointHandler('version', [$this, 'checkPluginVersion'], 15);;
+        $this->endpointHandler('copyright', [$this, 'toggleCopyright'], 15);
+        $this->endpointHandler('check-missed-reportage', [$this, 'checkMissedReportage'], 15);
+        $this->endpointHandler('siteinfo', [$this, 'siteInfo'], 15);
+        $this->endpointHandler('check-token', [$this, 'checkToken'], 15);
+    }
+
+    /**
+     * @return void
+     */
+    public function checkToken() {
+        $data = $this->check([EnumHttpMethods::GET], false);
+        if (is_array($data) && isset($data['error'])) {
+            $this->error($data['message']);
+        }
+
+        $token = $this->get('token');
+        if (empty(trim($token))) {
+            $this->error(pubjet__('missing-params'));
+        }
+
+        /**
+         * The pubjet_check_token action.
+         *
+         * @since 1.0.0
+         */
+        do_action('pubjet_check_token');
+
+        /**
+         * The pubjet_check_token_url filter.
+         *
+         * @since 1.0.0
+         */
+        $url = apply_filters('pubjet_check_token_url', pubjet_api_root() . '/external/wp/token-validation/', $token);
+
+        if (pubjet_is_dev_mode()) {
+            $url = 'https://api-staging.triboon.net/external/wp/token-validation/';
+        }
+
+        $headers = [
+            'Content-Type'  => 'application/json',
+            'Authorization' => 'Token ' . trim($token),
+        ];
+
+        $result = $this->request($url, EnumHttpMethods::GET, $headers);
+
+        if (is_wp_error($result)) {
+            $this->error($result->get_error_message());
+        }
+
+        if (isset($result['code']) && 403 == $result['code']) {
+            $this->error(pubjet__('invalid-token'));
+        }
+
+        if (!isset($result['body']->is_valid)) { // Some error occured
+            $this->error(pubjet__('error-occured'));
+        }
+
+        // Check if token is valid or not
+        if (!$result['body']->is_valid) {
+            $this->error(pubjet__('invalid-token'), [
+                'invalid' => true,
+            ]);
+        }
+
+        $this->success([
+                           'valid'      => true,
+                           'first_name' => pubjet_isset_value($result['body']->extra->first_name),
+                           'last_name'  => pubjet_isset_value($result['body']->extra->last_name),
+                           'phone'      => pubjet_isset_value($result['body']->extra->phone),
+                           'email'      => pubjet_isset_value($result['body']->extra->email),
+                       ]);
     }
 
     /**

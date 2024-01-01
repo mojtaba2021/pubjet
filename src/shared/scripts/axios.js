@@ -30,9 +30,9 @@ export const getBaseRestApiURL = () => {
 const instance = axios.create({
     baseURL: getBaseRestApiURL(),
     headers: {
-        'X-WP-NONCE': getRestNonce(),
+        'X-WP-NONCE'                  : getRestNonce(),
         'Access-Control-Allow-Origin' : '*',
-        'Access-Control-Allow-Methods':'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
     },
 });
 
@@ -43,17 +43,18 @@ instance.interceptors.request.use(request => {
 
 // Response
 instance.interceptors.response.use(response => {
+    const {hideError} = response.config;
     if (200 === response.status) {
         if (response.data.success) {
             return response.data;
         } else {
-            if (typeof response.data.message !== 'undefined') {
-                // @TODO: Replace with "toastr"
-                showSuccessMessage(response.data.message);
-            }
-            if (typeof response.data.error !== 'undefined') {
-                // @TODO: Replace with "toastr"
-                showErrorMessage(response.data.error);
+            if (!hideError) {
+                if (typeof response.data.message !== 'undefined') {
+                    showSuccessMessage(response.data.message);
+                }
+                if (typeof response.data.error !== 'undefined') {
+                    showErrorMessage(response.data.error);
+                }
             }
         }
     }

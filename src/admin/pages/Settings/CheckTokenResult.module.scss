@@ -1,0 +1,13 @@
+.wrapper {
+  margin-bottom: 24px;
+  :global {
+    .ant-alert-description {
+      text-align: center;
+      font-weight: bold;
+    }
+  }
+}
+
+.spinWrapper {
+  text-align: center;
+}

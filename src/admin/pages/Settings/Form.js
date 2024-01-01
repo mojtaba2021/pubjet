@@ -1,13 +1,16 @@
 import React from 'react';
 import styles from "./Form.module.scss";
-import {changeInput} from "./Actions";
-import {Form as AntForm, Input, Select} from "antd";
+import {changeInput, doCheckToken} from "./Actions";
+import {Form as AntForm, Input, Select, Tooltip} from "antd";
 import {connect} from "trim-redux";
+import CheckTokenResult from "./CheckTokenResult";
+import {pubjet__} from "../../../shared/scripts/utils";
+import {CheckOutlined, ReloadOutlined} from "@ant-design/icons";
 
 const {TextArea} = Input;
 
 const Form = props => {
-    const {token, debug, category, categories} = props.options;
+    const {token, category, categories, checkToken} = props.options;
 
     /**
      * @since 1.0
@@ -20,9 +23,8 @@ const Form = props => {
         return <Input size={'large'}{...args}/>;
     };
 
-
     return <AntForm layout={`vertical`} autoComplete="off">
-        <AntForm.Item label={'کلید دسترسی تریبون'}>
+        <AntForm.Item label={pubjet__('triboon-token')}>
             {renderInput({
                 name     : 'token',
                 value    : token,
@@ -30,9 +32,13 @@ const Form = props => {
                 onChange : (e) => {
                     changeInput('token', e.target.value);
                 },
+                suffix   : token ? <Tooltip title={pubjet__('check-token')}>
+                    <ReloadOutlined className={styles.spinner} onClick={doCheckToken}/>
+                </Tooltip> : null,
             })}
         </AntForm.Item>
-        <AntForm.Item label={'دسته بندی پیشفرض انتشار'}>
+        <CheckTokenResult/>
+        <AntForm.Item label={pubjet__('default-category')}>
             <Select
                 className={`${styles.input} ${styles.select}`}
                 options={categories}

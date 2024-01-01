@@ -84,6 +84,7 @@ class AssetsLoader extends Singleton {
             ],
             'images_url' => PUBJET_IMAGES_URL,
             'nonce'      => pubjet_is_admin() ? wp_create_nonce('pubjet-nonce') : '', // Just for admins
+            'siteurl'    => site_url(),
             'i18n'       => pubjet_strings(),
         ]);
     }
