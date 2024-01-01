@@ -902,3 +902,85 @@ function pubjet_array($data) {
     }
     return is_array($data) ? $data : [$data];
 }
+
+/**
+ * @return void
+ */
+function pubjet_notify_version($version = false, $update = false) {
+    if (!function_exists('PUBJ')) {
+        return false;
+    }
+    $plugin_version = PUBJ()->getVersion();
+    if ($version) {
+        $plugin_version = $version;
+    }
+    if (empty($plugin_version)) {
+        return false;
+    }
+
+    /**
+     * The pubjet_should_notify_version filter.
+     *
+     * @since 1.0.0
+     */
+    if (!apply_filters('pubjet_should_notify_version', $version, $update)) {
+        return false;
+    }
+
+    /**
+     * The pubjet_notify_version_request_headers filter.
+     *
+     * @since 1.0.0
+     */
+    $headers = apply_filters('pubjet_notify_version_request_headers', [
+        'Content-Type'  => 'application/json',
+        'Authoriztaion' => 'Token ' . pubjet_token(),
+    ]);
+
+    /**
+     * The pubjet_notify_version_request_data filter.
+     *
+     * @since 1.0.0
+     */
+    $data = apply_filters('pubjet_notify_version_request_data', [
+        'version' => $plugin_version,
+        'update'  => $update,
+    ]);
+
+    $url = apply_filters('pubjet_notify_version_url', pubjet_api_root() . '/external/wp/pubjet/track');
+
+    pubjet_request($url, 'POST', $headers, json_encode($data), [
+        'data_format' => 'body',
+    ]);
+}
+
+/**
+ * @param $url
+ * @param $method
+ * @param $headers
+ * @param $body
+ *
+ * @return \WP_Error|array
+ */
+function pubjet_request($url, $method = 'GET', $headers = [], $body = [], $pargs = []) {
+    $args = [
+        'method'  => $method,
+        'headers' => $headers,
+        'body'    => $body,
+    ];
+
+    if ($pargs) {
+        $args = array_merge($args, $pargs);
+    }
+
+    $response = wp_remote_request($url, $args);
+
+    if (is_wp_error($response)) {
+        return $response;
+    }
+
+    $response_code = wp_remote_retrieve_response_code($response);
+    $response_body = json_decode(wp_remote_retrieve_body($response));
+
+    return ['code' => $response_code, 'body' => $response_body];
+}

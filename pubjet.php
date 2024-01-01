@@ -84,7 +84,7 @@ if (!class_exists('Pubjet')) {
             Initializer::getInstance();
         }
 
-        /*  *
+        /**
          * @access private
          * @return void
          * @since  1.0
@@ -188,13 +188,26 @@ if (!class_exists('Pubjet')) {
          * @author Pishook
          */
         public function onActivation() {
+            $this->migrate();
+            $this->trackActivationVersion();
+        }
+
+        /**
+         * @return void
+         */
+        private function trackActivationVersion() {
             // Track first version
             $activation_option = \triboon\pubjet\includes\enums\EnumOptions::ActivationVersion;
             $activation_value  = get_option($activation_option);
             if (!$activation_value) {
                 update_option($activation_option, $this->getVersion());
             }
+        }
 
+        /**
+         * @return void
+         */
+        private function migrate() {
             $last_token = get_option('triboon_token');
             if (empty($last_token)) {
                 return;
