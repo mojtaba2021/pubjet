@@ -30,7 +30,7 @@ class RewriteHooks extends Singleton {
      * @return void
      */
     public function checkToken() {
-        $data = $this->check([EnumHttpMethods::GET], false);
+        $data = $this->check([EnumHttpMethods::GET], false, false);
         if (is_array($data) && isset($data['error'])) {
             $this->error($data['message']);
         }
@@ -273,7 +273,6 @@ class RewriteHooks extends Singleton {
         }
 
         // =================== Insert or Update ===================
-
         if (!$this->isValidHttpMethod([EnumHttpMethods::POST, EnumHttpMethods::PATCH])) {
             wp_send_json_error(pubjet__('invalid-http-method'), 401);
         }
@@ -371,7 +370,7 @@ class RewriteHooks extends Singleton {
     /**
      * @return array|bool|object
      */
-    private function check($method, $get_request_data = true) {
+    private function check($method, $get_request_data = true, $check_token = true) {
         if (!is_array($method)) {
             $method = [$method];
         }
@@ -384,7 +383,7 @@ class RewriteHooks extends Singleton {
             ];
         }
 
-        if (!$this->isTokenValid()) {
+        if ($check_token && !$this->isTokenValid()) {
             return [
                 'error'   => true,
                 'status'  => 401,

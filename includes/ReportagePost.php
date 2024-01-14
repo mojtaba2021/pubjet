@@ -28,7 +28,6 @@ class ReportagePost extends Singleton {
 
 
     public static function get_post_status($post_date) {
-
         $dt = new DateTime(date('Y-m-d H:i:s e'));
         $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
         $current_time = $dt->format('Y-m-d H:i:s');
@@ -135,8 +134,23 @@ class ReportagePost extends Singleton {
          *
          * @since 1.0.0
          */
-        $args    = apply_filters('pubjet_new_reportage_post_args', $args);
+        $args = apply_filters('pubjet_new_reportage_post_args', $args);
+
+        pubjet_log('======= Reportage =======');
+        pubjet_log($reportage);
+        pubjet_log('======= New Post Args =======');
+        pubjet_log($args);
+
         $post_id = wp_insert_post($args);
+
+        pubjet_log('======= New Post Result =======');
+        pubjet_log($post_id);
+
+        if (!is_wp_error($post_id)) {
+            update_post_meta($post_id, EnumPostMetakeys::ReportageId, intval($reportage->id));
+            update_post_meta($post_id, EnumPostMetakeys::ReportageContentUrl, sanitize_url($reportage->content_file));
+            update_post_meta($post_id, EnumPostMetakeys::PanelData, $reportage);
+        }
 
         if (!is_wp_error($post_id)) { // Set post thumbnail
             if (isset($post_content['featured_img_id'])) {
@@ -158,6 +172,9 @@ class ReportagePost extends Singleton {
     public static function reportage_exists($reportage_id) {
         global $wpdb;
         $post_id = $wpdb->get_col($wpdb->prepare("SELECT `post_id` FROM {$wpdb->postmeta} where `meta_key` = %s AND `meta_value` = %s LIMIT 1", EnumPostMetakeys::ReportageId, $reportage_id));
+        if (!$post_id) {
+            return false;
+        }
         return is_array($post_id) ? reset($post_id) : $post_id;
     }
 
@@ -367,9 +384,9 @@ class ReportagePost extends Singleton {
                 'Authorization' => 'api-key ' . pubjet_token(),
                 'Content-Type'  => 'application/json',
             ],
-            'body'        => json_encode(['url' => get_the_permalink($post_id)]),
             'method'      => 'POST',
             'data_format' => 'body',
+            'body'        => json_encode(['url' => get_permalink($post_id)]),
         ];
 
         $response = wp_remote_post($url, $args);

@@ -16,25 +16,7 @@ class AssetsLoader extends Singleton {
      */
     public function init() {
         add_action('admin_enqueue_scripts', [$this, 'loadAdminAssets'], 15);
-        //add_action('wp_enqueue_scripts', [$this, 'loadThemeAssets'], 15);
     }
-
-    /**
-     * @return void
-     */
-//    public function loadThemeAssets() {
-//        if (pubjet_is_prod_mode()) {
-//            if (!apply_filters('pubjet_load_theme_assets', true, $this)) {
-//                return;
-//            }
-//            // ======================= Production =======================
-//            wp_enqueue_style('pubjet_styles', PUBJET_CSS_URL . $this->findCSSFile('theme'), [], PUBJ()->getScriptsVersion());
-//            wp_enqueue_script('pubjet_scripts', PUBJET_JS_URL . $this->findJSFile('theme'), ['jquery'], PUBJ()->getScriptsVersion(), true);
-//        } else {
-//            wp_enqueue_script('pubjet_scripts', $this->getWebpackIPAddress() . '/theme.js', ['jquery'], PUBJ()->getScriptsVersion(), true);
-//        }
-//        wp_localize_script('pubjet_scripts', 'pubjet_params', $this->getScriptVars());
-//    }
 
     /**
      * @return void
