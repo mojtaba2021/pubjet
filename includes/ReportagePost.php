@@ -97,13 +97,18 @@ class ReportagePost extends Singleton {
      */
     public static function insert($reportage) {
 
+        pubjet_log('================== Insert ===================');
+
         if ($reportage->wp_post_id = self::reportage_exists($reportage->id)) {
+            pubjet_log('==================== Updateing ===================');
             return self::update($reportage);
         }
 
         $def_category = get_option(EnumOptions::DefaultCategory);
 
         $post_content = self::get_content_file($reportage);
+        pubjet_log('======= Post Content ======');
+        pubjet_log($post_content);
         $post_content = self::get_post_content($post_content, $reportage->title);
 
         $post_date   = self::get_post_date($reportage->preferred_publish_date);
@@ -318,7 +323,12 @@ class ReportagePost extends Singleton {
 
         $content_file = str_replace("https://cdn.triboon.net", "https://cdn.pubjet.ir", $reportage->content_file);
 
-        $response = wp_remote_get($content_file);
+        $response = wp_remote_get($content_file, [
+            'timeout'     => 25,
+            'redirection' => 5,
+            'blocking'    => true,
+            'sslverify'   => false,
+        ]);
         $body     = wp_remote_retrieve_body($response);
 
         $body = str_replace("https://cdn.triboon.net", "https://cdn.pubjet.ir", $body);

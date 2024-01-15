@@ -11,6 +11,7 @@ import Button from "../Button/Button";
 import BaseComponent from "../BaseComponent/BaseComponent";
 import styles from './ReportageData.module.scss';
 import {Spin} from "antd";
+import {CopyOutlined} from "@ant-design/icons";
 
 const axios = getAxios();
 
@@ -87,8 +88,9 @@ class ReportageData extends BaseComponent {
                        onClick={this.handleCopy}
                        block={true}
                        className={styles.copyButton}
+                       icon={<CopyOutlined/>}
         >
-            کپی کردن
+            {pubjet__('copy')}
         </Button>;
     };
 

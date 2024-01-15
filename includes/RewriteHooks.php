@@ -97,7 +97,9 @@ class RewriteHooks extends Singleton {
      * @return void
      */
     public function siteInfo() {
+
         $data = $this->check(['GET'], false);
+
         if (is_array($data) && isset($data['error'])) {
             wp_send_json_error(pubjet_isset_value($data['message']), pubjet_isset_value($data['status']));
         }
