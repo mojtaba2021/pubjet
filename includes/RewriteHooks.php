@@ -148,7 +148,7 @@ class RewriteHooks extends Singleton {
             // Show copyright
             delete_option(EnumOptions::CopyrightStatus);
         }
-
+        
         $this->success([
                            'wpPostId'    => $reportage_post_id,
                            'reportageId' => pubjet_isset_value($data->id),

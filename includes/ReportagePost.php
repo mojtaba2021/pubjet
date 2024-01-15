@@ -59,7 +59,7 @@ class ReportagePost extends Singleton {
 
         $args = [
             'ID'          => $post_id,
-            'post_type'   => PUBJET_POST_TYPE,
+            'post_type'   => pubjet_post_type(),
             'post_status' => $post_status,
             'tags_input'  => isset($thereportage->tags) && is_array($thereportage->tags) ? map_deep($thereportage->tags, 'sanitize_text_field') : [],
         ];
@@ -100,7 +100,7 @@ class ReportagePost extends Singleton {
         pubjet_log('================== Insert ===================');
 
         if ($reportage->wp_post_id = self::reportage_exists($reportage->id)) {
-            pubjet_log('==================== Updateing ===================');
+            pubjet_log('==================== Updating ===================');
             return self::update($reportage);
         }
 

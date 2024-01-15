@@ -984,3 +984,15 @@ function pubjet_request($url, $method = 'GET', $headers = [], $body = [], $pargs
 
     return ['code' => $response_code, 'body' => $response_body];
 }
+
+/**
+ * @param $post_md5
+ *
+ * @return boolean|integer
+ */
+function pubjet_is_post_exists($post_md5) {
+    global $wpdb;
+    $query  = "SELECT `post_id` FROM {$wpdb->postmeta} WHERE `meta_key` = 'duplicate_guard' AND `meta_value` = %s";
+    $pquery = $wpdb->prepare($query, $post_md5);
+    return $wpdb->get_var($pquery);
+}
