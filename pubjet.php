@@ -1,8 +1,8 @@
 <?php
 /*
-    Plugin Name: Pubjet | پاب‌جت
-    Description: پاب‌جت دستیار شما در انتشار رپورتاژ آگهی است. در واقع پاب‌جت امکان انتشار خودکار رپورتاژ را فراهم می‌آورد.
-    Author: تریــبــون
+    Plugin Name: Pubjet
+    Description: Pubjet is your assistant in publishing advertisement reportage. In fact, Pubjet allows the automatic publication of reportage.
+    Author: Triboon
     Author URI:  https://triboon.net
     License: GPL v2 or later
     License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -151,6 +151,7 @@ if (!class_exists('Pubjet')) {
          */
         public function loadTextDomain() {
             $locale = get_locale();
+            $locale = str_replace('_', '-', $locale);
             $mo     = 'pubjet-' . $locale . '.mo';
             load_textdomain('pubjet', WP_LANG_DIR . '/pubjet/' . $mo);
             load_textdomain('pubjet', plugin_dir_path(__FILE__) . 'languages/' . $mo);

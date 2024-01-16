@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Alert} from "antd";
 import styles from "./SaveAlert.module.scss";
+import {pubjet__} from "../../../shared/scripts/utils";
 
 const SaveAlert = props => {
     const {saved} = props;
@@ -11,7 +12,7 @@ const SaveAlert = props => {
     return <Alert
         showIcon={true}
         type={'success'}
-        message={'تنظیمات با موفقیت ذخیره شد'}
+        message={pubjet__('settings-saved')}
         className={styles.alert}
     />;
 };
