@@ -8,6 +8,13 @@
   border-radius: 12px;
   overflow: hidden;
   position: relative;
+  :global {
+    .ant-tabs-nav-list {
+      @include mq-max('md') {
+        width: 100%;
+      }
+    }
+  }
   @include mq-max('md') {
     width: 92%;
     margin-top: 40px;

@@ -15,7 +15,7 @@ const CheckTokenResult = props => {
         return <div className={styles.spinWrapper}>
             <LoadingOutlined
                 spin={true}
-                style={{fontSize: '18px'}}
+                style={{fontSize: '18px', marginBottom: '15px'}}
             />
         </div>;
     }

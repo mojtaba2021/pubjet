@@ -1,0 +1,34 @@
+@import '../../../shared/styles/mixins';
+@import '../../../shared/styles/variables';
+
+.wrapper {
+  :global {
+    .ant-badge-status-dot {
+      width: 12px !important;
+      height: 12px !important;
+    }
+  }
+}
+
+.table {
+  margin-top: 15px;
+}
+
+.alert {
+  text-align: justify;
+  line-height: 2;
+}
+
+.enable {
+  font-weight: bold;
+  color: $green-1000;
+}
+
+.disable {
+  color: $red;
+}
+
+.button {
+  margin-top: 20px;
+  margin-bottom: 25px;
+}

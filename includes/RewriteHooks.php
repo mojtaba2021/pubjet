@@ -84,6 +84,8 @@ class RewriteHooks extends Singleton {
             ]);
         }
 
+        pubjet_log($result);
+
         $this->success([
                            'valid'      => true,
                            'first_name' => pubjet_isset_value($result['body']->extra->first_name),

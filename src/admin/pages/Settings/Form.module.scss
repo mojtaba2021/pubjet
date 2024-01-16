@@ -1,7 +1,12 @@
+@import '../../../shared/styles/variables';
+@import '../../../shared/styles/mixins';
+
 .select {
   height: 45px !important;
   cursor: pointer !important;
-
+  @include mq-max('md') {
+    height: 50px !important;
+  }
   :global {
     .ant-select-selection-item {
       cursor: pointer;
@@ -14,6 +19,9 @@
   border: 1px solid #aaa !important;
   height: 45px;
   outline: none !important;
+  @include mq-max('md') {
+    height: 50px !important;
+  }
 }
 
 .spinner {

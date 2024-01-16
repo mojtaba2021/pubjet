@@ -23,6 +23,29 @@ class Ajax extends Singleton {
         $this->ajax('find-reportage-panel-data', [$this, 'findReportagePanelData'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('find-reportage-options', [$this, 'findReportageOptions'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('save-reportage-options', [$this, 'saveReportageOptions'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('check-required-php-modules', [$this, 'checkRequiredPhpModules'], EnumAjaxPrivType::LoggedIn);
+    }
+
+    /**
+     * @return void
+     * @since  1.0
+     * @author Pishook
+     */
+    public function checkRequiredPhpModules() {
+        $this->checkNonce($this->get('security'));
+
+        /**
+         * The pubjet_required_php_modules hook.
+         *
+         * @since 1.0.0
+         */
+        $data = apply_filters('pubjet_required_php_modules', [
+            'curl'     => function_exists('curl_version'),
+            'openssl'  => function_exists('openssl_encrypt'),
+            'php_soap' => class_exists('SoapClient'),
+        ]);
+
+        $this->success($data);
     }
 
     /**

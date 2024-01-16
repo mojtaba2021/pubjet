@@ -725,7 +725,7 @@ function pubjet_is_debug_mode() {
 }
 
 /**
- * @return void
+ * @return array
  */
 function pubjet_options() {
     /**
@@ -849,9 +849,8 @@ function pubjet_strings() {
         'missing-params'          => 'برخی از پارامترهای الزامی همراه با درخواست ارسال نشده است',
         'permission-error'        => 'شما دسترسی لازم برای انجام این عملیات را ندارید',
         'missing-token'           => 'لطفا توکن دسترسی را در منوی تنظیمات افزونه پاب جت وارد کنید',
-        'invalid-token'           => 'توکن دسترسی اشتباه است',
-        'invalid-http-method'     => 'The request method is invalid',
-        'empty-reportage-content' => 'Reportage content is empty.',
+        'invalid-http-method'     => 'متد درخواست اشتباه است',
+        'empty-reportage-content' => 'محتوای رپورتاژ خالی است',
         'general'                 => 'عمومی',
         'debug'                   => 'اشکال زدایی',
         'advanced'                => 'پیشرفته',
@@ -860,6 +859,12 @@ function pubjet_strings() {
         'reportage-options'       => 'پاب جت :: تنظیمات رپورتاژ',
         'enable-nofollow'         => 'NoFollow کردن لینک ها',
         'pwait'                   => 'لطفا منتظر بمانید ...',
+        'modules'                 => 'ماژول ها',
+        'curl-module'             => 'cUrl',
+        'openssl-module'          => 'OpenSSL',
+        'required-modules'        => 'ماژول های الزامی',
+        'required-modules-help'   => 'افزونه پابجت برای کارکرد صحیح خود نیاز به فعال سازی ماژول های زیر دارد. در صورتی که هر کدام از موارد زیر فعال نیستند، از پشتیبانی هاست خود بخواهید که موارد غیر  فعال را برای شما فعال کنند.',
+        'check-now'               => 'بررسی مجدد',
     ]);
 }
 

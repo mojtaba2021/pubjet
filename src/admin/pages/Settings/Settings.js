@@ -8,6 +8,7 @@ import {Tabs} from "antd";
 import Debug from "./Debug";
 import {pubjet__} from "../../../shared/scripts/utils";
 import Misc from "./Misc";
+import RequiredPhpModules from "./RequiredPhpModules";
 
 const Settings = props => {
     return <div className={styles.container}>
@@ -25,6 +26,11 @@ const Settings = props => {
                     key     : 'debug',
                     label   : pubjet__('debug'),
                     children: <Debug/>,
+                },
+                {
+                    key     : 'required-php-modules',
+                    label   : pubjet__('modules'),
+                    children: <RequiredPhpModules/>,
                 },
                 {
                     key     : 'misc',
