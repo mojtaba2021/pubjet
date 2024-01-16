@@ -1,11 +1,12 @@
 import React from 'react';
 import {
     copyText,
-    getAdminAjaxUrl,
+    findEndpointUrl,
     getAxios,
     getSecurityNonce,
+    pubjet__,
     showErrorMessage,
-    pubjet__, showSuccessMessage
+    showSuccessMessage
 } from "../../../shared/scripts/utils";
 import {Button, Form, Space, Spin, Switch, Tooltip} from "antd";
 import styles from "./Debug.module.scss";
@@ -37,8 +38,7 @@ class Debug extends BaseComponent {
      */
     handleDelete = () => {
         this.setState({error: false, loading: true}, () => {
-            axios.post(getAdminAjaxUrl(), {
-                action  : 'pubjet-delete-debug',
+            axios.post(findEndpointUrl('delete-debug'), {
                 security: getSecurityNonce(),
             }).then(response => {
                 if (response.success) {
@@ -85,9 +85,8 @@ class Debug extends BaseComponent {
      */
     fetch = () => {
         this.setState({loading: true, error: false,}, () => {
-            axios.get(getAdminAjaxUrl(), {
+            axios.get(findEndpointUrl('get-debug'), {
                 params: {
-                    action  : 'pubjet-get-debug',
                     security: getSecurityNonce(),
                 },
             }).then(response => {

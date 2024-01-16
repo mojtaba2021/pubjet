@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './RequiredPhpModules.module.scss';
 import BaseComponent from '../../components/BaseComponent/BaseComponent';
-import {getAdminAjaxUrl, getAxios, getSecurityNonce, pubjet__} from '../../../shared/scripts/utils';
+import {findEndpointUrl, getAdminAjaxUrl, getAxios, getSecurityNonce, pubjet__} from '../../../shared/scripts/utils';
 import {Alert, Badge, Table, Tooltip} from 'antd';
 import {LoadingOutlined, ReloadOutlined} from '@ant-design/icons';
 import Button from "../../components/Button/Button";
@@ -28,9 +28,8 @@ class RequiredPhpModules extends BaseComponent {
      */
     handleCheck = () => {
         this.setState({error: false, loading: true}, () => {
-            axios.get(getAdminAjaxUrl(), {
+            axios.get(findEndpointUrl('check-required-php-modules'), {
                 params: {
-                    action  : 'pubjet-check-required-php-modules',
                     security: getSecurityNonce(),
                 },
             }).then(response => {
@@ -128,7 +127,7 @@ class RequiredPhpModules extends BaseComponent {
             className={styles.button}
             loading={loading}
             onClick={this.handleCheck}
-            icon={<ReloadOutlined />}
+            icon={<ReloadOutlined/>}
             type={'default'}
         >
             {pubjet__('check-now')}

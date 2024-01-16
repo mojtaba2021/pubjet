@@ -1,7 +1,14 @@
 import React, {Component} from 'react';
 import styles from './ReportageOptions.module.scss';
 import {Form, Spin, Switch} from "antd";
-import {getAdminAjaxUrl, getAxios, getSecurityNonce, pubjet__, showErrorMessage} from "../../../shared/scripts/utils";
+import {
+    findEndpointUrl,
+    getAdminAjaxUrl,
+    getAxios,
+    getSecurityNonce,
+    pubjet__,
+    showErrorMessage
+} from "../../../shared/scripts/utils";
 
 const axios = getAxios();
 
@@ -32,9 +39,9 @@ class ReportageOptions extends Component {
      */
     fetch = () => {
         this.setState({error: false, loading: true,}, () => {
-            axios.get(getAdminAjaxUrl(), {
+            axios.get(findEndpointUrl('find-reportage-options'), {
                 params: {
-                    action  : 'pubjet-find-reportage-options',
+                    action  : '',
                     postId  : this.getPostId(),
                     security: getSecurityNonce(),
                 },
@@ -58,8 +65,7 @@ class ReportageOptions extends Component {
      * @since 1.0.0
      */
     save = () => {
-        axios.post(getAdminAjaxUrl(), {
-            action  : 'pubjet-save-reportage-options',
+        axios.post(findEndpointUrl('save-reportage-options'), {
             postId  : this.getPostId(),
             nofollow: this.state.nofollow,
             security: getSecurityNonce(),

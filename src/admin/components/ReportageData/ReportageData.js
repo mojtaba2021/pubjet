@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    copyText,
+    copyText, findEndpointUrl,
     getAdminAjaxUrl,
     getAxios,
     getSecurityNonce,
@@ -36,9 +36,8 @@ class ReportageData extends BaseComponent {
     fetch = () => {
         this.setState({error: false, loading: true,}, () => {
             const postId = jQuery('#pubjet-reportage-panel-data').data('postid');
-            axios.get(getAdminAjaxUrl(), {
+            axios.get(findEndpointUrl('find-reportage-panel-data'), {
                 params: {
-                    action  : 'pubjet-find-reportage-panel-data',
                     postId  : postId,
                     security: getSecurityNonce(),
                 },

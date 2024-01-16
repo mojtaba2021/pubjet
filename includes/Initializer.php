@@ -10,7 +10,6 @@ class Initializer extends Singleton {
      * @return void
      */
     public function init() {
-        Ajax::getInstance();
         Actions::getInstance();
         Filters::getInstance();
         ReportagePost::getInstance();

@@ -24,9 +24,8 @@ export const changeInput = (name, value) => {
 export const loadOptions = () => {
     return new Promise((resolve, reject) => {
         const options = getStore(getStoreKey());
-        axios.get(getAdminAjaxUrl(), {
+        axios.get(findEndpointUrl('get-options'), {
             params: {
-                action  : 'pubjet-get-options',
                 security: getSecurityNonce(),
             },
         }).then(response => {
@@ -64,8 +63,7 @@ export const loadOptions = () => {
 export const saveOptions = () => {
     return new Promise((resolve, reject) => {
         const options = getStore(getStoreKey());
-        axios.post(getAdminAjaxUrl(), {
-            action   : 'pubjet-save-options',
+        axios.post(findEndpointUrl('save-options'), {
             token    : options.token,
             debug    : options.debug,
             uninstall: options.uninstall,

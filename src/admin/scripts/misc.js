@@ -1,4 +1,4 @@
-import {getAdminAjaxUrl, getAxios, getSecurityNonce} from "../../shared/scripts/utils";
+import {findEndpointUrl, getAdminAjaxUrl, getAxios, getSecurityNonce} from "../../shared/scripts/utils";
 
 const axios = getAxios();
 
@@ -8,8 +8,7 @@ jQuery(document).ready(function ($) {
         const $self = $(this);
         const postId = $self.data('post-id');
         $self.addClass('pubjet-disabled');
-        axios.post(getAdminAjaxUrl(), {
-            action  : 'pubjet-reg-thumb',
+        axios.post(findEndpointUrl('reg-thumb'), {
             postId  : postId,
             security: getSecurityNonce(),
         }).then(response => {
