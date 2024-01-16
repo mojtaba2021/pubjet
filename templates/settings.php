@@ -2,5 +2,7 @@
 if (!defined("ABSPATH")) exit;
 ?>
 <div id="pubjet-page-settings-content">
-    <noscript>برای استفاده از این قسمت باید جاوا اسکریپت را در مرورگر خود فعال کنید.</noscript>
+    <noscript class="pubjet-active-js-warning">
+        <?php echo esc_html__('You must enable JavaScript in your browser to use this section.', 'pubjet'); ?>
+    </noscript>
 </div>

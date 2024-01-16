@@ -1,13 +1,20 @@
+@import '../../shared/styles/variables';
+@import '../../shared/styles/mixins';
+
 #pubjet-page-settings-content {
   noscript {
     display: block;
     margin-top: 25px;
     color: white;
     background-color: #ce1340;
-    padding: 15px;
-    border-radius: 8px;
-    width: 96%;
+    padding: 24px 15px;
+    width: 95%;
     text-align: center;
     font-size: 18px;
+    border-radius: 8px;
+    line-height: 1.7;
+    @include mq-max('md') {
+      width: 88%;
+    }
   }
 }

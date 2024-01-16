@@ -826,7 +826,7 @@ function pubjet_strings() {
         'default-category'        => esc_html__('Default Category', 'pubjet'),
         'triboon-token'           => esc_html__('Access Token', 'pubjet'),
         'congratulation'          => esc_html__('Congratulations !', 'pubjet'),
-        'valid-token'             => esc_html__('The Access Token is Correct', 'pubjet'),
+        'valid-token'             => esc_html__('The Access Token is Valid', 'pubjet'),
         'invalid-token'           => esc_html__('The Access Token is Invalid', 'pubjet'),
         'pubjet'                  => esc_html__('Pubjet', 'pubjet'),
         'reportage'               => esc_html__('Reportage', 'pubjet'),
@@ -853,6 +853,7 @@ function pubjet_strings() {
         'empty-reportage-content' => esc_html__('The content of the reportage is empty', 'pubjet'),
         'general'                 => esc_html__('General', 'pubjet'),
         'debug'                   => esc_html__('Debugging', 'pubjet'),
+        'enable-debugging'        => esc_html__('Enable Debugging', 'pubjet'),
         'advanced'                => esc_html__('Advanced', 'pubjet'),
         'saved'                   => esc_html__('Saved !', 'pubjet'),
         'reportage-data'          => esc_html__('Pubjet :: Reportage Data', 'pubjet'),
@@ -865,7 +866,7 @@ function pubjet_strings() {
         'required-modules'        => esc_html__('Required Modules', 'pubjet'),
         'required-modules-help'   => esc_html__('Pubjet plugin requires the activation of the following modules for its proper functioning. If any of the following items are not active, ask your hosting support to activate the inactive items for you.', 'pubjet'),
         'check-now'               => esc_html__('Check  Now', 'pubjet'),
-        'update-settings'           => esc_html__('Update Settings', 'pubjet'),
+        'update-settings'         => esc_html__('Update Settings', 'pubjet'),
         'settings-saved'          => esc_html__('Settings saved successfully', 'pubjet'),
     ]);
 }

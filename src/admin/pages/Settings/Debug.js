@@ -135,7 +135,7 @@ class Debug extends BaseComponent {
     enable = () => {
         const {debug} = this.props.options;
         return <Form layout={'vertical'} colon={false}>
-            <Form.Item label={pubjet__('enable')}>
+            <Form.Item label={pubjet__('enable-debugging')}>
                 <Switch checked={debug} onChange={(checked) => {
                     changeInput('debug', checked);
                     showSuccessMessage(pubjet__('saved'));
