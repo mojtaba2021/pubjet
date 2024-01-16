@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Pubjet | پاب‌جت\n"
-"POT-Creation-Date: 2024-01-16 12:55+0330\n"
-"PO-Revision-Date: 2024-01-16 13:02+0330\n"
+"POT-Creation-Date: 2024-01-16 13:40+0330\n"
+"PO-Revision-Date: 2024-01-16 13:40+0330\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fa\n"
@@ -39,11 +39,11 @@ msgid "Congratulations !"
 msgstr "تبریک"
 
 #: includes/functions.php:829
-msgid "The access token is correct"
+msgid "The Access Token is Correct"
 msgstr "توکن دسترسی صحیح است"
 
 #: includes/functions.php:830
-msgid "The access token is invalid"
+msgid "The Access Token is Invalid"
 msgstr "توکن دسترسی صحیح نیست"
 
 #. Plugin Name of the plugin/theme
