@@ -126,6 +126,7 @@ class ReportagePost extends Singleton {
                 EnumPostMetakeys::ReportageId         => intval($reportage->id),
                 EnumPostMetakeys::ReportageContentUrl => sanitize_url($reportage->content_file),
                 EnumPostMetakeys::PanelData           => $reportage,
+                EnumPostMetakeys::Source              => 'triboon',
             ],
         ];
 
@@ -151,11 +152,11 @@ class ReportagePost extends Singleton {
         pubjet_log('======= New Post Result =======');
         pubjet_log($post_id);
 
-        if (!is_wp_error($post_id)) {
-            update_post_meta($post_id, EnumPostMetakeys::ReportageId, intval($reportage->id));
-            update_post_meta($post_id, EnumPostMetakeys::ReportageContentUrl, sanitize_url($reportage->content_file));
-            update_post_meta($post_id, EnumPostMetakeys::PanelData, $reportage);
-        }
+//        if (!is_wp_error($post_id)) {
+//            update_post_meta($post_id, EnumPostMetakeys::ReportageId, intval($reportage->id));
+//            update_post_meta($post_id, EnumPostMetakeys::ReportageContentUrl, sanitize_url($reportage->content_file));
+//            update_post_meta($post_id, EnumPostMetakeys::PanelData, $reportage);
+//        }
 
         if (!is_wp_error($post_id)) { // Set post thumbnail
             if (isset($post_content['featured_img_id'])) {
