@@ -1,5 +1,7 @@
 <?php
 
+use triboon\pubjet\includes\enums\EnumPostMetakeys;
+
 /**
  * @param $name
  * @param $args
@@ -776,6 +778,15 @@ function pubjet_api_root() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_api_root', PUBJET_API_ROOT);
+}
+
+/**
+ * @param $post_id
+ *
+ * @return integer
+ */
+function pubjet_find_reportage_id($post_id) {
+    return get_post_meta($post_id, EnumPostMetakeys::ReportageId, true);
 }
 
 /**

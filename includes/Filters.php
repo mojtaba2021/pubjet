@@ -16,7 +16,6 @@ class Filters extends Singleton {
         add_filter("display_post_states", [$this, "displayPostStates"], 15, 2);
         add_filter('parse_query', [$this, "adminFilterPosts"], 15);
         add_filter("the_content", [$this, "filterTheContent"], 0, 2);
-        add_filter("the_content", [$this, "nofollowReportageContent"], 25, 2);
         add_filter('post_row_actions', [$this, 'regenerateThumbnail'], 15, 2);
         add_filter('post_class', [$this, 'addPubjetClass'], 15, 3);
         add_filter('plugin_row_meta', [$this, 'pluginRowMeta'], 15, 2);
@@ -86,28 +85,6 @@ class Filters extends Singleton {
             $post_states[] = "رپورتاژ - " . intval($reportage_id);
         }
         return $post_states;
-    }
-
-    /**
-     * @return string
-     */
-    public function nofollowReportageContent($content) {
-
-        if (!pubjet_is_reportage(get_the_ID())) {
-            return $content;
-        }
-
-        $global   = get_option(EnumOptions::Nofollow, false);
-        $nofollow = get_post_meta(get_the_ID(), EnumPostMetakeys::NoFollow, true);
-
-        if (!$nofollow && !$global) {
-            return $content;
-        }
-
-        $pattern     = '/<a(.*?)href=["\'](.*?)["\'](.*?)>/i';
-        $replacement = '<a$1href="$2"$3 rel="nofollow">';
-
-        return preg_replace($pattern, $replacement, $content);
     }
 
     /**

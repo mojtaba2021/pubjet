@@ -10,6 +10,7 @@ use DateTimeZone;
 use Statickidz\GoogleTranslate;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
+use triboon\pubjet\includes\enums\EnumPostStatus;
 
 class ReportagePost extends Singleton {
 
@@ -17,7 +18,7 @@ class ReportagePost extends Singleton {
      * @since 1.0.0
      */
     public function __construct() {
-        add_action("publish_" . pubjet_post_type(), [$this, "afterPublishReportage"]);
+        add_action("transition_post_status", [$this, "afterPublishReportage"], 15, 3);
     }
 
     public static function get_post_date($prefrred_date) {
@@ -364,16 +365,21 @@ class ReportagePost extends Singleton {
     }
 
     /**
-     * @param $post_id
+     * @param string   $new_status New post status.
+     * @param string   $old_status Old post status.
+     * @param \WP_Post $post       Post object.
      *
      * @return void
      */
-    public function afterPublishReportage($post_id) {
-        $reportage_id = get_post_meta($post_id, EnumPostMetakeys::ReportageId, true);
+    public function afterPublishReportage($new_status, $old_status, $post) {
+        if ($post->post_type !== pubjet_post_type() || EnumPostStatus::Publish !== $new_status) {
+            return;
+        }
+        $reportage_id = pubjet_find_reportage_id($post->ID);
         if (empty($reportage_id)) {
             return;
         }
-        $this->publishReportageRequest($post_id, $reportage_id);
+        $this->publishReportageRequest($post->ID, $reportage_id);
     }
 
     /**
@@ -383,6 +389,9 @@ class ReportagePost extends Singleton {
      * @return mixed
      */
     public function publishReportageRequest($post_id, $reportage_id) {
+
+        $url = pubjet_api_root() . '/exsternal/wp/reportages/' . $reportage_id . '/publish';
+        pubjet_log($url);
 
         if (pubjet_is_dev_mode()) {
             return;

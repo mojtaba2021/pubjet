@@ -20,11 +20,6 @@ if (!class_exists('Pubjet')) {
         private static $instance;
 
         /**
-         * @var \triboon\pubjet\includes\ToolsLoader
-         */
-        public $tools;
-
-        /**
          * @return object|Pubjet The one true Pubjet
          * @uses      PUBJ::constants() Setup the constants needed.
          * @uses      PUBJ::includes() Include the required files.
@@ -73,7 +68,6 @@ if (!class_exists('Pubjet')) {
         private function init() {
             register_activation_hook(__FILE__, [$this, 'onActivation']);
             register_deactivation_hook(__FILE__, [$this, 'onDeactivation']);
-            $this->tools = \triboon\pubjet\includes\ToolsLoader::getInstance();
             add_action('plugins_loaded', [$this, 'onPluginLoaded'], 15);
         }
 
