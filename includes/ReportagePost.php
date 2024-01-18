@@ -99,21 +99,22 @@ class ReportagePost extends Singleton {
     public static function insert($reportage) {
 
         pubjet_log('================== Insert ===================');
-
         if ($reportage->wp_post_id = self::reportage_exists($reportage->id)) {
             pubjet_log('==================== Updating ===================');
             return self::update($reportage);
         }
 
         $def_category = get_option(EnumOptions::DefaultCategory);
-
         $post_content = self::get_content_file($reportage);
-        pubjet_log('======= Post Content ======');
-        pubjet_log($post_content);
-        $post_content = self::get_post_content($post_content, $reportage->title);
 
-        $post_date   = self::get_post_date($reportage->preferred_publish_date);
-        $post_status = self::get_post_status($post_date);
+        // Check if we have gateway error
+        if (pubjet_gateway_error($post_content)) {
+            return new \WP_Error('gateway-error', pubjet__('gateway-error'));
+        }
+
+        $post_content = self::get_post_content($post_content, $reportage->title);
+        $post_date    = self::get_post_date($reportage->preferred_publish_date);
+        $post_status  = self::get_post_status($post_date);
 
         $args = [
             'post_type'     => sanitize_text_field(pubjet_post_type()),
@@ -131,7 +132,7 @@ class ReportagePost extends Singleton {
             ],
         ];
 
-        if ($post_status !== 'publish') {
+        if ($post_status !== EnumPostStatus::Publish) {
             $args['post_date']     = sanitize_text_field($post_date);
             $args['post_date_gmt'] = sanitize_text_field($post_date);
         }
@@ -152,12 +153,6 @@ class ReportagePost extends Singleton {
 
         pubjet_log('======= New Post Result =======');
         pubjet_log($post_id);
-
-//        if (!is_wp_error($post_id)) {
-//            update_post_meta($post_id, EnumPostMetakeys::ReportageId, intval($reportage->id));
-//            update_post_meta($post_id, EnumPostMetakeys::ReportageContentUrl, sanitize_url($reportage->content_file));
-//            update_post_meta($post_id, EnumPostMetakeys::PanelData, $reportage);
-//        }
 
         if (!is_wp_error($post_id)) { // Set post thumbnail
             if (isset($post_content['featured_img_id'])) {

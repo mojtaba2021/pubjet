@@ -200,24 +200,24 @@ class RewriteHooks extends Singleton {
     public function getDebug() {
         $this->checkNonce($this->get('security'));
 
-        pubjet_log(site_url() . '/pubjet-api/reportage');
-        $data = wp_remote_post(site_url() . '/pubjet-api/reportage', [
-            'headers'     => [
-                'Content-Type'  => 'application/json; charset=utf-8',
-                'Authorization' => '7a6167eb72d94dfcb67cf7e54de84f4c8fa98019',
-            ],
-            'body'        => json_encode([
-                                             'id'                     => '248133',
-                                             'preferred_publish_date' => '2026-01-07T15:24:29.874334+03:30',
-                                             'state'                  => 'publisher_accepted',
-                                             'content_file'           => 'https://cdn.triboon.net/media/reportage_contents_html/1c211760-25ac-40b8-86b7-829367b76832.html',
-                                             'title'                  => 'اقتصاد برتر جهان در سال 2023',
-                                             'tags'                   => [],
-                                         ]),
-            'method'      => 'POST',
-            'data_format' => 'body',
-        ]);
-        pubjet_log($data);
+//        pubjet_log(site_url() . '/pubjet-api/reportage');
+//        $data = wp_remote_post(site_url() . '/pubjet-api/reportage', [
+//            'headers'     => [
+//                'Content-Type'  => 'application/json; charset=utf-8',
+//                'Authorization' => '7a6167eb72d94dfcb67cf7e54de84f4c8fa98019',
+//            ],
+//            'body'        => json_encode([
+//                                             'id'                     => '248133',
+//                                             'preferred_publish_date' => '2026-01-07T15:24:29.874334+03:30',
+//                                             'state'                  => 'publisher_accepted',
+//                                             'content_file'           => 'https://cdn.triboon.net/media/reportage_contents_html/1c211760-25ac-40b8-86b7-829367b76832.html',
+//                                             'title'                  => 'اقتصاد برتر جهان در سال 2023',
+//                                             'tags'                   => [],
+//                                         ]),
+//            'method'      => 'POST',
+//            'data_format' => 'body',
+//        ]);
+//        pubjet_log($data);
 
         /**
          * The pubjet_get_debug action.
@@ -601,7 +601,7 @@ class RewriteHooks extends Singleton {
 
         $wp_post_id = ReportagePost::insert($reportage);
 
-        if (!$wp_post_id) {
+        if (!$wp_post_id || is_wp_error($wp_post_id)) {
             if (is_wp_error($wp_post_id)) {
                 pubjet_log('Error: ' . $wp_post_id->get_error_message());
             }

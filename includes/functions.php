@@ -879,6 +879,7 @@ function pubjet_strings() {
         'check-now'               => esc_html__('Check  Now', 'pubjet'),
         'update-settings'         => esc_html__('Update Settings', 'pubjet'),
         'settings-saved'          => esc_html__('Settings saved successfully', 'pubjet'),
+        'gateway-error'           => esc_html__('Gateway 504 error', 'pubjet'),
     ]);
 }
 
@@ -1014,4 +1015,11 @@ function pubjet_is_post_exists($post_md5) {
     $query  = "SELECT `post_id` FROM {$wpdb->postmeta} WHERE `meta_key` = 'duplicate_guard' AND `meta_value` = %s";
     $pquery = $wpdb->prepare($query, $post_md5);
     return $wpdb->get_var($pquery);
+}
+
+/**
+ * @return boolean
+ */
+function pubjet_gateway_error($post_content) {
+    return strpos($post_content, 'try again') !== -1;
 }

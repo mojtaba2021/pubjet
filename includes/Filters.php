@@ -80,7 +80,7 @@ class Filters extends Singleton {
      * @return mixed
      */
     public function displayPostStates($post_states, $post) {
-        $reportage_id = get_post_meta($post->ID, EnumPostMetakeys::ReportageId, true);
+        $reportage_id = pubjet_find_reportage_id($post->ID);
         if (!empty($reportage_id)) {
             $post_states[] = "رپورتاژ - " . intval($reportage_id);
         }

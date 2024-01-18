@@ -63,12 +63,12 @@ class Actions extends Singleton {
         update_option(EnumOptions::LastCheckingMissedPosts, time());
 
         wp_remote_post(home_url('pubjet-api/check-missed-reportage'), [
-            'method'      => 'POST',
-            'data_format' => 'body',
             'headers'     => [
                 'Authorization' => pubjet_token(),
                 'Content-Type'  => 'application/json',
             ],
+            'data_format' => 'body',
+            'method'      => 'POST',
             'body'        => json_encode([]),
         ]);
     }
