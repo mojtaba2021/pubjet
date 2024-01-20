@@ -155,7 +155,7 @@ if (!class_exists('Pubjet')) {
         /**
          * @return string
          * @since  1.0
-         * @author Pishook
+         * @author Triboon
          */
         public function getScriptsVersion() {
             if (!function_exists('get_plugin_data')) {
@@ -180,11 +180,12 @@ if (!class_exists('Pubjet')) {
         /**
          * @return void
          * @since  1.0
-         * @author Pishook
+         * @author Triboon
          */
         public function onActivation() {
             $this->migrate();
             $this->trackActivationVersion();
+            flush_rewrite_rules();
         }
 
         /**
@@ -227,7 +228,7 @@ if (!class_exists('Pubjet')) {
         /**
          * @return void
          * @since  1.0
-         * @author Pishook
+         * @author Triboon
          */
         public function onDeactivation() {
         }

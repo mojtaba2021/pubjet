@@ -25,7 +25,7 @@ class Filters extends Singleton {
     /**
      * @return void
      * @since  1.0
-     * @author Pishook
+     * @author Triboon
      */
     public function pluginActionLinks($links) {
         array_unshift($links,
@@ -38,7 +38,7 @@ class Filters extends Singleton {
     /**
      * @return void
      * @since  1.0
-     * @author PishooK
+     * @author Triboon
      */
     public function pluginRowMeta($plugin_meta, $plugin_file) {
         if (PUBJET_PLUGIN_BASE === $plugin_file) {

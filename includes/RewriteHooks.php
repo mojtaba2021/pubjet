@@ -35,6 +35,44 @@ class RewriteHooks extends Singleton {
         $this->endpointHandler('find-reportage-panel-data', [$this, 'findReportagePanelData']);
         $this->endpointHandler('find-reportage-options', [$this, 'findReportageOptions']);
         $this->endpointHandler('save-reportage-options', [$this, 'saveReportageOptions']);
+
+        $this->endpointHandler('remind-admin-notice', [$this, 'remindAdminNotice']);
+        $this->endpointHandler('permanent-hide-admin-notice', [$this, 'permanentHideAdminNotice']);
+    }
+
+    /**
+     * @return void
+     * @since  1.0
+     * @author Triboon
+     */
+    public function permanentHideAdminNotice() {
+        $notice_id = sanitize_text_field($this->post('noticeId'));
+        $security  = sanitize_text_field($this->post('security'));
+
+        if (!wp_verify_nonce($security, 'pubjet-admin-notice')) {
+            $this->permissionError();
+        }
+
+        update_option('pubjet_permanent_hide_admin_notice_' . $notice_id, 'yes');
+
+        $this->success();
+    }
+
+    /**
+     * @return void
+     * @since  1.0
+     * @author Triboon
+     */
+    public function remindAdminNotice() {
+        $notice_id = sanitize_text_field($this->post('noticeId'));
+        $security  = sanitize_text_field($this->post('security'));
+
+        if (!wp_verify_nonce($security, 'pubjet-admin-notice')) {
+            $this->permissionError();
+        }
+
+        set_transient('pubjet_remind_admin_notice_' . $notice_id, 'yes', 48 * HOUR_IN_SECONDS);
+        $this->success();
     }
 
     /**
@@ -263,6 +301,8 @@ class RewriteHooks extends Singleton {
         update_option(EnumOptions::DefaultCategory, $this->post('category'));
         update_option(EnumOptions::UninstallCleanup, $this->formatBoolean($this->post('uninstall')));
         update_option(EnumOptions::Nofollow, $this->formatBoolean($this->post('nofollow')));
+        
+        flush_rewrite_rules();
 
         /**
          * The pubjet_after_save_options filter.
@@ -316,7 +356,7 @@ class RewriteHooks extends Singleton {
     /**
      * @return void
      * @since  1.0
-     * @author Pishook
+     * @author Triboon
      */
     public function checkRequiredPhpModules() {
         $this->checkNonce($this->get('security'));

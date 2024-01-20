@@ -1,4 +1,10 @@
-import {findEndpointUrl, getAdminAjaxUrl, getAxios, getSecurityNonce} from "../../shared/scripts/utils";
+import {
+    findEndpointUrl,
+    formDataFromObj,
+    getAdminAjaxUrl,
+    getAxios,
+    getSecurityNonce
+} from "../../shared/scripts/utils";
 
 const axios = getAxios();
 
@@ -18,6 +24,28 @@ jQuery(document).ready(function ($) {
         }).finally(() => {
             $self.removeClass('pubjet-disabled');
         });
+        e.preventDefault();
+        return false;
+    });
+    $('.pubjet-notice-remind-me').click(function (e) {
+        const $self    = $(this),
+              $wrapper = $(this).closest('.pubjet-notice');
+        $wrapper.slideUp('fast');
+        axios.post(findEndpointUrl('remind-admin-notice'), formDataFromObj({
+            noticeId: $wrapper.attr('id'),
+            security: $self.attr('data-security'),
+        }));
+        e.preventDefault();
+        return false;
+    });
+    $('.pubjet-notice__permanenthide').click(function (e) {
+        const $self    = $(this),
+              $wrapper = $(this).closest('.pubjet-notice');
+        $wrapper.slideUp('fast');
+        axios.post(findEndpointUrl('permanent-hide-admin-notice'), formDataFromObj({
+            noticeId: $wrapper.attr('id'),
+            security: $self.attr('data-security'),
+        }));
         e.preventDefault();
         return false;
     });

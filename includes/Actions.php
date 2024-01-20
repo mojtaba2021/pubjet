@@ -35,6 +35,7 @@ class Actions extends Singleton {
             }
 
             .mF0ELrBPqJ9R6bt1N3mw *,
+            .pubjet-notice *,
             .ant-tooltip-inner,
             .ant-select-dropdown div,
             .ant-modal *,

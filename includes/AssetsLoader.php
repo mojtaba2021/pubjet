@@ -21,7 +21,7 @@ class AssetsLoader extends Singleton {
     /**
      * @return void
      * @since  1.0
-     * @author Pishook
+     * @author Triboon
      */
     public function loadAdminAssets() {
         /**

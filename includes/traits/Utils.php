@@ -11,7 +11,7 @@ trait Utils {
     /**
      * @return void
      * @since  1.0
-     * @author Pishook
+     * @author Triboon
      */
     public function ajax($name, $callback, $type = EnumAjaxPrivType::Both, $priority = 15) {
         if (EnumAjaxPrivType::LoggedIn === $type) {
@@ -41,7 +41,7 @@ trait Utils {
     /**
      * @return void
      * @since  1.0
-     * @author Pishook
+     * @author Triboon
      */
     public function permissionError() {
         $this->error('شما دسترسی لازم برای انجام این عملیات را ندارید.');
@@ -50,7 +50,7 @@ trait Utils {
     /**
      * @return void
      * @since  1.0
-     * @author Pishook
+     * @author Triboon
      */
     public function error($message, $args = []) {
         pubjet_ajax_error($message, $args);
@@ -59,7 +59,7 @@ trait Utils {
     /**
      * @return void
      * @since  1.0
-     * @author Pishook
+     * @author Triboon
      */
     public function success($data = []) {
         pubjet_ajax_success($data);
@@ -68,7 +68,7 @@ trait Utils {
     /**
      * @return void
      * @since  1.0
-     * @author Pishook
+     * @author Triboon
      */
     public function checkAdminPermission() {
         if (!is_user_logged_in()) {
@@ -82,7 +82,7 @@ trait Utils {
     /**
      * @return string|array
      * @since  1.0
-     * @author Pishook
+     * @author Triboon
      */
     public function option($key, $default = '') {
         return pubjet_option($key, $default);
@@ -91,7 +91,7 @@ trait Utils {
     /**
      * @return boolean
      * @since  1.0
-     * @author Pishook
+     * @author Triboon
      */
     public function doingAjax() {
         return (defined('DOING_AJAX') && DOING_AJAX);
@@ -120,7 +120,7 @@ trait Utils {
     /**
      * @return bool
      * @since  1.0
-     * @author Pishook
+     * @author Triboon
      */
     public function formatBoolean($value) {
         if (is_bool($value)) {

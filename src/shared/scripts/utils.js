@@ -105,7 +105,7 @@ export const showSuccessMessage = (text) => {
 
 /**
  * @since 1.0
- * @author Pishook
+ * @author Triboon
  * @return void
  */
 export const showLoadingBar = (text = '') => {
@@ -126,7 +126,7 @@ export const showLoadingBar = (text = '') => {
 
 /**
  * @since 1.0
- * @author Pishook
+ * @author Triboon
  * @return void
  */
 export const hideLoadingBar = () => {
@@ -135,7 +135,7 @@ export const hideLoadingBar = () => {
 
 /**
  * @since 1.0
- * @author Pishook
+ * @author Triboon
  * @return void
  */
 export const copyText = (text) => {
@@ -144,7 +144,7 @@ export const copyText = (text) => {
 
 /**
  * @since 1.0
- * @author Pishook
+ * @author Triboon
  * @return boolean
  */
 export const isUserLoggedIn = () => {
@@ -288,7 +288,7 @@ export const findSiteUrl = () => {
 
 /**
  * @since 1.0
- * @author Pishook
+ * @author Triboon
  * @return void
  */
 export const showLoadingModal = () => {
@@ -302,7 +302,7 @@ export const showLoadingModal = () => {
 
 /**
  * @since 1.0
- * @author Pishook
+ * @author Triboon
  * @return void
  */
 export const showNProgress = () => {
@@ -471,7 +471,7 @@ export const showLoginModal = () => {
 
 /**
  * @since 1.0
- * @author Pishook
+ * @author Triboon
  * @return void
  */
 export const showLoadingSpinner = () => {
@@ -482,7 +482,7 @@ export const showLoadingSpinner = () => {
  * Hide Loading Spinner
  *
  * @since 1.0
- * @author Pishook
+ * @author Triboon
  * @return void
  */
 export const hideLoadingSpinner = () => {

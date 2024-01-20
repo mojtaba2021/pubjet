@@ -26,7 +26,7 @@ class Page extends BaseComponent {
    * Fetch data from server
    *
    * @since 1.0
-   * @author Pishook
+   * @author Triboon
    */
   fetchData = () => {};
 
@@ -34,7 +34,7 @@ class Page extends BaseComponent {
    * Handle page click
    *
    * @since 1.0
-   * @author Pishook
+   * @author Triboon
    * @return void
    */
   handlePageChange = (event) => {
@@ -51,7 +51,7 @@ class Page extends BaseComponent {
    * Render page content
    *
    * @since 1.0
-   * @author Pishook
+   * @author Triboon
    * @returns {JSX.Element}
    */
   render() {

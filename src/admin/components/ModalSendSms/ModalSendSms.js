@@ -21,7 +21,7 @@ class ModalSendSms extends BaseComponent {
 
   /**
    * @since 1.0
-   * @author Pishook
+   * @author Triboon
    * @return void
    */
   clearForm = () => {
@@ -30,7 +30,7 @@ class ModalSendSms extends BaseComponent {
 
   /**
    * @since 1.0
-   * @author Pishook
+   * @author Triboon
    * @return void
    */
   handleSend = () => {

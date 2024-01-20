@@ -20,7 +20,7 @@ function pubjet_shortcode($name, $args) {
 
 /**
  * @return boolean
- * @author Pishook
+ * @author Triboon
  * @since  1.0
  */
 function pubjet_is_prod_mode() {
@@ -29,7 +29,7 @@ function pubjet_is_prod_mode() {
 
 /**
  * @return boolean
- * @author Pishook
+ * @author Triboon
  * @since  1.0
  */
 function pubjet_is_dev_mode() {
@@ -41,7 +41,7 @@ function pubjet_is_dev_mode() {
  *
  * @return string
  * @since  1.0
- * @author Pishook
+ * @author Triboon
  */
 function pubjet_flat_string($arr_or_string, $separator = ' ') {
     return is_array($arr_or_string) ? implode($separator, $arr_or_string) : $arr_or_string;
@@ -172,7 +172,7 @@ function pubjet_get_site_admins_user_ids() {
 /**
  * @return integer
  * @since  1.0
- * @author Pishook
+ * @author Triboon
  */
 function pubjet_now_ts() {
     return current_time('timestamp');
@@ -277,7 +277,7 @@ function pubjet_get_ip_address() {
 
 /**
  * @return void
- * @author Pishook
+ * @author Triboon
  * @since  1.0
  */
 function pubjet_wp_log($data) {
@@ -293,7 +293,7 @@ function pubjet_wp_log($data) {
  * Get woocommerce checkout page url
  *
  * @return string
- * @author Pishook
+ * @author Triboon
  * @since  1.0
  */
 function pubjet_find_woo_checkout_page_url() {
@@ -304,7 +304,7 @@ function pubjet_find_woo_checkout_page_url() {
  * Get woocommerce shop page url
  *
  * @return string
- * @author Pishook
+ * @author Triboon
  * @since  1.0
  */
 function pubjet_find_woo_shop_page_url() {
@@ -332,7 +332,7 @@ function pubjet_echo_or_call($item, $args = []) {
  *
  * @param string $user_id
  *
- * @author Pishook
+ * @author Triboon
  * @since  1.0
  */
 function pubjet_find_user_roles($user_id = '') {
@@ -510,7 +510,7 @@ function pubjet_typefy($input) {
 
 /**
  * @return array
- * @author Pishook
+ * @author Triboon
  * @since  1.0
  */
 function pubjet_get_page_templates() {
@@ -880,6 +880,10 @@ function pubjet_strings() {
         'update-settings'         => esc_html__('Update Settings', 'pubjet'),
         'settings-saved'          => esc_html__('Settings saved successfully', 'pubjet'),
         'gateway-error'           => esc_html__('Gateway 504 error', 'pubjet'),
+        'pubjet-token'            => esc_html__('Pubjet Token', 'pubjet'),
+        'enter-token-desc'        => esc_html__('Pubjet plugin needs an access token to work properly. Please enter the access token in the plugin settings.', 'pubjet'),
+        'remindme-later'          => esc_html__('Remindme Later', 'pubjet'),
+        'permanent-hide'          => esc_html__('Permanent Hide', 'pubjet'),
     ]);
 }
 
@@ -1022,4 +1026,20 @@ function pubjet_is_post_exists($post_md5) {
  */
 function pubjet_gateway_error($post_content) {
     return strpos($post_content, 'try again') !== -1;
+}
+
+/**
+ * @param $condition
+ * @param $func_or_string
+ */
+function pubjet_render_condition($condition, $func_or_string) {
+    if (!$condition) {
+        return;
+    }
+    if (is_callable($func_or_string)) {
+        call_user_func($func_or_string);
+
+        return;
+    }
+    echo $func_or_string;
 }

@@ -1,0 +1,110 @@
+@import '../../shared/styles/variables';
+@import '../../shared/styles/mixins';
+
+.pubjet {
+  &-notice {
+    display: flex;
+    border: solid 1px #ffffff;
+    background: #ffffff;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 20px 0 20px 20px !important;
+    box-sizing: border-box;
+    padding: 0;
+    flex-direction: row;
+    direction: rtl;
+    text-align: right;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+
+    &__icon {
+      background: #ffffff;
+      width: 54px;
+      user-select: none;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 18px;
+      border-left: solid 1px #f3f3f3;
+
+      img {
+        display: block;
+        width: 24px !important;
+        height: 24px !important;
+        -webkit-user-drag: none;
+      }
+    }
+
+    &__content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 20px;
+    }
+
+    &__title {
+      font-size: 16px;
+      font-weight: bold;
+      word-spacing: -1px;
+    }
+
+    &__message {
+      padding-top: 8px;
+      padding-bottom: 20px;
+      font-size: 14px;
+      line-height: 24px;
+      color: #4c5c84;
+      font-weight: 400;
+      word-spacing: -1px;
+      @include mq-max('md') {
+        text-align: justify;
+      }
+    }
+
+    &__button {
+      color: black !important;
+      background: #ffc400 !important;
+      border-color: #c89900 !important;
+      font-weight: bold;
+
+      &:hover {
+        background: #e1ab03 !important;
+      }
+    }
+
+    &__button, &__remindme, &__permanenthide, .button {
+      @include mq-max('md') {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    &__buttons {
+      display: flex;
+      flex-direction: row;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      a {
+        user-select: none;
+        -webkit-user-drag: none;
+        box-shadow: none;
+        outline: none;
+        padding: 0 12px;
+        margin: 0;
+        height: 32px;
+        min-height: 0;
+        font-size: 13px;
+        line-height: 30px;
+
+        svg {
+          width: 15px;
+          height: 15px;
+          float: right;
+          margin-top: 7px;
+          margin-left: 4px;
+          fill: white;
+        }
+      }
+    }
+  }
+}
