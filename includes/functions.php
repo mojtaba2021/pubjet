@@ -1025,7 +1025,8 @@ function pubjet_is_post_exists($post_md5) {
  * @return boolean
  */
 function pubjet_gateway_error($post_content) {
-    return strpos($post_content, 'try again') !== -1;
+    $result = strpos($post_content, 'try again') === false;
+    return !$result;
 }
 
 /**

@@ -6,7 +6,7 @@
     Author URI:  https://triboon.net
     License: GPL v2 or later
     License URI: http://www.gnu.org/licenses/gpl-2.0.txt
-    Version: 2.6.2
+    Version: 2.7.0
 */
 
 use triboon\pubjet\includes\Initializer;

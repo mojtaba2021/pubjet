@@ -187,7 +187,8 @@ class ReportagePost extends Singleton {
      * @return array
      */
     public static function get_post_content($content, $title) {
-        $content                         = self::handle_images($content);
+        $content = self::handle_images($content);
+        pubjet_log($content);
         $post_content                    = self::nomalize_html($content['html_file']);
         $post_content                    = self::remove_repeate_headeing_title_in_content($post_content, $title);
         $post_content['featured_img_id'] = $content['featured_img_id'];
@@ -317,10 +318,12 @@ class ReportagePost extends Singleton {
     }
 
     public static function get_content_file($reportage) {
-
-        $content_file = str_replace("https://cdn.triboon.net", "https://cdn.pubjet.ir", $reportage->content_file);
-
-        $response = wp_remote_get($content_file, [
+        
+        //$content_file = str_replace("https://cdn.triboon.net", "https://cdn.pubjet.ir", $reportage->content_file);
+        
+        pubjet_log(':: Content File ::');
+        pubjet_log($reportage->content_file);
+        $response = wp_remote_get($reportage->content_file, [
             'timeout'     => 25,
             'redirection' => 5,
             'blocking'    => true,
@@ -328,7 +331,21 @@ class ReportagePost extends Singleton {
         ]);
         $body     = wp_remote_retrieve_body($response);
 
-        $body = str_replace("https://cdn.triboon.net", "https://cdn.pubjet.ir", $body);
+        pubjet_log(':: First ::');
+        pubjet_log($body);
+        
+        // Check gateway error
+        if (pubjet_gateway_error($body) || empty($body)) {
+            $response = wp_remote_get($reportage->content_file);
+            $body     = wp_remote_retrieve_body($response);
+
+            pubjet_log(':: Second ::');
+            pubjet_log($body);
+        }
+
+        pubjet_log($body);
+
+        //$body = str_replace("https://cdn.triboon.net", "https://cdn.pubjet.ir", $body);
 
         return $body;
     }
