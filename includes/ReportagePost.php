@@ -318,9 +318,9 @@ class ReportagePost extends Singleton {
     }
 
     public static function get_content_file($reportage) {
-        
+
         //$content_file = str_replace("https://cdn.triboon.net", "https://cdn.pubjet.ir", $reportage->content_file);
-        
+
         pubjet_log(':: Content File ::');
         pubjet_log($reportage->content_file);
         $response = wp_remote_get($reportage->content_file, [
@@ -333,7 +333,7 @@ class ReportagePost extends Singleton {
 
         pubjet_log(':: First ::');
         pubjet_log($body);
-        
+
         // Check gateway error
         if (pubjet_gateway_error($body) || empty($body)) {
             $response = wp_remote_get($reportage->content_file);
@@ -402,14 +402,12 @@ class ReportagePost extends Singleton {
      */
     public function publishReportageRequest($post_id, $reportage_id) {
 
-        $url = pubjet_api_root() . '/exsternal/wp/reportages/' . $reportage_id . '/publish';
+        $url = pubjet_api_root() . '/external/wp/reportages/' . $reportage_id . '/publish';
         pubjet_log($url);
 
         if (pubjet_is_dev_mode()) {
             return;
         }
-
-        $url = pubjet_api_root() . '/exsternal/wp/reportages/' . $reportage_id . '/publish';
 
         $args = [
             'headers'     => [

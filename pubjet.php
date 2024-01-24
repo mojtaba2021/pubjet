@@ -105,7 +105,7 @@ if (!class_exists('Pubjet')) {
             $this->defineConstant('PUBJET_CURRENT_DATE_TS', current_datetime()->format('U'));
             $this->defineConstant('PUBJET_CURRENT_DATE_MYSQL', current_datetime()->format('Y-m-d H:i:s'));
             $this->defineConstant('PUBJET_DB_VERSION', '1.0.0');
-            $this->defineConstant('PUBJET_API_ROOT', 'https://api.pubjet.ir');
+            $this->defineConstant('PUBJET_API_ROOT', 'https://api.triboon.net');
             $this->defineConstant('PUBJET_API_TOKEN', trim(sanitize_text_field(get_option('pubjet_token'))));
             $this->defineConstant('PUBJET_TBL_NAME', 'pubjet_reportages');
             $this->defineConstant('PUBJET_POST_TYPE', 'post');
