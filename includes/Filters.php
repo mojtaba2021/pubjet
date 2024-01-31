@@ -102,6 +102,12 @@ class Filters extends Singleton {
             return $content;
         }
 
+        // Hide Triboon Tag
+        $hide_triboon_tag = get_post_meta(get_the_ID(), EnumPostMetakeys::WithoutTriboonTag, true);
+        if ($hide_triboon_tag) {
+            return $content;
+        }
+
         $content .= '<div class="pubjet-copyright"><p>منتشر شده توسط <img src="' . PUBJET_DIR_URL . 'assets/img/copyright-logo.png' . '"></img> تریبون</p></div>';
 
         return $content;

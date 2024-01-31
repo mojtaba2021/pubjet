@@ -154,15 +154,22 @@ class ReportagePost extends Singleton {
         pubjet_log('======= New Post Result =======');
         pubjet_log($post_id);
 
-        if (!is_wp_error($post_id)) { // Set post thumbnail
-            if (isset($post_content['featured_img_id'])) {
-                set_post_thumbnail($post_id, intval($post_content['featured_img_id']));
-            }
-
-            return $post_id;
+        if (is_wp_error($post_id)) {
+            return false;
         }
 
-        return false;
+        // =================== Success ===================
+
+        if (isset($post_content['featured_img_id'])) {
+            set_post_thumbnail($post_id, intval($post_content['featured_img_id']));
+        }
+
+        // Publish without triboon tag
+        if (isset($reportage->is_publish_without_triboon_tag) && $reportage->is_publish_without_triboon_tag) {
+            update_post_meta($post_id, EnumPostMetakeys::WithoutTriboonTag, true);
+        }
+
+        return $post_id;
     }
 
     public static function get_time_format($utc_datetime_str) {
