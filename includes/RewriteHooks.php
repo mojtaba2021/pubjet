@@ -40,7 +40,18 @@ class RewriteHooks extends Singleton {
         $this->endpointHandler('permanent-hide-admin-notice', [$this, 'permanentHideAdminNotice']);
 
         // Get WordPress categories
+        $this->endpointHandler('tags', [$this, 'findWpTags']);
+        // Get WordPress tags
         $this->endpointHandler('categories', [$this, 'findWpCategories']);
+    }
+
+    /**
+     * @return void
+     */
+    public function findWpTags() {
+        $tags = pubjet_find_wp_tags();
+
+        $this->success($tags);
     }
 
     /**

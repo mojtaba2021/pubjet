@@ -1,0 +1,9 @@
+.disabled-element {
+  opacity: .3 !important;
+  pointer-events: none !important;
+}
+
+.triboon-dnone {
+  display: none !important;
+}
+

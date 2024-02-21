@@ -1092,3 +1092,21 @@ function pubjet_find_wp_categories($parent_id = 0, $hierarchy = true) {
 
     return $result;
 }
+
+/**
+ * @return array
+ */
+function pubjet_find_wp_tags() {
+    $result = [];
+    $tags   = get_tags([
+                           'hide_empty' => false,
+                       ]);
+    foreach ($tags as $tag) {
+        $result[] = [
+            'id'   => $tag->term_id,
+            'name' => $tag->name,
+        ];
+    }
+
+    return $result;
+}
