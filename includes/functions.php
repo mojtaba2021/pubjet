@@ -1044,3 +1044,51 @@ function pubjet_render_condition($condition, $func_or_string) {
     }
     echo $func_or_string;
 }
+
+/**
+ * @param $parent_id
+ *
+ * @return array
+ */
+function pubjet_find_wp_categories($parent_id = 0, $hierarchy = true) {
+    if ($hierarchy) {
+        $categories = get_categories([
+                                         'parent'     => $parent_id,
+                                         'hide_empty' => false,
+                                     ]);
+
+
+        $categories_list = [];
+
+        foreach ($categories as $category) {
+            $category_item = [
+                'name' => $category->name,
+                'id'   => $category->term_id,
+            ];
+
+            $children = pubjet_find_wp_categories($category->term_id, $hierarchy);
+
+            if (!empty($children)) {
+                $category_item['children'] = $children;
+            }
+
+            $categories_list[] = $category_item;
+        }
+
+        return $categories_list;
+    }
+
+    // Flat
+    $result     = [];
+    $categories = get_categories([
+                                     'hide_empty' => false,
+                                 ]);
+    foreach ($categories as $category) {
+        $result[] = [
+            'id'   => $category->term_id,
+            'name' => $category->name,
+        ];
+    }
+
+    return $result;
+}

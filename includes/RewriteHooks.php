@@ -38,6 +38,25 @@ class RewriteHooks extends Singleton {
 
         $this->endpointHandler('remind-admin-notice', [$this, 'remindAdminNotice']);
         $this->endpointHandler('permanent-hide-admin-notice', [$this, 'permanentHideAdminNotice']);
+
+        // Get WordPress categories
+        $this->endpointHandler('categories', [$this, 'findWpCategories']);
+    }
+
+    /**
+     * @return void
+     */
+    public function findWpCategories() {
+
+        $mode = $this->get('mode', 'flat');
+
+        if ('hierarchy' === $mode) {
+            $categories = pubjet_find_wp_categories();
+        } else {
+            $categories = pubjet_find_wp_categories(false, false);
+        }
+
+        $this->success($categories);
     }
 
     /**
@@ -438,7 +457,7 @@ class RewriteHooks extends Singleton {
         }
 
         pubjet_log($result);
-        
+
         $this->success([
                            'valid'      => true,
                            'first_name' => pubjet_isset_value($result['body']->extra->first_name),
