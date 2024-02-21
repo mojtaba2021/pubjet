@@ -64,12 +64,13 @@ export const saveOptions = () => {
     return new Promise((resolve, reject) => {
         const options = getStore(getStoreKey());
         axios.post(findEndpointUrl('save-options'), {
-            token    : options.token,
-            debug    : options.debug,
-            uninstall: options.uninstall,
-            nofollow : options.nofollow,
-            category : options.category ? options.category.value : '',
-            security : pubjet_params.nonce,
+            token            : options.token,
+            debug            : options.debug,
+            uninstall        : options.uninstall,
+            nofollow         : options.nofollow,
+            category         : options.category ? options.category.value : '',
+            alignCenterImages: options.alignCenterImages,
+            security         : pubjet_params.nonce,
         }).then(response => {
             if (response.success) {
                 resolve(response);

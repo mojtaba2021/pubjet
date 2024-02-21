@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from "./Form.module.scss";
 import {changeInput, doCheckToken} from "./Actions";
-import {Form as AntForm, Input, Select, Tooltip} from "antd";
+import {Form as AntForm, Input, Select, Switch, Tooltip} from "antd";
 import {connect} from "trim-redux";
 import CheckTokenResult from "./CheckTokenResult";
 import {pubjet__} from "../../../shared/scripts/utils";
@@ -10,7 +10,7 @@ import {CheckOutlined, ReloadOutlined} from "@ant-design/icons";
 const {TextArea} = Input;
 
 const Form = props => {
-    const {token, category, categories, checkToken} = props.options;
+    const {token, category, categories, alignCenterImages, checkToken} = props.options;
 
     /**
      * @since 1.0
@@ -49,6 +49,11 @@ const Form = props => {
                     changeInput('category', value);
                 }}
             />
+        </AntForm.Item>
+        <AntForm.Item label={pubjet__('align-center-images')} tooltip={pubjet__('align-center-images-help')}>
+            <Switch value={1} checked={alignCenterImages} onChange={checked => {
+                changeInput('alignCenterImages', checked);
+            }}/>
         </AntForm.Item>
     </AntForm>;
 };

@@ -334,6 +334,7 @@ class RewriteHooks extends Singleton {
         update_option(EnumOptions::DefaultCategory, $this->post('category'));
         update_option(EnumOptions::UninstallCleanup, $this->formatBoolean($this->post('uninstall')));
         update_option(EnumOptions::Nofollow, $this->formatBoolean($this->post('nofollow')));
+        update_option(EnumOptions::AlignCenterImages, $this->formatBoolean($this->post('alignCenterImages')));
 
         flush_rewrite_rules();
 

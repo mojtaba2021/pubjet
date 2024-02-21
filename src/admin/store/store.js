@@ -10,14 +10,15 @@ const composeEnhancers =
 
 export const state = {
     options: {
-        token     : '',
-        debug     : false,
-        category  : '',
-        categories: [],
-        modal     : false,
-        uninstall : false,
-        nofollow  : false,
-        checkToken: {
+        token            : '',
+        debug            : false,
+        category         : '',
+        categories       : [],
+        modal            : false,
+        uninstall        : false,
+        nofollow         : false,
+        alignCenterImages: false,
+        checkToken       : {
             checking: false,
             checked : false,
             valid   : false,

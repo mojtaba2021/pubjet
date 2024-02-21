@@ -3,6 +3,7 @@
 namespace triboon\pubjet\includes;
 
 use triboon\pubjet\includes\enums\EnumOptions;
+use triboon\pubjet\includes\enums\EnumPostTypes;
 
 defined('ABSPATH') || exit;
 
@@ -17,6 +18,33 @@ class Actions extends Singleton {
         add_action("wp_head", [$this, "publishMissedSchedulePosts"], 15);
         add_action("wp_footer", [$this, "addScriptToReportage"], 15);
         add_action("admin_head", [$this, "pluginFont"], 15);
+        add_action("wp_head", [$this, "alignReportageImagesCenter"], 15);
+    }
+
+    /**
+     * @return void
+     */
+    public function alignReportageImagesCenter() {
+        if (!is_singular('post')) {
+            return;
+        }
+        global $post;
+        if ($post->post_type !== EnumPostTypes::Post || !pubjet_is_reportage($post->ID)) {
+            return;
+        }
+        $status = get_option(EnumOptions::AlignCenterImages, false);
+        if (!$status) {
+            return;
+        }
+        ?>
+        <style>
+            .pubjet-reportage img {
+                display: block !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+        </style>
+        <?php
     }
 
     /**
