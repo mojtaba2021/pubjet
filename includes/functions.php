@@ -759,12 +759,13 @@ function pubjet_debug_dir() {
  * @return string
  */
 function pubjet_token() {
+    global $pubjet_settings;
     /**
      * The pubjet_token filter.
      *
      * @since 1.0.0
      */
-    return apply_filters('pubjet_token', PUBJET_API_TOKEN);
+    return apply_filters('pubjet_token', trim(pubjet_isset_value($pubjet_settings['token'], '')));
 }
 
 /**
@@ -1145,11 +1146,11 @@ function pubjet_sync_categories() {
     }
 
     /**
-     * The pubjet_check_token_url filter.
+     * The pubjet_sync_category_sync filter.
      *
      * @since 1.0.0
      */
-    $url = apply_filters('pubjet_check_token_url', pubjet_api_root() . '/external/wp/relative-category/', pubjet_token());
+    $url = apply_filters('pubjet_sync_category_sync', pubjet_api_root() . '/external/wp/relative-category/', pubjet_token());
 
     if (pubjet_is_dev_mode()) {
         $url = 'https://api-staging.triboon.net/external/wp/relative-category/';
@@ -1157,7 +1158,7 @@ function pubjet_sync_categories() {
 
     $response = pubjet_request($url, 'POST', [
         'Content-Type'  => 'application/json; charset=utf-8',
-        'Authorization' => 'Token ' . pubjet_token(),
+        'Authorization' => 'Token ' . trim(pubjet_token()),
     ], json_encode([
         'categories' => $categories,
     ]), [
@@ -1226,4 +1227,30 @@ function pubjet_update_setting($option_name, $option_value) {
     $settings = pubjet_settings();
     $settings[$option_name] = $option_value;
     return update_option(EnumOldOptions::Settings, $settings);
+}
+
+/**
+ * @param $terms
+ * @param $method
+ *
+ * @return void
+ */
+function pubjet_sync_category($terms, $method = 'POST') {
+    $terms = is_array($terms) ? $terms : [$terms];
+    /**
+     * The pubjet_sync_category_sync filter.
+     *
+     * @since 1.0.0
+     */
+    $url = apply_filters('pubjet_sync_category_sync', pubjet_api_root() . '/external/wp/relative-category/', pubjet_token());
+
+    if (pubjet_is_dev_mode()) {
+        $url = 'https://api-staging.triboon.net/external/wp/relative-category/';
+    }
+    return pubjet_request($url, $method, [
+        'Content-Type'  => 'application/json',
+        'Authorization' => 'Token ' . trim(pubjet_token())
+    ], json_encode([
+        'categories' => $terms,
+    ]));
 }

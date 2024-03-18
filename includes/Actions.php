@@ -2,13 +2,16 @@
 
 namespace triboon\pubjet\includes;
 
-use triboon\pubjet\includes\enums\EnumOldOptions;
+use triboon\pubjet\includes\enums\EnumHttpMethods;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostTypes;
+use triboon\pubjet\includes\traits\Utils;
 
 defined('ABSPATH') || exit;
 
 class Actions extends Singleton {
+
+    use Utils;
 
     /**
      * @return void
@@ -20,6 +23,44 @@ class Actions extends Singleton {
         add_action("wp_footer", [$this, "addScriptToReportage"], 15);
         add_action("admin_head", [$this, "pluginFont"], 15);
         add_action("wp_head", [$this, "alignReportageImagesCenter"], 15);
+        add_action('created_term', [$this, 'createCategory'], 15, 5);
+        add_action('delete_term', [$this, 'deleteCategory'], 15, 4);
+    }
+
+    /**
+     * @return void
+     */
+    public function createCategory($term_id, $tt_id, $taxonomy, $args) {
+        if ('category' !== $taxonomy) {
+            return;
+        }
+        $term = get_term_by('term_id', $term_id, $taxonomy);
+        if (!$term) {
+            return;
+        }
+        $response = pubjet_sync_category([
+            [
+                'title'       => $term->name,
+                'unique_name' => $term->slug,
+            ]
+        ]);
+        pubjet_log($response);
+    }
+
+    /**
+     * @return void
+     */
+    public function deleteCategory($term, $tt_id, $taxonomy, $deleted_term) {
+        if ('category' !== $taxonomy) {
+            return;
+        }
+        $response = pubjet_sync_category([
+            [
+                'title'       => $deleted_term->name,
+                'unique_name' => $deleted_term->slug,
+            ]
+        ], EnumHttpMethods::DELETE);
+        pubjet_log($response);
     }
 
     /**

@@ -8,7 +8,6 @@ if (!defined("ABSPATH")) exit;
 use DateTime;
 use DateTimeZone;
 use Statickidz\GoogleTranslate;
-use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 use triboon\pubjet\includes\enums\EnumPostStatus;
 
@@ -26,7 +25,6 @@ class ReportagePost extends Singleton {
         $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
         return $dt->format('Y-m-d H:i:s');
     }
-
 
     public static function get_post_status($post_date) {
         $dt = new DateTime(date('Y-m-d H:i:s e'));
@@ -73,7 +71,7 @@ class ReportagePost extends Singleton {
         $reportage_url = get_post_meta($post_id, EnumPostMetakeys::ReportageContentUrl, true);
         if ($reportage_url !== $thereportage->content_file) {
 
-            $post_content = self::get_content_file($thereportage);
+            $post_content = !empty($thereportage->content_file_html) ? $thereportage->content_file_html : self::get_content_file($thereportage);
             $post_content = self::get_post_content($post_content, $thereportage->title);
 
             $args['post_title'] = $post_content['title'] ?? '';
@@ -106,7 +104,7 @@ class ReportagePost extends Singleton {
         }
 
         $def_category = pubjet_isset_value($pubjet_settings['defaultCategory']);
-        $post_content = self::get_content_file($reportage);
+        $post_content = !empty($reportage->content_file_html) ? $reportage->content_file_html : self::get_content_file($reportage);
 
         // Check if we have gateway error
         if (pubjet_gateway_error($post_content)) {
@@ -116,7 +114,7 @@ class ReportagePost extends Singleton {
         $post_content = self::get_post_content($post_content, $reportage->title);
         $post_date = self::get_post_date($reportage->preferred_publish_date);
         $post_status = self::get_post_status($post_date);
-
+        
         $args = [
             'post_type'     => sanitize_text_field(pubjet_post_type()),
             'post_title'    => isset($post_content['title']) ? sanitize_text_field($post_content['title']) : '',

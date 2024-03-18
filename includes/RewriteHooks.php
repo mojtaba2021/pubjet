@@ -5,7 +5,6 @@ namespace triboon\pubjet\includes;
 use DateTime;
 use DateTimeZone;
 use triboon\pubjet\includes\enums\EnumHttpMethods;
-use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 use triboon\pubjet\includes\traits\Utils;
@@ -477,7 +476,6 @@ class RewriteHooks extends Singleton {
             $this->error(pubjet__('invalid-token'));
         }
 
-
         if (!isset($result['body']->is_valid)) { // Some error occured
             $this->error(pubjet__('error-occured'));
         }
@@ -490,7 +488,7 @@ class RewriteHooks extends Singleton {
         }
 
         // Sync
-        // pubjet_sync_categories();
+        pubjet_sync_categories();
 
         $this->success([
             'valid'         => true,
