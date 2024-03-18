@@ -1,22 +1,7 @@
 import {getStore, setStore} from "trim-redux";
-import {findEndpointUrl, getAdminAjaxUrl, getAxios, getSecurityNonce} from "../../../shared/scripts/utils";
+import {findEndpointUrl, getAxios} from "../../../shared/scripts/utils";
 
 const axios = getAxios();
-
-export const getStoreKey = () => {
-    return 'options';
-};
-
-/**
- * @since 1.0.0
- */
-export const changeInput = (name, value) => {
-    const options = getStore(getStoreKey());
-    setStore(getStoreKey(), {
-        ...options,
-        [name]: value,
-    });
-};
 
 /**
  * @since 1.0.0
@@ -24,11 +9,7 @@ export const changeInput = (name, value) => {
 export const loadOptions = () => {
     return new Promise((resolve, reject) => {
         const options = getStore(getStoreKey());
-        axios.get(findEndpointUrl('get-options'), {
-            params: {
-                security: getSecurityNonce(),
-            },
-        }).then(response => {
+        axios.get(findEndpointUrl('get-options')).then(response => {
             if (response.success) {
                 const {token, debug, category, categories, uninstall} = response.payload;
                 setStore(getStoreKey(), {
@@ -64,13 +45,7 @@ export const saveOptions = () => {
     return new Promise((resolve, reject) => {
         const options = getStore(getStoreKey());
         axios.post(findEndpointUrl('save-options'), {
-            token            : options.token,
-            debug            : options.debug,
-            uninstall        : options.uninstall,
-            nofollow         : options.nofollow,
-            category         : options.category ? options.category.value : '',
-            alignCenterImages: options.alignCenterImages,
-            security         : pubjet_params.nonce,
+            settings: JSON.stringify(options),
         }).then(response => {
             if (response.success) {
                 resolve(response);
@@ -117,15 +92,22 @@ export const doCheckToken = () => {
 
         axios.get(findEndpointUrl('check-token'), {
             params   : {
-                token   : curstate.token,
-                security: getSecurityNonce(),
+                token: curstate.token,
             },
             hideError: true,
         }).then(response => {
             if (response.success) {
+                const {pricing_plans} = response.payload;
                 setStore(getStoreKey(), {
                     ...curstate,
-                    checkToken: {
+                    pricingPlans: pricing_plans.map(item => {
+                        const old = getStore(getStoreKey()).pricingPlans.find(item2 => item2.id == item.id);
+                        if (old) {
+                            return {...old, ...item};
+                        }
+                        return item;
+                    }),
+                    checkToken  : {
                         checked: true,
                         valid  : true,
                         error  : false,
@@ -176,5 +158,41 @@ export const closeModals = () => {
 export const openModal = (modalKey) => {
     setStore(getStoreKey(), {
         [modalKey]: true,
+    });
+};
+
+
+/**
+ * @since 1.0.0
+ */
+export const handleChangePlanCategory = (planId, category) => {
+    const state = getStore(getStoreKey());
+    setStore(getStoreKey(), {
+        ...state,
+        pricingPlans: state.pricingPlans.map(item => {
+            if (item.id == planId) {
+                return {
+                    ...item,
+                    category,
+                };
+            }
+            return item;
+        })
+    });
+}
+
+
+export const getStoreKey = () => {
+    return 'options';
+};
+
+/**
+ * @since 1.0.0
+ */
+export const changeInput = (name, value) => {
+    const options = getStore(getStoreKey());
+    setStore(getStoreKey(), {
+        ...options,
+        [name]: value,
     });
 };

@@ -31,6 +31,7 @@ const instance = axios.create({
     baseURL: getBaseRestApiURL(),
     headers: {
         'X-WP-NONCE'                  : getRestNonce(),
+        'X-PUBJET-NONCE'              : pubjet_params.nonce,
         'Access-Control-Allow-Origin' : '*',
         'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
     },

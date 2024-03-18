@@ -49,13 +49,6 @@ class AdminTable extends BaseComponent {
         dataSource={this.source()}
         pagination={this.getPaginationConfig()}
         loading={this.isLoading()}
-        expandable={{
-          rowExpandable    : (record) => this.isExpandable(record),
-          expandedRowRender: (record) => {
-            return this.expandableElem(record);
-          },
-          ...this.expandableProps(),
-        }}
         {...this.tableProps()}
     />;
   };

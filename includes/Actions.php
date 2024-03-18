@@ -2,6 +2,7 @@
 
 namespace triboon\pubjet\includes;
 
+use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostTypes;
 
@@ -25,6 +26,7 @@ class Actions extends Singleton {
      * @return void
      */
     public function alignReportageImagesCenter() {
+        global $pubjet_settings;
         if (!is_singular('post')) {
             return;
         }
@@ -32,7 +34,7 @@ class Actions extends Singleton {
         if ($post->post_type !== EnumPostTypes::Post || !pubjet_is_reportage($post->ID)) {
             return;
         }
-        $status = get_option(EnumOptions::AlignCenterImages, false);
+        $status = pubjet_isset_value($pubjet_settings[EnumOptions::AlignCenterImages]);
         if (!$status) {
             return;
         }
@@ -82,14 +84,15 @@ class Actions extends Singleton {
      * @return void
      */
     public function publishMissedSchedulePosts() {
+        global $pubjet_settings;
 
-        $last_check = (int)get_option(EnumOptions::LastCheckingMissedPosts, 1);
+        $last_check = pubjet_isset_value($pubjet_settings[EnumOptions::LastCheckingMissedPosts]);
 
-        if (time() - $last_check < 60) {
+        if (pubjet_now_ts() - $last_check < 60) {
             return;
         }
 
-        update_option(EnumOptions::LastCheckingMissedPosts, time());
+        pubjet_update_setting(EnumOptions::LastCheckingMissedPosts, pubjet_now_ts());
 
         wp_remote_post(home_url('pubjet-api/check-missed-reportage'), [
             'headers'     => [
@@ -140,7 +143,7 @@ class Actions extends Singleton {
         if (get_current_screen()->id != 'edit-post') {
             return;
         }
-        $posts      = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft') AND meta.meta_key = 'pubjet_reportage_id' ";
+        $posts = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft') AND meta.meta_key = 'pubjet_reportage_id' ";
         $count_post = $wpdb->get_var($posts);
         ?>
         <script>

@@ -7,7 +7,7 @@ import {pubjet__, showSuccessMessage} from "../../../shared/scripts/utils";
 import styles from './Misc.module.scss';
 
 const Misc = props => {
-    const {uninstall, nofollow} = props.options;
+    const {uninstallCleanup} = props.options;
     return (
         <Form className={styles.wrapper} layout={'vertical'} colon={false}>
             {/*<Form.Item className={'pubjet-nofollow-wrapper'} label={pubjet__('enable-nofollow')}>*/}
@@ -18,8 +18,8 @@ const Misc = props => {
             {/*    }} size={'default'}/>*/}
             {/*</Form.Item>*/}
             <Form.Item className={'pubjet-uninstall-switch-wrapper'} label={pubjet__('uninstall')}>
-                <Switch checked={uninstall} onChange={(checked) => {
-                    changeInput('uninstall', checked);
+                <Switch checked={uninstallCleanup} onChange={(checked) => {
+                    changeInput('uninstallCleanup', checked);
                     saveOptions();
                     showSuccessMessage(pubjet__('saved'));
                 }} size={'default'}/>

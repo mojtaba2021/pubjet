@@ -3,7 +3,6 @@ import {
     copyText,
     findEndpointUrl,
     getAxios,
-    getSecurityNonce,
     pubjet__,
     showErrorMessage,
     showSuccessMessage
@@ -38,9 +37,7 @@ class Debug extends BaseComponent {
      */
     handleDelete = () => {
         this.setState({error: false, loading: true}, () => {
-            axios.post(findEndpointUrl('delete-debug'), {
-                security: getSecurityNonce(),
-            }).then(response => {
+            axios.post(findEndpointUrl('delete-debug')).then(response => {
                 if (response.success) {
                     this.setState({text: ''});
                 } else {
@@ -85,11 +82,7 @@ class Debug extends BaseComponent {
      */
     fetch = () => {
         this.setState({loading: true, error: false,}, () => {
-            axios.get(findEndpointUrl('get-debug'), {
-                params: {
-                    security: getSecurityNonce(),
-                },
-            }).then(response => {
+            axios.get(findEndpointUrl('get-debug')).then(response => {
                 if (response.success) {
                     this.setState({
                         text: response.payload.text,

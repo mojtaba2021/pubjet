@@ -1,16 +1,23 @@
 import React from 'react';
 import styles from "./Form.module.scss";
 import {changeInput, doCheckToken} from "./Actions";
-import {Form as AntForm, Input, Select, Switch, Tooltip} from "antd";
+import {Form as AntForm, Input, Tooltip} from "antd";
 import {connect} from "trim-redux";
 import CheckTokenResult from "./CheckTokenResult";
 import {pubjet__} from "../../../shared/scripts/utils";
-import {CheckOutlined, ReloadOutlined} from "@ant-design/icons";
+import {ReloadOutlined} from "@ant-design/icons";
+import PricingPlans from "./PricingPlans";
+import SelectTerms from "../../components/SelectTerms/SelectTerms";
 
 const {TextArea} = Input;
 
 const Form = props => {
-    const {token, category, categories, alignCenterImages, checkToken} = props.options;
+    const {
+              token,
+              defaultCategory,
+              alignCenterImages,
+              pricingPlans,
+          } = props.options;
 
     /**
      * @since 1.0
@@ -39,22 +46,18 @@ const Form = props => {
         </AntForm.Item>
         <CheckTokenResult/>
         <AntForm.Item label={pubjet__('default-category')}>
-            <Select
-                className={`${styles.input} ${styles.select}`}
-                options={categories}
-                value={category}
-                size={'large'}
-                labelInValue={true}
-                onChange={value => {
-                    changeInput('category', value);
-                }}
-            />
-        </AntForm.Item>
-        <AntForm.Item label={pubjet__('align-center-images')} tooltip={pubjet__('align-center-images-help')}>
-            <Switch value={1} checked={alignCenterImages} onChange={checked => {
-                changeInput('alignCenterImages', checked);
+            <SelectTerms taxonomy={'category'} value={defaultCategory} onChange={selected => {
+                changeInput('defaultCategory', selected);
             }}/>
         </AntForm.Item>
+        {/*<AntForm.Item label={pubjet__('align-center-images')} tooltip={pubjet__('align-center-images-help')}>*/}
+        {/*    <Switch value={1} checked={alignCenterImages} onChange={checked => {*/}
+        {/*        changeInput('alignCenterImages', checked);*/}
+        {/*    }}/>*/}
+        {/*</AntForm.Item>*/}
+        {(pricingPlans && pricingPlans.length > 0) && <AntForm.Item label={pubjet__('plans-categories')}>
+            <PricingPlans/>
+        </AntForm.Item>}
     </AntForm>;
 };
 

@@ -9,6 +9,8 @@
     Version: 2.7.0
 */
 
+use triboon\pubjet\includes\enums\EnumOldOptions;
+use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\Initializer;
 
 if (!class_exists('Pubjet')) {
@@ -34,6 +36,7 @@ if (!class_exists('Pubjet')) {
                 self::$instance->loadTextDomain();
                 self::$instance->constants();
                 self::$instance->includes();
+                self::$instance->setupGlobals();
                 self::$instance->init();
             }
 
@@ -146,7 +149,7 @@ if (!class_exists('Pubjet')) {
         public function loadTextDomain() {
             $locale = get_locale();
             $locale = str_replace('_', '-', $locale);
-            $mo     = 'pubjet-' . $locale . '.mo';
+            $mo = 'pubjet-' . $locale . '.mo';
             load_textdomain('pubjet', WP_LANG_DIR . '/pubjet/' . $mo);
             load_textdomain('pubjet', plugin_dir_path(__FILE__) . 'languages/' . $mo);
             load_plugin_textdomain('pubjet');
@@ -193,8 +196,8 @@ if (!class_exists('Pubjet')) {
          */
         private function trackActivationVersion() {
             // Track first version
-            $activation_option = \triboon\pubjet\includes\enums\EnumOptions::ActivationVersion;
-            $activation_value  = get_option($activation_option);
+            $activation_option = \triboon\pubjet\includes\enums\EnumOldOptions::ActivationVersion;
+            $activation_value = get_option($activation_option);
             if (!$activation_value) {
                 update_option($activation_option, $this->getVersion());
             }
@@ -205,15 +208,24 @@ if (!class_exists('Pubjet')) {
          */
         private function migrate() {
             $last_token = get_option('triboon_token');
-            if (empty($last_token)) {
-                return;
+            if ($last_token) {
+                $this->migrateOldSettings();
+            } else {
+                $this->migrateNewSettings();
             }
-            $last_category   = get_option('triboon_default_category');
+        }
+
+        /**
+         * @return void
+         */
+        private function migrateOldSettings() {
+            // Migrate from 1.0.0 to 2,0,0
+            $last_category = get_option('triboon_default_category');
             $last_debug_mode = get_option('triboon_debug_mode');
 
-            update_option(\triboon\pubjet\includes\enums\EnumOptions::Token, sanitize_text_field($last_token));
-            update_option(\triboon\pubjet\includes\enums\EnumOptions::DefaultCategory, sanitize_text_field($last_category));
-            update_option(\triboon\pubjet\includes\enums\EnumOptions::DebugMode, boolval($last_debug_mode));
+            update_option(\triboon\pubjet\includes\enums\EnumOldOptions::Token, sanitize_text_field($last_token));
+            update_option(\triboon\pubjet\includes\enums\EnumOldOptions::DefaultCategory, sanitize_text_field($last_category));
+            update_option(\triboon\pubjet\includes\enums\EnumOldOptions::DebugMode, boolval($last_debug_mode));
 
             $deleted_options = [
                 'triboon_token',
@@ -223,6 +235,52 @@ if (!class_exists('Pubjet')) {
             foreach ($deleted_options as $item) {
                 delete_option($item);
             }
+        }
+
+        /**
+         * @return void
+         */
+        private function migrateNewSettings() {
+            $token = get_option(EnumOldOptions::Token);
+            if (empty($token)) {
+                update_option(EnumOptions::Settings, pubjet_default_settings());
+                return;
+            }
+            $settings = [
+                'token'                   => $token,
+                'defaultCategory'         => get_option(\triboon\pubjet\includes\enums\EnumOldOptions::DefaultCategory),
+                'debug'                   => get_option(\triboon\pubjet\includes\enums\EnumOldOptions::DebugMode),
+                'lastCheckingMissedPosts' => get_option(\triboon\pubjet\includes\enums\EnumOldOptions::LastCheckingMissedPosts),
+                'copyrightStatus'         => get_option(\triboon\pubjet\includes\enums\EnumOldOptions::CopyrightStatus),
+                'uninstallCleanup'        => get_option(\triboon\pubjet\includes\enums\EnumOldOptions::UninstallCleanup),
+                'nofollow'                => get_option(\triboon\pubjet\includes\enums\EnumOldOptions::Nofollow),
+                'alignCenterImages'       => get_option(\triboon\pubjet\includes\enums\EnumOldOptions::AlignCenterImages),
+                'lastCategoriesSyncTime'  => get_option(\triboon\pubjet\includes\enums\EnumOldOptions::LastCategoriesSyncTime),
+            ];
+            update_option(EnumOldOptions::Settings, $settings);
+
+            // Delete old options
+            $options_to_delete = [
+                EnumOldOptions::DefaultCategory,
+                EnumOldOptions::DebugMode,
+                EnumOldOptions::LastCheckingMissedPosts,
+                EnumOldOptions::CopyrightStatus,
+                EnumOldOptions::UninstallCleanup,
+                EnumOldOptions::Nofollow,
+                EnumOldOptions::AlignCenterImages,
+                EnumOldOptions::LastCategoriesSyncTime,
+            ];
+            foreach ($options_to_delete as $option) {
+                delete_option($option);
+            }
+        }
+
+        /**
+         * @return void
+         */
+        public function setupGlobals() {
+            $GLOBALS['pubjet_settings'] = pubjet_settings();
+            $GLOBALS['pubjet_options'] = $GLOBALS['pubjet_settings'];
         }
 
         /**

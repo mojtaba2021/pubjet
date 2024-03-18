@@ -8,6 +8,8 @@
  * @version 1.0.0
  */
 
+use triboon\pubjet\includes\enums\EnumOptions;
+
 global $wpdb, $wp_roles;
 
 defined('WP_UNINSTALL_PLUGIN') || exit;
@@ -15,7 +17,9 @@ defined('WP_UNINSTALL_PLUGIN') || exit;
 // Load Pubjet file.
 include_once('pubjet.php');
 
-$status = get_option('pubjet_uninstall_cleanup');
+global $pubjet_settings;
+
+$status = pubjet_isset_value($pubjet_settings[EnumOptions::UninstallCleanup]);
 if (!$status) {
     return;
 }

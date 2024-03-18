@@ -8,7 +8,7 @@ if (!defined("ABSPATH")) exit;
 use DateTime;
 use DateTimeZone;
 use Statickidz\GoogleTranslate;
-use triboon\pubjet\includes\enums\EnumOptions;
+use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 use triboon\pubjet\includes\enums\EnumPostStatus;
 
@@ -48,14 +48,14 @@ class ReportagePost extends Singleton {
             return false;
         }
 
-        $post_id      = intval($thereportage->wp_post_id);
+        $post_id = intval($thereportage->wp_post_id);
         $reportage_id = get_post_meta($post_id, EnumPostMetakeys::ReportageId, true);
 
         if (!get_post($thereportage->wp_post_id) || $reportage_id != $thereportage->id) {
             return false;
         }
 
-        $post_date   = self::get_post_date($thereportage->preferred_publish_date);
+        $post_date = self::get_post_date($thereportage->preferred_publish_date);
         $post_status = self::get_post_status($post_date);
 
         $args = [
@@ -66,7 +66,7 @@ class ReportagePost extends Singleton {
         ];
 
         if ($post_status !== 'publish') {
-            $args['post_date']     = $post_date;
+            $args['post_date'] = $post_date;
             $args['post_date_gmt'] = $post_date;
         }
 
@@ -76,7 +76,7 @@ class ReportagePost extends Singleton {
             $post_content = self::get_content_file($thereportage);
             $post_content = self::get_post_content($post_content, $thereportage->title);
 
-            $args['post_title']   = $post_content['title'] ?? '';
+            $args['post_title'] = $post_content['title'] ?? '';
             $args['post_content'] = $post_content['content'] ?? '';
 
             $args['meta_input'] = [
@@ -97,6 +97,7 @@ class ReportagePost extends Singleton {
      * @return bool|int|\WP_Error
      */
     public static function insert($reportage) {
+        global $pubjet_settings;
 
         pubjet_log('================== Insert ===================');
         if ($reportage->wp_post_id = self::reportage_exists($reportage->id)) {
@@ -104,7 +105,7 @@ class ReportagePost extends Singleton {
             return self::update($reportage);
         }
 
-        $def_category = get_option(EnumOptions::DefaultCategory);
+        $def_category = pubjet_isset_value($pubjet_settings['defaultCategory']);
         $post_content = self::get_content_file($reportage);
 
         // Check if we have gateway error
@@ -113,8 +114,8 @@ class ReportagePost extends Singleton {
         }
 
         $post_content = self::get_post_content($post_content, $reportage->title);
-        $post_date    = self::get_post_date($reportage->preferred_publish_date);
-        $post_status  = self::get_post_status($post_date);
+        $post_date = self::get_post_date($reportage->preferred_publish_date);
+        $post_status = self::get_post_status($post_date);
 
         $args = [
             'post_type'     => sanitize_text_field(pubjet_post_type()),
@@ -133,7 +134,7 @@ class ReportagePost extends Singleton {
         ];
 
         if ($post_status !== EnumPostStatus::Publish) {
-            $args['post_date']     = sanitize_text_field($post_date);
+            $args['post_date'] = sanitize_text_field($post_date);
             $args['post_date_gmt'] = sanitize_text_field($post_date);
         }
 
@@ -196,8 +197,8 @@ class ReportagePost extends Singleton {
     public static function get_post_content($content, $title) {
         $content = self::handle_images($content);
         pubjet_log($content);
-        $post_content                    = self::nomalize_html($content['html_file']);
-        $post_content                    = self::remove_repeate_headeing_title_in_content($post_content, $title);
+        $post_content = self::nomalize_html($content['html_file']);
+        $post_content = self::remove_repeate_headeing_title_in_content($post_content, $title);
         $post_content['featured_img_id'] = $content['featured_img_id'];
         return $post_content;
     }
@@ -209,7 +210,7 @@ class ReportagePost extends Singleton {
      */
     public static function get_post_name($reportage) {
         $post_name = $reportage->title;
-        $trans     = new GoogleTranslate();
+        $trans = new GoogleTranslate();
         $post_name = $trans->translate('fa', 'en', $reportage->title);
         return sanitize_title_with_dashes($post_name, '', 'save');
     }
@@ -224,7 +225,7 @@ class ReportagePost extends Singleton {
     public static function handle_images($html_content, $just_thumbnail = false) {
         preg_match_all('/<img[^>]+>/i', $html_content, $result);
         $featured_image_isset = false;
-        $featured_image_id    = null;
+        $featured_image_id = null;
 
         foreach ($result[0] as $img) {
 
@@ -235,9 +236,9 @@ class ReportagePost extends Singleton {
 
                 if ($just_thumbnail) {
 
-                    $attach_id         = self::upload_from_url(str_replace('\\"', '', $src));
+                    $attach_id = self::upload_from_url(str_replace('\\"', '', $src));
                     $featured_image_id = $attach_id;
-                    $html_content      = str_replace($src, wp_get_attachment_url($attach_id), $html_content);
+                    $html_content = str_replace($src, wp_get_attachment_url($attach_id), $html_content);
 
                     break;
 
@@ -245,7 +246,7 @@ class ReportagePost extends Singleton {
                     $attach_id = self::upload_from_url(str_replace('\\"', '', $src));
 
                     if ($featured_image_isset == false) {
-                        $featured_image_id    = $attach_id;
+                        $featured_image_id = $attach_id;
                         $featured_image_isset = true;
                     }
 
@@ -271,7 +272,7 @@ class ReportagePost extends Singleton {
         if (is_wp_error($tmp)) return false;
 
         // Get the filename and extension ("photo.png" => "photo", "png")
-        $filename  = pathinfo($url, PATHINFO_FILENAME);
+        $filename = pathinfo($url, PATHINFO_FILENAME);
         $extension = pathinfo($url, PATHINFO_EXTENSION);
 
         // An extension is required or else WordPress will reject the upload
@@ -336,7 +337,7 @@ class ReportagePost extends Singleton {
             'blocking'    => true,
             'sslverify'   => false,
         ]);
-        $body     = wp_remote_retrieve_body($response);
+        $body = wp_remote_retrieve_body($response);
 
         pubjet_log(':: First ::');
         pubjet_log($body);
@@ -344,7 +345,7 @@ class ReportagePost extends Singleton {
         // Check gateway error
         if (pubjet_gateway_error($body) || empty($body)) {
             $response = wp_remote_get($reportage->content_file);
-            $body     = wp_remote_retrieve_body($response);
+            $body = wp_remote_retrieve_body($response);
 
             pubjet_log(':: Second ::');
             pubjet_log($body);
@@ -365,12 +366,12 @@ class ReportagePost extends Singleton {
             $h1Tag = strip_tags($matche);
             if ($index == 0) {
                 $object_title = empty(trim($object_title)) ? trim($h1Tag) : $object_title;
-                $content      = str_replace($matche, '', $content);
+                $content = str_replace($matche, '', $content);
             } else {
                 $object_title = empty(trim($object_title)) ? trim($h1Tag) : $object_title;
-                $matche2      = str_replace('<h1', '<h2', $matche);
-                $matche2      = str_replace('</h1', '</h2', $matche2);
-                $content      = str_replace($matche, $matche2, $content);
+                $matche2 = str_replace('<h1', '<h2', $matche);
+                $matche2 = str_replace('</h1', '</h2', $matche2);
+                $content = str_replace($matche, $matche2, $content);
             }
         }
 

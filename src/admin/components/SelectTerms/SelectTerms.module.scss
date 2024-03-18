@@ -1,0 +1,27 @@
+@import '../../../shared/styles/mixins';
+@import '../../../shared/styles/variables';
+
+.select {
+  width: 100% !important;
+  height: 45px !important;
+  cursor: pointer !important;
+  @include mq-max('md') {
+    height: 50px !important;
+  }
+
+  :global {
+    input {
+      box-shadow: none !important;
+    }
+
+    .ant-select-selection-item {
+      cursor: pointer;
+    }
+  }
+}
+
+.thumb {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+}

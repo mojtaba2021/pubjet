@@ -31,7 +31,7 @@ trait Utils {
      */
     public function checkNonce($nonce = false) {
         if (!$nonce) {
-            $nonce = $this->post('security');
+            $nonce = pubjet_isset_value($_SERVER['HTTP_X_PUBJET_NONCE']);
         }
         if (!wp_verify_nonce($nonce, 'pubjet-nonce')) {
             $this->permissionError();

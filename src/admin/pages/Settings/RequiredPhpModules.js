@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './RequiredPhpModules.module.scss';
 import BaseComponent from '../../components/BaseComponent/BaseComponent';
-import {findEndpointUrl, getAdminAjaxUrl, getAxios, getSecurityNonce, pubjet__} from '../../../shared/scripts/utils';
+import {findEndpointUrl, getAxios, getSecurityNonce, pubjet__} from '../../../shared/scripts/utils';
 import {Alert, Badge, Table, Tooltip} from 'antd';
 import {LoadingOutlined, ReloadOutlined} from '@ant-design/icons';
 import Button from "../../components/Button/Button";

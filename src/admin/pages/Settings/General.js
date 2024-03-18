@@ -12,14 +12,12 @@ import {pubjet__} from "../../../shared/scripts/utils";
 class General extends BaseComponent {
 
     state = {
-        token     : '',
-        debug     : false,
-        category  : '',
-        categories: [],
-        error     : false,
-        loading   : false,
-        saving    : false,
-        saved     : false,
+        token  : '',
+        debug  : false,
+        error  : false,
+        loading: false,
+        saving : false,
+        saved  : false,
     };
 
     /**
@@ -87,8 +85,6 @@ class General extends BaseComponent {
         );
     }
 }
-
-General.propTypes = {};
 
 const mstp = (state) => ({
     options: state.options,

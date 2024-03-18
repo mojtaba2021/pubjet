@@ -1,14 +1,7 @@
 import React, {Component} from 'react';
 import styles from './ReportageOptions.module.scss';
 import {Form, Spin, Switch} from "antd";
-import {
-    findEndpointUrl,
-    getAdminAjaxUrl,
-    getAxios,
-    getSecurityNonce,
-    pubjet__,
-    showErrorMessage
-} from "../../../shared/scripts/utils";
+import {findEndpointUrl, getAxios, pubjet__, showErrorMessage} from "../../../shared/scripts/utils";
 
 const axios = getAxios();
 
@@ -41,9 +34,8 @@ class ReportageOptions extends Component {
         this.setState({error: false, loading: true,}, () => {
             axios.get(findEndpointUrl('find-reportage-options'), {
                 params: {
-                    action  : '',
-                    postId  : this.getPostId(),
-                    security: getSecurityNonce(),
+                    action: '',
+                    postId: this.getPostId(),
                 },
             }).then(response => {
                 if (response.success) {
@@ -68,7 +60,6 @@ class ReportageOptions extends Component {
         axios.post(findEndpointUrl('save-reportage-options'), {
             postId  : this.getPostId(),
             nofollow: this.state.nofollow,
-            security: getSecurityNonce(),
         }).then(response => {
             if (!response.success) {
                 showErrorMessage(response.error);

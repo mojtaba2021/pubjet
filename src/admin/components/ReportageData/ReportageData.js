@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-    copyText, findEndpointUrl,
-    getAdminAjaxUrl,
-    getAxios,
-    getSecurityNonce,
-    pubjet__,
-    showSuccessMessage
-} from "../../../shared/scripts/utils";
+import {copyText, findEndpointUrl, getAxios, pubjet__, showSuccessMessage} from "../../../shared/scripts/utils";
 import Button from "../Button/Button";
 import BaseComponent from "../BaseComponent/BaseComponent";
 import styles from './ReportageData.module.scss';
@@ -38,8 +31,7 @@ class ReportageData extends BaseComponent {
             const postId = jQuery('#pubjet-reportage-panel-data').data('postid');
             axios.get(findEndpointUrl('find-reportage-panel-data'), {
                 params: {
-                    postId  : postId,
-                    security: getSecurityNonce(),
+                    postId: postId,
                 },
             }).then(response => {
                 if (response.success) {

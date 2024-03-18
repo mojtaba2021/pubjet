@@ -5,6 +5,7 @@ namespace triboon\pubjet\includes;
 use DateTime;
 use DateTimeZone;
 use triboon\pubjet\includes\enums\EnumHttpMethods;
+use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 use triboon\pubjet\includes\traits\Utils;
@@ -38,6 +39,7 @@ class RewriteHooks extends Singleton {
 
         $this->endpointHandler('remind-admin-notice', [$this, 'remindAdminNotice']);
         $this->endpointHandler('permanent-hide-admin-notice', [$this, 'permanentHideAdminNotice']);
+        $this->endpointHandler('find-terms', [$this, 'findTerms']);
 
         // Get WordPress categories
         $this->endpointHandler('tags', [$this, 'findWpTags']);
@@ -70,6 +72,40 @@ class RewriteHooks extends Singleton {
         $this->success($categories);
     }
 
+    public function findTerms() {
+        $this->checkNonce();
+
+        $sanitized_taxonomy = sanitize_text_field($this->get('taxonomy'));
+
+        /**
+         * The pubjet_before_search_terms filter.
+         *
+         * @since 1.0.0
+         */
+        do_action('pubjet_before_search_terms', $sanitized_taxonomy);
+
+        $terms = get_terms([
+            'taxonomy'   => $sanitized_taxonomy,
+            'hide_empty' => false,
+        ]);
+
+        /**
+         * The pubjet_after_search_terms filter.
+         *
+         * @since 1.0.0
+         */
+        do_action('pubjet_after_search_terms', $sanitized_taxonomy, $terms);
+
+        $terms = array_map(function ($term) {
+            return [
+                'value' => $term->term_id,
+                'label' => $term->name,
+            ];
+        }, $terms);
+
+        $this->success($terms);
+    }
+
     /**
      * @return void
      * @since  1.0
@@ -77,7 +113,7 @@ class RewriteHooks extends Singleton {
      */
     public function permanentHideAdminNotice() {
         $notice_id = sanitize_text_field($this->post('noticeId'));
-        $security  = sanitize_text_field($this->post('security'));
+        $security = sanitize_text_field($this->post('security'));
 
         if (!wp_verify_nonce($security, 'pubjet-admin-notice')) {
             $this->permissionError();
@@ -95,7 +131,7 @@ class RewriteHooks extends Singleton {
      */
     public function remindAdminNotice() {
         $notice_id = sanitize_text_field($this->post('noticeId'));
-        $security  = sanitize_text_field($this->post('security'));
+        $security = sanitize_text_field($this->post('security'));
 
         if (!wp_verify_nonce($security, 'pubjet-admin-notice')) {
             $this->permissionError();
@@ -110,7 +146,7 @@ class RewriteHooks extends Singleton {
      */
     public function saveReportageOptions() {
 
-        $this->checkNonce($this->post('security'));
+        $this->checkNonce();
 
         if (empty($this->post('postId')) || !pubjet_is_reportage($this->post('postId'))) {
             $this->error(pubjet__('missing-params'));
@@ -131,7 +167,7 @@ class RewriteHooks extends Singleton {
      * @return void
      */
     public function findReportageOptions() {
-        $this->checkNonce($this->get('security'));
+        $this->checkNonce();
 
         if (empty($this->get('postId')) || !pubjet_is_reportage($this->get('postId'))) {
             $this->error(pubjet__('missing-params'));
@@ -145,15 +181,15 @@ class RewriteHooks extends Singleton {
         $nofollow = get_post_meta($post->ID, EnumPostMetakeys::NoFollow, true);
 
         $this->success([
-                           'nofollow' => boolval($nofollow),
-                       ]);
+            'nofollow' => boolval($nofollow),
+        ]);
     }
 
     /**
      * @return void
      */
     public function findReportagePanelData() {
-        $this->checkNonce($this->get('security'));
+        $this->checkNonce();
 
         // Missing params
         if (empty($this->get('postId'))) {
@@ -166,18 +202,18 @@ class RewriteHooks extends Singleton {
         }
 
         $panel_data = get_post_meta($post->ID, EnumPostMetakeys::PanelData, true);
-        $result     = print_r($panel_data, true);
+        $result = print_r($panel_data, true);
 
         $this->success([
-                           'data' => $result,
-                       ]);
+            'data' => $result,
+        ]);
     }
 
     /**
      * @return void
      */
     public function regThumbnail() {
-        $this->checkNonce($this->post('security'));
+        $this->checkNonce();
 
         if (empty($this->post('postId'))) {
             $this->error(pubjet__('missing-params'));
@@ -205,10 +241,10 @@ class RewriteHooks extends Singleton {
             $this->error(pubjet__('empty-reportage-content'));
         }
 
-        $reportage      = [
+        $reportage = [
             'content_file' => $triboon_panel_reportage_content,
         ];
-        $post_content   = ReportagePost::get_content_file((object)$reportage);
+        $post_content = ReportagePost::get_content_file((object)$reportage);
         $post_thumbnail = ReportagePost::handle_images($post_content, true);
 
         if (empty($post_thumbnail['featured_img_id'])) {
@@ -232,7 +268,7 @@ class RewriteHooks extends Singleton {
      * @return void
      */
     public function deleteDebug() {
-        $this->checkNonce($this->post('security'));
+        $this->checkNonce();
 
         /**
          * The pubjet_before_delete_debug action.
@@ -266,7 +302,7 @@ class RewriteHooks extends Singleton {
      * @return void
      */
     public function getDebug() {
-        $this->checkNonce($this->get('security'));
+        $this->checkNonce();
 //
 //        pubjet_log(site_url() . '/pubjet-api/reportage');
 //        $data = wp_remote_post(site_url() . '/pubjet-api/reportage', [
@@ -312,15 +348,15 @@ class RewriteHooks extends Singleton {
         $content = apply_filters('pubjet_debug_content', $content);
 
         $this->success([
-                           'text' => $content,
-                       ]);
+            'text' => $content,
+        ]);
     }
 
     /**
      * @return void
      */
     public function saveOptions() {
-        $this->checkNonce($this->get('security'));
+        $this->checkNonce();
 
         /**
          * The pubjet_before_save_options action.
@@ -329,12 +365,9 @@ class RewriteHooks extends Singleton {
          */
         do_action('pubjet_before_save_options');
 
-        update_option(EnumOptions::Token, $this->post('token'));
-        update_option(EnumOptions::DebugMode, $this->formatBoolean($this->post('debug')));
-        update_option(EnumOptions::DefaultCategory, $this->post('category'));
-        update_option(EnumOptions::UninstallCleanup, $this->formatBoolean($this->post('uninstall')));
-        update_option(EnumOptions::Nofollow, $this->formatBoolean($this->post('nofollow')));
-        update_option(EnumOptions::AlignCenterImages, $this->formatBoolean($this->post('alignCenterImages')));
+        $settings = pubjet_get_json($this->post('settings'));
+
+        update_option(EnumOptions::Settings, $settings);
 
         flush_rewrite_rules();
 
@@ -343,7 +376,7 @@ class RewriteHooks extends Singleton {
          *
          * @since 1.0.0
          */
-        do_action('pubjet_after_save_options');
+        do_action('pubjet_after_save_options', $settings);
 
         $this->success();
     }
@@ -352,7 +385,7 @@ class RewriteHooks extends Singleton {
      * @return void
      */
     public function getOptions() {
-        $this->checkNonce($this->get('security'));
+        $this->checkNonce();
 
         /**
          * The pubjet_before_get_options action.
@@ -360,17 +393,6 @@ class RewriteHooks extends Singleton {
          * @since 1.0.0
          */
         do_action('pubjet_before_get_options');
-
-        $formatted_categories = [];
-        $categories           = get_categories([
-                                                   'hide_empty' => false,
-                                               ]);
-        foreach ($categories as $item) {
-            $formatted_categories[] = [
-                'value' => $item->term_id,
-                'label' => $item->name,
-            ];
-        }
 
         $options = pubjet_options();
 
@@ -381,9 +403,7 @@ class RewriteHooks extends Singleton {
          */
         do_action('pubjet_after_get_options', $options);
 
-        $this->success(array_merge($options, [
-            'categories' => $formatted_categories,
-        ]));
+        $this->success($options);
 
     }
 
@@ -393,7 +413,7 @@ class RewriteHooks extends Singleton {
      * @author Triboon
      */
     public function checkRequiredPhpModules() {
-        $this->checkNonce($this->get('security'));
+        $this->checkNonce();
 
         /**
          * The pubjet_required_php_modules hook.
@@ -438,9 +458,7 @@ class RewriteHooks extends Singleton {
          */
         $url = apply_filters('pubjet_check_token_url', pubjet_api_root() . '/external/wp/token-validation/', $token);
 
-        if (pubjet_is_dev_mode()) {
-            $url = 'https://api-staging.triboon.net/external/wp/token-validation/';
-        }
+        pubjet_log($url);
 
         $headers = [
             'Content-Type'  => 'application/json',
@@ -449,6 +467,8 @@ class RewriteHooks extends Singleton {
 
         $result = $this->request($url, EnumHttpMethods::GET, $headers);
 
+        pubjet_log($result);
+
         if (is_wp_error($result)) {
             $this->error($result->get_error_message());
         }
@@ -456,6 +476,7 @@ class RewriteHooks extends Singleton {
         if (isset($result['code']) && 403 == $result['code']) {
             $this->error(pubjet__('invalid-token'));
         }
+
 
         if (!isset($result['body']->is_valid)) { // Some error occured
             $this->error(pubjet__('error-occured'));
@@ -468,15 +489,17 @@ class RewriteHooks extends Singleton {
             ]);
         }
 
-        pubjet_log($result);
+        // Sync
+        // pubjet_sync_categories();
 
         $this->success([
-                           'valid'      => true,
-                           'first_name' => pubjet_isset_value($result['body']->extra->first_name),
-                           'last_name'  => pubjet_isset_value($result['body']->extra->last_name),
-                           'phone'      => pubjet_isset_value($result['body']->extra->phone),
-                           'email'      => pubjet_isset_value($result['body']->extra->email),
-                       ]);
+            'valid'         => true,
+            'first_name'    => pubjet_isset_value($result['body']->publisher->first_name),
+            'last_name'     => pubjet_isset_value($result['body']->publisher->last_name),
+            'phone'         => pubjet_isset_value($result['body']->publisher->phone),
+            'email'         => pubjet_isset_value($result['body']->publisher->email),
+            'pricing_plans' => pubjet_isset_value($result['body']->pricing_plans),
+        ]);
     }
 
     /**
@@ -529,17 +552,17 @@ class RewriteHooks extends Singleton {
         $new_status = pubjet_isset_value($data->status, 'show');
         if ('hide' === $new_status) {
             // Hide copyright
-            update_option(EnumOptions::CopyrightStatus, 'hide');
+            pubjet_update_setting(EnumOptions::CopyrightStatus, 'hide');
         } else {
             // Show copyright
-            delete_option(EnumOptions::CopyrightStatus);
+            pubjet_update_setting(EnumOptions::CopyrightStatus, '');
         }
 
         $this->success([
-                           'wpPostId'    => $reportage_post_id,
-                           'reportageId' => pubjet_isset_value($data->id),
-                           'status'      => $new_status,
-                       ]);
+            'wpPostId'    => $reportage_post_id,
+            'reportageId' => pubjet_isset_value($data->id),
+            'status'      => $new_status,
+        ]);
     }
 
     /**
@@ -571,9 +594,9 @@ class RewriteHooks extends Singleton {
         }
 
         $this->success([
-                           'wpPostId'    => absint($reportage_post_id),
-                           'reportageId' => absint(pubjet_isset_value($reportage->id)),
-                       ]);
+            'wpPostId'    => absint($reportage_post_id),
+            'reportageId' => absint(pubjet_isset_value($reportage->id)),
+        ]);
     }
 
     /**
@@ -593,16 +616,16 @@ class RewriteHooks extends Singleton {
         pubjet_log($_GET);
 
         $reportage_post_id = pubjet_find_post_id_by_reportage_id($this->get('id'));
-        $reportage_post    = get_post($reportage_post_id);
+        $reportage_post = get_post($reportage_post_id);
         if (!$reportage_post_id || empty($reportage_post)) {
             wp_send_json_error(pubjet__('post-not-found'), 404);
         }
 
         $this->success([
-                           'id'    => $reportage_post->ID,
-                           'title' => $reportage_post->post_title,
-                           'url'   => get_permalink($reportage_post->ID),
-                       ]);
+            'id'    => $reportage_post->ID,
+            'title' => $reportage_post->post_title,
+            'url'   => get_permalink($reportage_post->ID),
+        ]);
     }
 
     /**
@@ -610,8 +633,8 @@ class RewriteHooks extends Singleton {
      */
     public function checkPluginVersion() {
         $this->success([
-                           'version' => PUBJ()->getVersion(),
-                       ]);
+            'version' => PUBJ()->getVersion(),
+        ]);
     }
 
     /**
@@ -636,7 +659,7 @@ class RewriteHooks extends Singleton {
         $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
         $now = $dt->format('Y-m-d H:i:s');
 
-        $sql    = $wpdb->prepare("SELECT `ID` FROM $wpdb->posts WHERE `post_type` = %s AND post_status='future' AND post_date_gmt < %s", PUBJET_POST_TYPE, $now);
+        $sql = $wpdb->prepare("SELECT `ID` FROM $wpdb->posts WHERE `post_type` = %s AND post_status='future' AND post_date_gmt < %s", PUBJET_POST_TYPE, $now);
         $result = $wpdb->get_results($sql);
 
         if (!$result) {
@@ -705,7 +728,7 @@ class RewriteHooks extends Singleton {
 
         if (PHP_VERSION_ID >= 70016 && function_exists('fastcgi_finish_request')) {
             fastcgi_finish_request();
-        } elseif (function_exists('litespeed_finish_request')) {
+        } else if (function_exists('litespeed_finish_request')) {
             litespeed_finish_request();
         } else {
             ob_start();
