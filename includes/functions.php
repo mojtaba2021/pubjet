@@ -217,8 +217,8 @@ function pubjet_class_names($list, $return_as_array = false) {
  * @since 1.0
  */
 function pubjet_parse_args(&$a, $b) {
-    $a = (array)$a;
-    $b = (array)$b;
+    $a      = (array)$a;
+    $b      = (array)$b;
     $result = $b;
     foreach ($a as $k => &$v) {
         if (is_array($v) && isset($result[$k])) {
@@ -458,7 +458,7 @@ function pubjet_template($name, $extend = false, $include = true, $data = []) {
         $name .= '-' . $extend;
     }
 
-    $template = false;
+    $template     = false;
     $template_dir = [
         PUBJET_TPLS_DIR,
     ];
@@ -592,7 +592,7 @@ function pubjet_swiper($args, $echo = true) {
         'container_before' => function () {
         },
     ];
-    $args = pubjet_parse_args($args, $defaults);
+    $args     = pubjet_parse_args($args, $defaults);
     if (isset ($args['id']) && $args['id']) {
         $args['id'] = str_replace("-", "_", $args['id']);
     } else {
@@ -720,8 +720,8 @@ function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
         $entry = print_r($entry, true);
     }
 
-    $file = pubjet_debug_dir();
-    $file = fopen($file, 'a');
+    $file  = pubjet_debug_dir();
+    $file  = fopen($file, 'a');
     $bytes = fwrite($file, $method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n");
     fclose($file);
 
@@ -818,7 +818,7 @@ function pubjet_is_reportage($post_id) {
  */
 function pubjet_find_post_id_by_reportage_id($reportage_id) {
     global $wpdb;
-    $sql = "SELECT `post_id` FROM  {$wpdb->postmeta} WHERE `meta_key` = %s AND `meta_value` = %s LIMIT 1";
+    $sql  = "SELECT `post_id` FROM  {$wpdb->postmeta} WHERE `meta_key` = %s AND `meta_value` = %s LIMIT 1";
     $psql = $wpdb->prepare($sql, \triboon\pubjet\includes\enums\EnumPostMetakeys::ReportageId, $reportage_id);
     return $wpdb->get_var($psql);
 }
@@ -1004,8 +1004,6 @@ function pubjet_request($url, $method = 'GET', $headers = [], $body = [], $pargs
         $args = array_merge($args, $pargs);
     }
 
-    pubjet_wp_log($args);
-
     $response = wp_remote_request($url, $args);
 
     if (is_wp_error($response)) {
@@ -1025,7 +1023,7 @@ function pubjet_request($url, $method = 'GET', $headers = [], $body = [], $pargs
  */
 function pubjet_is_post_exists($post_md5) {
     global $wpdb;
-    $query = "SELECT `post_id` FROM {$wpdb->postmeta} WHERE `meta_key` = 'duplicate_guard' AND `meta_value` = %s";
+    $query  = "SELECT `post_id` FROM {$wpdb->postmeta} WHERE `meta_key` = 'duplicate_guard' AND `meta_value` = %s";
     $pquery = $wpdb->prepare($query, $post_md5);
     return $wpdb->get_var($pquery);
 }
@@ -1062,9 +1060,9 @@ function pubjet_render_condition($condition, $func_or_string) {
 function pubjet_find_wp_categories($parent_id = 0, $hierarchy = true) {
     if ($hierarchy) {
         $categories = get_categories([
-            'parent'     => $parent_id,
-            'hide_empty' => false,
-        ]);
+                                         'parent'     => $parent_id,
+                                         'hide_empty' => false,
+                                     ]);
 
         $categories_list = [];
 
@@ -1088,10 +1086,10 @@ function pubjet_find_wp_categories($parent_id = 0, $hierarchy = true) {
     }
 
     // Flat
-    $result = [];
+    $result     = [];
     $categories = get_categories([
-        'hide_empty' => false,
-    ]);
+                                     'hide_empty' => false,
+                                 ]);
     foreach ($categories as $category) {
         $result[] = [
             'id'   => $category->term_id,
@@ -1108,9 +1106,9 @@ function pubjet_find_wp_categories($parent_id = 0, $hierarchy = true) {
  */
 function pubjet_find_wp_tags() {
     $result = [];
-    $tags = get_tags([
-        'hide_empty' => false,
-    ]);
+    $tags   = get_tags([
+                           'hide_empty' => false,
+                       ]);
     foreach ($tags as $tag) {
         $result[] = [
             'id'   => $tag->term_id,
@@ -1153,19 +1151,19 @@ function pubjet_sync_categories() {
     $url = apply_filters('pubjet_sync_category_sync', pubjet_api_root() . '/external/wp/relative-category/', pubjet_token());
 
     if (pubjet_is_dev_mode()) {
-        $url = 'https://api-staging.triboon.net/external/wp/relative-category/';
+        $url = 'https://api.triboon.net/external/wp/relative-category/';
     }
 
     $response = pubjet_request($url, 'POST', [
-        'Content-Type'  => 'application/json; charset=utf-8',
-        'Authorization' => 'Token ' . trim(pubjet_token()),
+        'Content-Type' => 'application/json; charset=utf-8',
+        'Authorization' => 'Token ' . pubjet_token(),
     ], json_encode([
-        'categories' => $categories,
-    ]), [
-        'data_format' => 'body',
-    ]);
+                       'categories' => $categories,
+                   ]), [
+                                   'data_format' => 'body',
+                               ]);
 
-    pubjet_wp_log($response);
+    pubjet_log($response);
 
     pubjet_update_setting('lastCategoriesSyncTime', pubjet_now_myql());
 
@@ -1206,8 +1204,8 @@ function pubjet_settings() {
      * @since 1.0.0
      */
     $default_settings = pubjet_default_settings();
-    $settings = get_option(EnumOptions::Settings, []);
-    $settings = pubjet_parse_args($settings, $default_settings);
+    $settings         = get_option(EnumOptions::Settings, []);
+    $settings         = pubjet_parse_args($settings, $default_settings);
 
     /**
      * The pubjet_settings filter.
@@ -1224,7 +1222,7 @@ function pubjet_settings() {
  * @return bool
  */
 function pubjet_update_setting($option_name, $option_value) {
-    $settings = pubjet_settings();
+    $settings               = pubjet_settings();
     $settings[$option_name] = $option_value;
     return update_option(EnumOldOptions::Settings, $settings);
 }
@@ -1249,8 +1247,8 @@ function pubjet_sync_category($terms, $method = 'POST') {
     }
     return pubjet_request($url, $method, [
         'Content-Type'  => 'application/json',
-        'Authorization' => 'Token ' . trim(pubjet_token())
-    ], json_encode([
-        'categories' => $terms,
-    ]));
+        'Authorization' => 'Token ' . trim(pubjet_token()),
+    ],                    json_encode([
+                                          'categories' => $terms,
+                                      ]));
 }

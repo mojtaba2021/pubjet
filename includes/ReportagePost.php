@@ -454,8 +454,6 @@ class ReportagePost extends Singleton {
                     }
                 }
             }
-            pubjet_wp_log('result:');
-            pubjet_wp_log($result);
         }
 
         return $result ? $result : pubjet_isset_value($pubjet_settings['defaultCategory']);

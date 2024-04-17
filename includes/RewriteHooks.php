@@ -429,7 +429,6 @@ class RewriteHooks extends Singleton {
         $this->success($data);
     }
 
-
     /**
      * @return void
      */
