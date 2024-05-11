@@ -439,11 +439,10 @@ class ReportagePost extends Singleton {
      */
     public static function findReportageCategory($reportage) {
         global $pubjet_settings;
-
         $result = false;
-
         if (isset($reportage->relative_category) && !empty($reportage->relative_category)) {
-            $result = $reportage->relative_category['id'];
+            $found  = get_term_by('slug', $reportage->relative_category['unique_name'], 'category');
+            $result = $found ? $found->term_id : false;
         } else {
             // Find category id based on pricing plans
             if (isset($pubjet_settings['pricingPlans']) && !empty($pubjet_settings['pricingPlans'])) {

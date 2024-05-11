@@ -487,6 +487,18 @@ class RewriteHooks extends Singleton {
             ]);
         }
 
+        // we must remove "Test" plan in production
+        $pricing_plans = pubjet_isset_value($result['body']->pricing_plans, []);
+        if ($pricing_plans) {
+            $final_plans = [];
+            foreach ($pricing_plans as $plan) {
+                if ($plan->title !== 'تست پابجت') {
+                    $final_plans[] = $plan;
+                }
+            }
+            $pricing_plans = $final_plans;
+        }
+
         // Sync
         pubjet_sync_categories();
 
@@ -496,7 +508,7 @@ class RewriteHooks extends Singleton {
                            'last_name'     => pubjet_isset_value($result['body']->publisher->last_name),
                            'phone'         => pubjet_isset_value($result['body']->publisher->phone),
                            'email'         => pubjet_isset_value($result['body']->publisher->email),
-                           'pricing_plans' => pubjet_isset_value($result['body']->pricing_plans),
+                           'pricing_plans' => $pricing_plans,
                        ]);
     }
 
