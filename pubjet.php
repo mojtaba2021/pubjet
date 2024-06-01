@@ -148,7 +148,7 @@ if (!class_exists('Pubjet')) {
         public function loadTextDomain() {
             $locale = get_locale();
             $locale = str_replace('_', '-', $locale);
-            $mo = 'pubjet-' . $locale . '.mo';
+            $mo     = 'pubjet-' . $locale . '.mo';
             load_textdomain('pubjet', WP_LANG_DIR . '/pubjet/' . $mo);
             load_textdomain('pubjet', plugin_dir_path(__FILE__) . 'languages/' . $mo);
             load_plugin_textdomain('pubjet');
@@ -194,9 +194,8 @@ if (!class_exists('Pubjet')) {
          * @return void
          */
         private function trackActivationVersion() {
-            // Track first version
             $activation_option = \triboon\pubjet\includes\enums\EnumOldOptions::ActivationVersion;
-            $activation_value = get_option($activation_option);
+            $activation_value  = get_option($activation_option);
             if (!$activation_value) {
                 update_option($activation_option, $this->getVersion());
             }
@@ -219,7 +218,7 @@ if (!class_exists('Pubjet')) {
          */
         private function migrateOldSettings() {
             // Migrate from 1.0.0 to 2,0,0
-            $last_category = get_option('triboon_default_category');
+            $last_category   = get_option('triboon_default_category');
             $last_debug_mode = get_option('triboon_debug_mode');
 
             update_option(\triboon\pubjet\includes\enums\EnumOldOptions::Token, sanitize_text_field($last_token));
@@ -279,7 +278,7 @@ if (!class_exists('Pubjet')) {
          */
         public function setupGlobals() {
             $GLOBALS['pubjet_settings'] = pubjet_settings();
-            $GLOBALS['pubjet_options'] = $GLOBALS['pubjet_settings'];
+            $GLOBALS['pubjet_options']  = $GLOBALS['pubjet_settings'];
         }
 
         /**

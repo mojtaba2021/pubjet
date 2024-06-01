@@ -2,7 +2,6 @@
 
 namespace triboon\pubjet\includes;
 
-
 if (!defined("ABSPATH")) exit;
 
 use DateTime;
@@ -12,7 +11,7 @@ use triboon\pubjet\includes\enums\EnumPostMetakeys;
 use triboon\pubjet\includes\enums\EnumPostStatus;
 
 class ReportagePost extends Singleton {
-
+    
     /**
      * @since 1.0.0
      */
@@ -95,8 +94,6 @@ class ReportagePost extends Singleton {
      * @return bool|int|\WP_Error
      */
     public static function insert($reportage) {
-        global $pubjet_settings;
-
         pubjet_log('================== Insert ===================');
         if ($reportage->wp_post_id = self::reportage_exists($reportage->id)) {
             pubjet_log('==================== Updating ===================');
@@ -154,6 +151,10 @@ class ReportagePost extends Singleton {
         pubjet_log($post_id);
 
         if (is_wp_error($post_id)) {
+            pubjet_log_sentry(sprintf('%s: %s', 'خطا در ایجاد نوشته رپورتاژ', $post_id->get_error_message()), [
+                'reportage_id'    => $reportage->id,
+                'reportage_title' => $reportage->title,
+            ]);
             return false;
         }
 
@@ -163,7 +164,7 @@ class ReportagePost extends Singleton {
             set_post_thumbnail($post_id, intval($post_content['featured_img_id']));
         }
 
-        // Publish without triboon tag
+        // Publish without Triboon tag
         if (isset($reportage->is_publish_without_triboon_tag) && $reportage->is_publish_without_triboon_tag) {
             update_post_meta($post_id, EnumPostMetakeys::WithoutTriboonTag, true);
         }

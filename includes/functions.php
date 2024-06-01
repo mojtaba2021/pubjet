@@ -1252,3 +1252,20 @@ function pubjet_sync_category($terms, $method = 'POST') {
                                           'categories' => $terms,
                                       ]));
 }
+
+/**
+ * @param $message
+ * @param $extra
+ *
+ * @return \Sentry\EventId|null
+ */
+function pubjet_log_sentry($message, $extra = []) {
+    $extra       = pubjet_parse_args($extra, [
+        'website_url'    => site_url(),
+        'website_title'  => get_bloginfo('name'),
+        'pubjet_version' => PUBJ()->getVersion(),
+    ]);
+    $hint        = new \Sentry\EventHint();
+    $hint->extra = $extra;
+    return \Sentry\captureException(new \Exception($message), $hint);
+}

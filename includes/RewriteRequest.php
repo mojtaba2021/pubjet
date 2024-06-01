@@ -41,6 +41,7 @@ class RewriteRequest extends Singleton {
 
     /**
      * @param $template
+     *
      * @return void
      */
     public function setTemplateInclude($template) {

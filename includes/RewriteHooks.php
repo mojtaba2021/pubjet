@@ -695,10 +695,12 @@ class RewriteHooks extends Singleton {
 
         // =================== Insert or Update ===================
         if (!$this->isValidHttpMethod([EnumHttpMethods::POST, EnumHttpMethods::PATCH])) {
+            pubjet_log_sentry('متد ارسال اطلاعات رپورتاژ اشتباه است. نوع متد باید POST و یا PATCH باشد. متد فعلی:' . $_SERVER['REQUEST_METHOD']);
             wp_send_json_error(pubjet__('invalid-http-method'), 401);
         }
 
         if (!$this->isTokenValid()) {
+            pubjet_log_sentry('توکن ارتباطی اشتباه است');
             wp_send_json_error(pubjet__('invalid-token'), 401);
         }
 
@@ -712,6 +714,11 @@ class RewriteHooks extends Singleton {
             if (is_wp_error($wp_post_id)) {
                 pubjet_log('Error: ' . $wp_post_id->get_error_message());
             }
+            $sentry_error = is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در فرایند ثبت نوشته رپورتاژ رخ داده است.';
+            pubjet_log_sentry($sentry_error, [
+                'reportage_id'    => pubjet_isset_value($reportage->id),
+                'reportage_title' => pubjet_isset_value($reportage->title),
+            ]);
             wp_send_json_error($wp_post_id);
         }
 

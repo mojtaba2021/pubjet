@@ -12,6 +12,7 @@
         }
     ],
     "require": {
-        "statickidz/php-google-translate-free": "^1.2"
+        "statickidz/php-google-translate-free": "^1.2",
+        "sentry/sentry": "^4.7"
     }
 }

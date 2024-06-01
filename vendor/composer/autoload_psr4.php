@@ -7,5 +7,11 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Triboon\\Pubjet\\' => array($baseDir . '/src'),
+    'Symfony\\Component\\OptionsResolver\\' => array($vendorDir . '/symfony/options-resolver'),
     'Statickidz\\' => array($vendorDir . '/statickidz/php-google-translate-free/src'),
+    'Sentry\\' => array($vendorDir . '/sentry/sentry/src'),
+    'Psr\\Log\\' => array($vendorDir . '/psr/log/src'),
+    'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src', $vendorDir . '/psr/http-factory/src'),
+    'Jean85\\' => array($vendorDir . '/jean85/pretty-package-versions/src'),
+    'GuzzleHttp\\Psr7\\' => array($vendorDir . '/guzzlehttp/psr7/src'),
 );
