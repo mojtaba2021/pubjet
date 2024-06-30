@@ -4,7 +4,7 @@ import {connect} from "trim-redux";
 import AntModal from "../../components/AntModal/AntModal";
 import {addMetakey, changeMetakey, closeModals, deleteMetakey, getStoreKey, saveOptions} from "./Actions";
 import {pubjet__} from "../../../shared/scripts/utils";
-import {Button, Table} from "antd";
+import {Alert, Button, Table} from "antd";
 import {PlusOutlined, SaveOutlined} from "@ant-design/icons";
 import styles from './ModalMetakeys.module.scss';
 import SavedAlert from "../../components/SaveAlert/SavedAlert";
@@ -180,9 +180,21 @@ class ModalMetakeys extends AntModal {
     /**
      * @since 1.0.0
      */
+    alert = () => {
+        return <Alert
+            type={'info'}
+            message={pubjet__('pmk-hints')}
+            className={styles.alert}
+        />;
+    };
+
+    /**
+     * @since 1.0.0
+     */
     content = () => {
         const {saved} = this.state;
         return <div className={styles.wrapper}>
+            {this.alert()}
             {this.buttonAdd()}
             {this.table()}
             {saved && <SavedAlert className={styles.savedAlert}/>}

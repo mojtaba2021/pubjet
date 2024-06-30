@@ -834,6 +834,7 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
+        'pmk-hints'                => esc_html__('This feature is useful when you want to make Pubjet compatible with other plugins that perform actions on the text menu. By using this feature, users can easily add specific information and metadata to reports without the need for fundamental changes in other plugins and benefit from better integration and coordination between plugins.', 'pubjet'),
         'save'                     => esc_html__('Save', 'pubjet'),
         'delete'                   => esc_html__('Delete', 'pubjet'),
         'actions'                  => esc_html__('Actions', 'pubjet'),
