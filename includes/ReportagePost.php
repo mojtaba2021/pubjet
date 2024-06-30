@@ -11,7 +11,7 @@ use triboon\pubjet\includes\enums\EnumPostMetakeys;
 use triboon\pubjet\includes\enums\EnumPostStatus;
 
 class ReportagePost extends Singleton {
-    
+
     /**
      * @since 1.0.0
      */
@@ -159,7 +159,6 @@ class ReportagePost extends Singleton {
         }
 
         // =================== Success ===================
-
         if (isset($post_content['featured_img_id'])) {
             set_post_thumbnail($post_id, intval($post_content['featured_img_id']));
         }
@@ -168,6 +167,13 @@ class ReportagePost extends Singleton {
         if (isset($reportage->is_publish_without_triboon_tag) && $reportage->is_publish_without_triboon_tag) {
             update_post_meta($post_id, EnumPostMetakeys::WithoutTriboonTag, true);
         }
+
+        /**
+         * The pubjet_new_reportage action.
+         *
+         * @since 1.0.0
+         */
+        do_action('pubjet_new_reportage', $post_id, $reportage);
 
         return $post_id;
     }

@@ -25,6 +25,28 @@ class Actions extends Singleton {
         add_action("wp_head", [$this, "alignReportageImagesCenter"], 15);
         add_action('created_term', [$this, 'createCategory'], 15, 5);
         add_action('delete_term', [$this, 'deleteCategory'], 15, 4);
+        add_action('pubjet_new_reportage', [$this, 'reportageCustomFields'], 15, 2);
+    }
+
+    /**
+     * @return void
+     */
+    public function reportageCustomFields($post_id, $reportage_data) {
+        global $pubjet_settings;
+        $status = pubjet_isset_value($pubjet_settings['metakeys']['status']);
+        if (!$status) {
+            return;
+        }
+        $items = pubjet_isset_value($pubjet_settings['metakeys']['items']);
+        if (!$items || !is_array($items)) {
+            return;
+        }
+        foreach ($items as $item) {
+            if (empty(trim($item['name']))) {
+                continue;
+            }
+            update_post_meta($post_id, $item['name'], $item['value']);
+        }
     }
 
     /**
@@ -39,11 +61,11 @@ class Actions extends Singleton {
             return;
         }
         $response = pubjet_sync_category([
-            [
-                'title'       => $term->name,
-                'unique_name' => $term->slug,
-            ]
-        ]);
+                                             [
+                                                 'title'       => $term->name,
+                                                 'unique_name' => $term->slug,
+                                             ],
+                                         ]);
         pubjet_log($response);
     }
 
@@ -55,11 +77,11 @@ class Actions extends Singleton {
             return;
         }
         $response = pubjet_sync_category([
-            [
-                'title'       => $deleted_term->name,
-                'unique_name' => $deleted_term->slug,
-            ]
-        ], EnumHttpMethods::DELETE);
+                                             [
+                                                 'title' => $deleted_term->name,
+                                                                                                                                                                                                                                                                                                          'unique_name' => $deleted_term->slug,
+                                             ],
+                                         ], EnumHttpMethods::DELETE);
         pubjet_log($response);
     }
 
@@ -184,7 +206,7 @@ class Actions extends Singleton {
         if (get_current_screen()->id != 'edit-post') {
             return;
         }
-        $posts = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft') AND meta.meta_key = 'pubjet_reportage_id' ";
+        $posts      = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft') AND meta.meta_key = 'pubjet_reportage_id' ";
         $count_post = $wpdb->get_var($posts);
         ?>
         <script>
