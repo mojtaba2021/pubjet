@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Pubjet | پاب‌جت\n"
-"POT-Creation-Date: 2024-06-30 09:59+0330\n"
-"PO-Revision-Date: 2024-06-30 10:19+0330\n"
+"POT-Creation-Date: 2024-06-30 12:23+0330\n"
+"PO-Revision-Date: 2024-06-30 12:45+0330\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fa\n"
@@ -23,14 +23,46 @@ msgstr ""
 "X-Poedit-SearchPathExcluded-0: *.js\n"
 
 #: includes/functions.php:837
+msgid "Save"
+msgstr "ذخیره کردن"
+
+#: includes/functions.php:838
+msgid "Delete"
+msgstr "حذف"
+
+#: includes/functions.php:839
+msgid "Actions"
+msgstr "عملیات"
+
+#: includes/functions.php:840
+msgid "Key Name"
+msgstr "نام متا کلید"
+
+#: includes/functions.php:841
+msgid "Key Value"
+msgstr "مقدار متا کلید"
+
+#: includes/functions.php:842
+msgid "Defining Custom Metakeys for Posts"
+msgstr "متاکلیدهای سفارشی برای نوشته های رپورتاژ"
+
+#: includes/functions.php:843
+msgid "Add Metakey"
+msgstr "افزودن کلید"
+
+#: includes/functions.php:844
+msgid "Metakeys"
+msgstr "تعریف متا کلید‌ها"
+
+#: includes/functions.php:845
 msgid "Delete First Image"
 msgstr "حذف کردن اولین عکس رپورتاژ"
 
-#: includes/functions.php:838
+#: includes/functions.php:846
 msgid "Align Center Images"
 msgstr "وسط چین کردن تصاویر"
 
-#: includes/functions.php:839
+#: includes/functions.php:847
 msgid ""
 "If you want all the images in the reports to be displayed in the middle of "
 "the fold, activate this option. Please note that this option is only applied "
@@ -40,193 +72,193 @@ msgstr ""
 "داده شوند این گزینه را فعال کنید. دقت کنید که این گزینه فقط بر روی رپورتاژ "
 "ها اعمال می شود و از سایر نوشته ها صرف نظر می شود."
 
-#: includes/functions.php:840
+#: includes/functions.php:848
 msgid "Plan Name"
 msgstr "پلن"
 
-#: includes/functions.php:841
+#: includes/functions.php:849
 msgid "Category"
 msgstr "دسته بندی"
 
-#: includes/functions.php:842
+#: includes/functions.php:850
 msgid "Pricing Plans"
 msgstr "لیست پلن ها"
 
-#: includes/functions.php:843
+#: includes/functions.php:851
 msgid "Plans Categories"
 msgstr "دسته بندی به ازای پلن"
 
-#: includes/functions.php:844
+#: includes/functions.php:852
 msgid "Check Token"
 msgstr "بررسی توکن"
 
-#: includes/functions.php:845
+#: includes/functions.php:853
 msgid "Default Category"
 msgstr "دسته بندی پیشفرض انتشار"
 
-#: includes/functions.php:846
+#: includes/functions.php:854
 msgid "Access Token"
 msgstr "توکن دسترسی تریبون"
 
-#: includes/functions.php:847
+#: includes/functions.php:855
 msgid "Congratulations !"
 msgstr "تبریک !"
 
-#: includes/functions.php:848
+#: includes/functions.php:856
 msgid "The Access Token is Valid"
 msgstr "توکن دسترسی صحیح است"
 
-#: includes/functions.php:849
+#: includes/functions.php:857
 msgid "The Access Token is Invalid"
 msgstr "توکن دسترسی صحیح نیست"
 
 #. Plugin Name of the plugin/theme
-#: includes/functions.php:850
+#: includes/functions.php:858
 msgid "Pubjet"
 msgstr "پابجت"
 
-#: includes/functions.php:851
+#: includes/functions.php:859
 msgid "Reportage"
 msgstr "رپورتاژ"
 
-#: includes/functions.php:852
+#: includes/functions.php:860
 msgid "Enable"
 msgstr "فعال سازی"
 
-#: includes/functions.php:853
+#: includes/functions.php:861
 msgid "Disable"
 msgstr "غیرفعال سازی"
 
-#: includes/functions.php:854
+#: includes/functions.php:862
 msgid "Copy"
 msgstr "کپی کردن"
 
-#: includes/functions.php:855
+#: includes/functions.php:863
 msgid "Copied !"
 msgstr "کپی شد !"
 
-#: includes/functions.php:856
+#: includes/functions.php:864
 msgid "Clearing Plugin Data After Deletion"
 msgstr "پاکسازی اطلاعات افزونه پس از حذف"
 
-#: includes/functions.php:857
+#: includes/functions.php:865
 msgid "No"
 msgstr "خیر"
 
-#: includes/functions.php:858
+#: includes/functions.php:866
 msgid "Yes"
 msgstr "بله"
 
-#: includes/functions.php:859
+#: includes/functions.php:867
 msgid "Delete Log"
 msgstr "حذف فایل لاگ"
 
-#: includes/functions.php:860
+#: includes/functions.php:868
 msgid "Are you sure to delete the log file?"
 msgstr "آیا از حذف فایل لاگ مطمئن هستید ؟"
 
-#: includes/functions.php:861
+#: includes/functions.php:869
 msgid "Refresh"
 msgstr "بارگذاری مجدد"
 
-#: includes/functions.php:862
+#: includes/functions.php:870
 msgid "Refresh Data"
 msgstr "بارگذاری مجدد"
 
-#: includes/functions.php:863
+#: includes/functions.php:871
 msgid "An error has occurred. Try again"
 msgstr "خطایی رخ داده است. مجددا تلاش کنید"
 
-#: includes/functions.php:864
+#: includes/functions.php:872
 msgid "Post not found"
 msgstr "نوشته پیدا نشد"
 
-#: includes/functions.php:865
+#: includes/functions.php:873
 msgid "Reportage not found"
 msgstr "رپورتاژ پیدا نشد"
 
-#: includes/functions.php:866
+#: includes/functions.php:874
 msgid "Unfortunately, the operation was not done. This post is not a reportage"
 msgstr "متاسفانه عملیات انجام نشد. این نوشته رپورتاژ نیست"
 
-#: includes/functions.php:867
+#: includes/functions.php:875
 msgid ""
 "Error deleting file. File deletion access is restricted from the host side"
 msgstr "خطا در حذف فایل. دسترسی حذف فایل از سمت هاست محدود شده است"
 
-#: includes/functions.php:868
+#: includes/functions.php:876
 msgid "Some required parameters were not sent with the request"
 msgstr "برخی از پارامترهای الزامی همراه با درخواست ارسال نشده است"
 
-#: includes/functions.php:869
+#: includes/functions.php:877
 msgid "You do not have access to perform this operation"
 msgstr "شما دسترسی لازم برای انجام این عملیات را ندارید"
 
-#: includes/functions.php:870
+#: includes/functions.php:878
 msgid "Please enter the access token in the pubjet plugin settings menu"
 msgstr "لطفا توکن دسترسی را در منوی تنظیمات افزونه پاب جت وارد کنید"
 
-#: includes/functions.php:871
+#: includes/functions.php:879
 msgid "The http request method is wrong"
 msgstr "متد ارسالی درخواست مجاز نیست"
 
-#: includes/functions.php:872
+#: includes/functions.php:880
 msgid "The content of the reportage is empty"
 msgstr "محتوای رپورتاژ خالی است"
 
-#: includes/functions.php:873
+#: includes/functions.php:881
 msgid "General"
 msgstr "عمومی"
 
-#: includes/functions.php:874
+#: includes/functions.php:882
 msgid "Debugging"
 msgstr "اشکال زدایی"
 
-#: includes/functions.php:875
+#: includes/functions.php:883
 msgid "Enable Debugging"
 msgstr "فعال سازی حالت اشکال زدایی"
 
-#: includes/functions.php:876
+#: includes/functions.php:884
 msgid "Advanced"
 msgstr "پیشرفته"
 
-#: includes/functions.php:877
+#: includes/functions.php:885
 msgid "Saved !"
 msgstr "ذخیره شد !"
 
-#: includes/functions.php:878
+#: includes/functions.php:886
 msgid "Pubjet :: Reportage Data"
 msgstr "پابجت :: اطلاعات رپورتاژ"
 
-#: includes/functions.php:879
+#: includes/functions.php:887
 msgid "Pubjet :: Reportage Options"
 msgstr "پابجت :: تنظیمات رپورتاژ"
 
-#: includes/functions.php:880
+#: includes/functions.php:888
 msgid "Enable NoFollow Links"
 msgstr "فعال سازی لینک های NoFollow"
 
-#: includes/functions.php:881
+#: includes/functions.php:889
 msgid "Please Wait ..."
 msgstr "منتظر بمانید ..."
 
-#: includes/functions.php:882
+#: includes/functions.php:890
 msgid "Modules"
 msgstr "ماژول ها"
 
-#: includes/functions.php:883
+#: includes/functions.php:891
 msgid "cUrl"
 msgstr ""
 
-#: includes/functions.php:884
+#: includes/functions.php:892
 msgid "OpenSSL"
 msgstr ""
 
-#: includes/functions.php:885
+#: includes/functions.php:893
 msgid "Required Modules"
 msgstr "ماژول های الزامی"
 
-#: includes/functions.php:886
+#: includes/functions.php:894
 msgid ""
 "Pubjet plugin requires the activation of the following modules for its "
 "proper functioning. If any of the following items are not active, ask your "
@@ -236,27 +268,27 @@ msgstr ""
 "صورتی که هر کدام از موارد زیر فعال نیستند، از پشتیبانی هاست خود بخواهید که "
 "موارد غیر  فعال را برای شما فعال کنند."
 
-#: includes/functions.php:887
+#: includes/functions.php:895
 msgid "Check  Now"
 msgstr "بررسی مجدد"
 
-#: includes/functions.php:888
+#: includes/functions.php:896
 msgid "Update Settings"
 msgstr "بروزرسانی تنظیمات"
 
-#: includes/functions.php:889
+#: includes/functions.php:897
 msgid "Settings saved successfully"
 msgstr "تنظیمات با موفقیت ذخیره شد"
 
-#: includes/functions.php:890
+#: includes/functions.php:898
 msgid "Gateway 504 error"
 msgstr ""
 
-#: includes/functions.php:891
+#: includes/functions.php:899
 msgid "Pubjet Token"
 msgstr "توکن دسترسی پابجت"
 
-#: includes/functions.php:892
+#: includes/functions.php:900
 msgid ""
 "Pubjet plugin needs an access token to work properly. Please enter the "
 "access token in the plugin settings."
@@ -264,11 +296,11 @@ msgstr ""
 "افزونه پابجت  برای کارکرد درست و صحیح خود نیاز به توکن دسترسی دارد. لطفا در "
 "قسمت تنظیمات افزونه توکن دسترسی را وارد کنید."
 
-#: includes/functions.php:893
+#: includes/functions.php:901
 msgid "Remindme Later"
 msgstr "بعدا یادآوری کن"
 
-#: includes/functions.php:894
+#: includes/functions.php:902
 msgid "Permanent Hide"
 msgstr "دیگر نمایش نده !"
 
@@ -297,6 +329,11 @@ msgstr "تریـــبون"
 #. Author URI of the plugin/theme
 msgid "https://triboon.net"
 msgstr ""
+
+#, fuzzy
+#~| msgid "Settings saved successfully"
+#~ msgid "Settings Saved"
+#~ msgstr "تنظیمات با موفقیت ذخیره شد"
 
 #~ msgid "The Access Token is Correct"
 #~ msgstr "توکن دسترسی صحیح است"

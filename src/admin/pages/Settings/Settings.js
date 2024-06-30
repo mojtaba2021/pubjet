@@ -9,6 +9,7 @@ import Debug from "./Debug";
 import {pubjet__} from "../../../shared/scripts/utils";
 import Misc from "./Misc";
 import RequiredPhpModules from "./RequiredPhpModules";
+import ModalMetakeys from "./ModalMetakeys";
 
 const Settings = props => {
     return <div className={styles.container}>
@@ -39,6 +40,7 @@ const Settings = props => {
                 },
             ]}
         />
+        <ModalMetakeys/>
     </div>
 };
 

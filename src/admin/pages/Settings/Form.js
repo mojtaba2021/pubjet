@@ -36,6 +36,7 @@ const Form = props => {
                 name     : 'token',
                 value    : token,
                 className: styles.input,
+                autoFocus: true,
                 onChange : (e) => {
                     changeInput('token', e.target.value);
                 },

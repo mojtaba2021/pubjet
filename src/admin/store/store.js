@@ -19,6 +19,10 @@ export const state = {
         nofollow         : false,
         alignCenterImages: false,
         deleteFirstImage : false,
+        metakeys         : {
+            status: false,
+            items : [],
+        },
         pricingPlans     : [],
         checkToken       : {
             checking: false,

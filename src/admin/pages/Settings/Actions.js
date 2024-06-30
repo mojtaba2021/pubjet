@@ -1,5 +1,6 @@
 import {getStore, setStore} from "trim-redux";
 import {findEndpointUrl, getAxios} from "../../../shared/scripts/utils";
+import {v4 as uuid} from 'uuid';
 
 const axios = getAxios();
 
@@ -45,7 +46,7 @@ export const saveOptions = () => {
     return new Promise((resolve, reject) => {
         const options = getStore(getStoreKey());
         axios.post(findEndpointUrl('save-options'), {
-            settings: JSON.stringify(options),
+            settings: JSON.stringify({...options, modal: false}),
         }).then(response => {
             if (response.success) {
                 resolve(response);
@@ -142,12 +143,13 @@ export const doCheckToken = () => {
     });
 };
 
-
 /**
  * @since 1.0.0
  */
 export const closeModals = () => {
+    const state = getStore(getStoreKey());
     setStore(getStoreKey(), {
+        ...state,
         modal: false,
     });
 };
@@ -161,6 +163,16 @@ export const openModal = (modalKey) => {
     });
 };
 
+/**
+ * @since 1.0.0
+ */
+export const toggleModal = (modalKey) => {
+    const state = getStore(getStoreKey());
+    setStore(getStoreKey(), {
+        ...state,
+        modal: modalKey,
+    });
+};
 
 /**
  * @since 1.0.0
@@ -181,7 +193,10 @@ export const handleChangePlanCategory = (planId, category) => {
     });
 }
 
-
+/**
+ * @since 1.0.0
+ * @returns {string}
+ */
 export const getStoreKey = () => {
     return 'options';
 };
@@ -194,5 +209,58 @@ export const changeInput = (name, value) => {
     setStore(getStoreKey(), {
         ...options,
         [name]: value,
+    });
+};
+
+/**
+ * @since 1.0.0
+ */
+export const addMetakey = () => {
+    const options = getStore(getStoreKey());
+    setStore(getStoreKey(), {
+        ...options,
+        metakeys: {
+            ...options.metakeys,
+            items: [
+                ...options.metakeys.items,
+                {_id: uuid(), name: '', value: ''},
+            ],
+        },
+    });
+};
+
+/**
+ * @since 1.0.0
+ */
+export const deleteMetakey = (itemId) => {
+    const options = getStore(getStoreKey());
+    setStore(getStoreKey(), {
+        ...options,
+        metakeys: {
+            ...options.metakeys,
+            items: options.metakeys.items.filter(item => item._id !== itemId),
+        },
+    });
+};
+
+/**
+ * @since 1.0.0
+ * @param itemId
+ * @param propName
+ * @param propValue
+ */
+export const changeMetakey = (itemId, propName, propValue) => {
+    const state = getStore(getStoreKey());
+    setStore(getStoreKey(), {
+        ...state,
+        metakeys: {
+            ...state.metakeys,
+            items: state.metakeys.items.map(item => {
+                if (item._id === itemId) {
+                    return {...item, [propName]: propValue};
+                }
+                return item;
+            })
+        },
     });
 };

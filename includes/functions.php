@@ -834,6 +834,14 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
+        'save'                     => esc_html__('Save', 'pubjet'),
+        'delete'                   => esc_html__('Delete', 'pubjet'),
+        'actions'                  => esc_html__('Actions', 'pubjet'),
+        'keyname'                  => esc_html__('Key Name', 'pubjet'),
+        'keyvalue'                 => esc_html__('Key Value', 'pubjet'),
+        'define-post-metakeys'     => esc_html__('Defining Custom Metakeys for Posts', 'pubjet'),
+        'add-metakey'              => esc_html__('Add Metakey', 'pubjet'),
+        'metakeys'                 => esc_html__('Metakeys', 'pubjet'),
         'delete-first-image'       => esc_html__('Delete First Image', 'pubjet'),
         'align-center-images'      => esc_html__('Align Center Images', 'pubjet'),
         'align-center-images-help' => esc_html__('If you want all the images in the reports to be displayed in the middle of the fold, activate this option. Please note that this option is only applied to reports and other writings are ignored.', 'pubjet'),

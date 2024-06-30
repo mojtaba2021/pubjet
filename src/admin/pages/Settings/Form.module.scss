@@ -19,6 +19,12 @@
   border: 1px solid #aaa !important;
   height: 45px;
   outline: none !important;
+  direction: ltr;
+  :global {
+    input {
+      outline: 0 !important;
+    }
+  }
   @include mq-max('md') {
     height: 50px !important;
   }
