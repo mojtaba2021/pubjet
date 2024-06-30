@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack --config webpack.prod.js",
-    "start": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js --config webpack.dev.js"
+    "start": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js --config webpack.dev.js",
+    "bundle": "dir-archiver --includebasedir true --src . --dest ../pubjet.zip --exclude .git node_modules src version .idea .editorconfig composer.json composer.lock .gitignore package.json package-lock.json .babelrc webpack.dev.js webpack.prod.js",
+    "release": "npm run build && npm run bundle"
   },
   "author": "",
   "license": "ISC",
@@ -23,6 +25,7 @@
     "clean-webpack-plugin": "^4.0.0",
     "compression-webpack-plugin": "^10.0.0",
     "css-loader": "^6.8.1",
+    "dir-archiver": "^2.1.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.3",
     "mini-css-extract-plugin": "^2.7.6",

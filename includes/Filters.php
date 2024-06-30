@@ -2,7 +2,6 @@
 
 namespace triboon\pubjet\includes;
 
-use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 
 defined('ABSPATH') || exit;
@@ -16,6 +15,7 @@ class Filters extends Singleton {
         add_filter("display_post_states", [$this, "displayPostStates"], 15, 2);
         add_filter('parse_query', [$this, "adminFilterPosts"], 15);
         add_filter("the_content", [$this, "filterTheContent"], 0, 2);
+        add_filter("the_content", [$this, "deleteFirstImage"], 15, 2);
         add_filter('post_row_actions', [$this, 'regenerateThumbnail'], 15, 2);
         add_filter('post_class', [$this, 'addPubjetClass'], 15, 3);
         add_filter('plugin_row_meta', [$this, 'pluginRowMeta'], 15, 2);
@@ -85,6 +85,24 @@ class Filters extends Singleton {
             $post_states[] = "رپورتاژ - " . intval($reportage_id);
         }
         return $post_states;
+    }
+
+    /**
+     * @return string
+     */
+    public function deleteFirstImage($content) {
+        global $pubjet_settings;
+        if (!pubjet_is_reportage(get_the_ID())) {
+            return $content;
+        }
+        $status = pubjet_isset_value($pubjet_settings['deleteFirstImage']);
+        if (!$status) {
+            return $content;
+        }
+        // الگوی جستجو برای اولین عکس در محتوا
+        $pattern = '/<p>\s*(<strong>\s*)?<img[^>]+>(\s*<\/strong>)?\s*<\/p>|<img[^>]+>/i';
+        // جایگزینی اولین مطابقت با رشته خالی
+        return preg_replace($pattern, '', $content, 1);
     }
 
     /**

@@ -18,6 +18,7 @@ export const state = {
         uninstall        : false,
         nofollow         : false,
         alignCenterImages: false,
+        deleteFirstImage : false,
         pricingPlans     : [],
         checkToken       : {
             checking: false,

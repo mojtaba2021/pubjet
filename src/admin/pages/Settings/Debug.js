@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-    copyText,
-    findEndpointUrl,
-    getAxios,
-    pubjet__,
-    showErrorMessage,
-    showSuccessMessage
-} from "../../../shared/scripts/utils";
+import {copyText, findEndpointUrl, getAxios, pubjet__, showErrorMessage} from "../../../shared/scripts/utils";
 import {Button, Form, Space, Spin, Switch, Tooltip} from "antd";
 import styles from "./Debug.module.scss";
 import BaseComponent from "../../components/BaseComponent/BaseComponent";
@@ -128,14 +121,16 @@ class Debug extends BaseComponent {
     enable = () => {
         const {debug} = this.props.options;
         return <Form layout={'vertical'} colon={false}>
-            <Form.Item label={pubjet__('enable-debugging')}>
-                <Switch checked={debug} onChange={(checked) => {
-                    changeInput('debug', checked);
-                    showSuccessMessage(pubjet__('saved'));
-                    saveOptions();
-                }} size={'default'}/>
-            </Form.Item>
-        </Form>;
+            <Form.Item
+                label={<Space>
+                    <Switch checked={debug} onChange={(checked) => {
+                        changeInput('debug', checked);
+                        saveOptions();
+                    }} size={'default'}/>
+                    <span>{pubjet__('enable-debugging')}</span>
+                </Space>}
+            />
+        </Form>
     }
 
     /**

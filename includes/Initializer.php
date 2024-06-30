@@ -17,7 +17,6 @@ class Initializer extends Singleton {
         RewriteHooks::getInstance();
         RewriteRequest::getInstance();
         Metaboxes::getInstance();
-        Sentry::getInstance();
         \triboon\pubjet\includes\notices\Initializer::getInstance();
     }
 

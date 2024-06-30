@@ -1,5 +1,6 @@
 <?php
 
+use Sentry\State\Scope;
 use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
@@ -833,6 +834,7 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
+        'delete-first-image'       => esc_html__('Delete First Image', 'pubjet'),
         'align-center-images'      => esc_html__('Align Center Images', 'pubjet'),
         'align-center-images-help' => esc_html__('If you want all the images in the reports to be displayed in the middle of the fold, activate this option. Please note that this option is only applied to reports and other writings are ignored.', 'pubjet'),
         'title'                    => esc_html__('Plan Name', 'pubjet'),
@@ -1260,12 +1262,16 @@ function pubjet_sync_category($terms, $method = 'POST') {
  * @return \Sentry\EventId|null
  */
 function pubjet_log_sentry($message, $extra = []) {
-    $extra       = pubjet_parse_args($extra, [
+    $extra = pubjet_parse_args($extra, [
         'website_url'    => site_url(),
         'website_title'  => get_bloginfo('name'),
         'pubjet_version' => PUBJ()->getVersion(),
     ]);
-    $hint        = new \Sentry\EventHint();
-    $hint->extra = $extra;
-    return \Sentry\captureException(new \Exception($message), $hint);
+    \Sentry\init(['dsn' => 'https://ea145de5084460f189b3bf2d66b6af06@sentry.hamravesh.com/6647',]);
+    \Sentry\configureScope(function (Scope $scope) use ($extra) {
+        foreach ($extra as $key => $value) {
+            $scope->setExtra($key, $value);
+        }
+    });
+    return \Sentry\captureException(new Exception($message));
 }

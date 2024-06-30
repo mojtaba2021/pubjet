@@ -722,7 +722,6 @@ class RewriteHooks extends Singleton {
             wp_send_json_error($wp_post_id);
         }
 
-        // Log
         if (!empty($reportage->wp_post_id)) {
             // Update
             pubjet_log('Post updated successfully. Post ID: ' . $reportage->wp_post_id);
