@@ -1,6 +1,7 @@
 <?php
 
 use Sentry\State\Scope;
+use triboon\pubjet\includes\enums\EnumHttpMethods;
 use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
@@ -121,6 +122,9 @@ function pubjet_ajax_error($error = '', $args = []) {
         if (!is_array($error)) {
             $error = [$error];
         }
+    }
+    if (is_array($error) && count($error) == 1) {
+        $error = reset($error);
     }
     wp_send_json(array_merge(['success' => false, 'error' => $error,], $args));
 }
@@ -946,6 +950,67 @@ function pubjet_array($data) {
 }
 
 /**
+ * @param $token
+ *
+ * @return array|boolean|WP_Error
+ */
+function pubjet_find_token_details($token) {
+    /**
+     * The pubjet_check_token_url filter.
+     *
+     * @since 1.0.0
+     */
+    $url = apply_filters('pubjet_check_token_url', pubjet_api_root() . '/external/wp/token-validation/', $token);
+
+    $headers = [
+        'Content-Type'  => 'application/json',
+        'Authorization' => 'Token ' . trim($token),
+    ];
+
+    $result = pubjet_request($url, EnumHttpMethods::GET, $headers);
+
+    if (is_wp_error($result)) {
+        return new \WP_Error('error', $result->get_error_message());
+    }
+
+    if (isset($result['code']) && 403 == $result['code']) {
+        return new \WP_Error('error', pubjet__('invalid-token'));
+    }
+
+    if (!isset($result['body']->is_valid)) { // Some error occured
+        return new \WP_Error('error', pubjet__('error-occured'));
+    }
+
+    // Check if token is valid or not
+    if (!$result['body']->is_valid) {
+        return new \WP_Error('error', pubjet__('invalid-token'));
+    }
+
+    // we must remove "Test" plan in production
+    $pricing_plans = pubjet_isset_value($result['body']->pricing_plans, []);
+    if ($pricing_plans) {
+        $final_plans = [];
+        foreach ($pricing_plans as $plan) {
+            if ($plan->title !== 'تست پابجت') {
+                $final_plans[] = $plan;
+            }
+        }
+        $pricing_plans = $final_plans;
+    }
+
+    return [
+        'valid'         => true,
+        'first_name'    => pubjet_isset_value($result['body']->publisher->first_name),
+        'last_name'     => pubjet_isset_value($result['body']->publisher->last_name),
+        'phone'         => pubjet_isset_value($result['body']->publisher->phone),
+        'email'         => pubjet_isset_value($result['body']->publisher->email),
+        'pricing_plans' => $pricing_plans,
+        'website_id'    => pubjet_isset_value($result['body']->website_id),
+        'website_url'   => pubjet_isset_value($result['body']->website_url),
+    ];
+}
+
+/**
  * @return bool
  */
 function pubjet_notify_version($version = false, $update = false) {
@@ -1098,9 +1163,8 @@ function pubjet_find_wp_categories($parent_id = 0, $hierarchy = true) {
 
     // Flat
     $result     = [];
-    $categories = get_categories([
-                                     'hide_empty' => false,
-                                 ]);
+    $categories = get_categories(['hide_empty' => false,]);
+    pubjet_log($categories);
     foreach ($categories as $category) {
         $result[] = [
             'id'   => $category->term_id,
@@ -1166,14 +1230,10 @@ function pubjet_sync_categories() {
     }
 
     $response = pubjet_request($url, 'POST', [
-        'Content-Type' => 'application/json; charset=utf-8',
+        'Content-Type'  => 'application/json; charset=utf-8',
         'Authorization' => 'Token ' . pubjet_token(),
-    ], json_encode([
-                       'categories' => $categories,
-                   ]), [
-                                   'data_format' => 'body',
-                               ]);
-
+    ],                         json_encode(['categories' => $categories,]), ['data_format' => 'body',]);
+    
     pubjet_log($response);
 
     pubjet_update_setting('lastCategoriesSyncTime', pubjet_now_myql());

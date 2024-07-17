@@ -1,13 +1,14 @@
 import React from 'react';
 import styles from './CheckTokenResult.module.scss';
-import {Alert} from "antd";
+import {Alert, Space, Tooltip} from "antd";
 import {pubjet__} from "../../../shared/scripts/utils";
-import {LoadingOutlined} from "@ant-design/icons";
+import {LoadingOutlined, QuestionCircleOutlined} from "@ant-design/icons";
 import {connect} from "trim-redux";
 import {getStoreKey} from "./Actions";
 
 const CheckTokenResult = props => {
     const {checked, checking, valid} = props.checkToken;
+    const {website_id, website_url} = props.checkToken.payload;
     if (!checked && !checking) {
         return null;
     }
@@ -19,12 +20,23 @@ const CheckTokenResult = props => {
             />
         </div>;
     }
+    const description = () => {
+        if (!valid) {
+            return pubjet__('invalid-token');
+        }
+        return <Space>
+            <span>{pubjet__('valid-token')}</span>
+            {website_id && <Tooltip title={`${website_id} - ${website_url}`}>
+                <QuestionCircleOutlined className={styles.cursorPointer}/>
+            </Tooltip>}
+        </Space>;
+    };
     return <div className={styles.wrapper}>
         {
             <Alert
                 type={checking ? 'info' : (valid ? 'success' : 'error')}
                 showIcon={true}
-                description={pubjet__(valid ? 'valid-token' : 'invalid-token')}
+                description={description()}
             />
         }
     </div>

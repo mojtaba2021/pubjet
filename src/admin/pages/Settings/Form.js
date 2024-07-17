@@ -10,7 +10,6 @@ import PricingPlans from "./PricingPlans";
 import SelectTerms from "../../components/SelectTerms/SelectTerms";
 
 const {TextArea} = Input;
-
 const Form = props => {
     const {
               token,

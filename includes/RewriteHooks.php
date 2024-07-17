@@ -347,9 +347,7 @@ class RewriteHooks extends Singleton {
          */
         $content = apply_filters('pubjet_debug_content', $content);
 
-        $this->success([
-                           'text' => $content,
-                       ]);
+        $this->success(['text' => $content,]);
     }
 
     /**
@@ -366,6 +364,13 @@ class RewriteHooks extends Singleton {
         do_action('pubjet_before_save_options');
 
         $settings = pubjet_get_json($this->post('settings'));
+        $token    = pubjet_isset_value($settings['token']);
+        if (trim($token)) { // Check if token is valid or not
+            $token_data = pubjet_find_token_details(trim($token));
+            if (is_wp_error($token_data)) {
+                $this->error($token_data->get_error_message());
+            }
+        }
 
         update_option(EnumOptions::Settings, $settings);
 
@@ -450,66 +455,15 @@ class RewriteHooks extends Singleton {
          */
         do_action('pubjet_check_token');
 
-        /**
-         * The pubjet_check_token_url filter.
-         *
-         * @since 1.0.0
-         */
-        $url = apply_filters('pubjet_check_token_url', pubjet_api_root() . '/external/wp/token-validation/', $token);
-
-        pubjet_log($url);
-
-        $headers = [
-            'Content-Type'  => 'application/json',
-            'Authorization' => 'Token ' . trim($token),
-        ];
-
-        $result = $this->request($url, EnumHttpMethods::GET, $headers);
-
-        pubjet_log($result);
-
-        if (is_wp_error($result)) {
-            $this->error($result->get_error_message());
-        }
-
-        if (isset($result['code']) && 403 == $result['code']) {
-            $this->error(pubjet__('invalid-token'));
-        }
-
-        if (!isset($result['body']->is_valid)) { // Some error occured
-            $this->error(pubjet__('error-occured'));
-        }
-
-        // Check if token is valid or not
-        if (!$result['body']->is_valid) {
-            $this->error(pubjet__('invalid-token'), [
-                'invalid' => true,
-            ]);
-        }
-
-        // we must remove "Test" plan in production
-        $pricing_plans = pubjet_isset_value($result['body']->pricing_plans, []);
-        if ($pricing_plans) {
-            $final_plans = [];
-            foreach ($pricing_plans as $plan) {
-                if ($plan->title !== 'تست پابجت') {
-                    $final_plans[] = $plan;
-                }
-            }
-            $pricing_plans = $final_plans;
+        $response = pubjet_find_token_details($token);
+        if (is_wp_error($response)) {
+            $this->error($response->get_error_message());
         }
 
         // Sync
         pubjet_sync_categories();
 
-        $this->success([
-                           'valid'         => true,
-                           'first_name'    => pubjet_isset_value($result['body']->publisher->first_name),
-                           'last_name'     => pubjet_isset_value($result['body']->publisher->last_name),
-                           'phone'         => pubjet_isset_value($result['body']->publisher->phone),
-                           'email'         => pubjet_isset_value($result['body']->publisher->email),
-                           'pricing_plans' => $pricing_plans,
-                       ]);
+        $this->success($response);
     }
 
     /**
@@ -675,8 +629,11 @@ class RewriteHooks extends Singleton {
         if (!$result) {
             return;
         }
-
+        
         foreach ($result as $post) {
+            if (!pubjet_is_reportage($post->ID)) {
+                continue; // Just publish reportage post
+            }
             wp_publish_post($post->ID);
         }
 

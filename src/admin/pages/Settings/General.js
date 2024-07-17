@@ -48,7 +48,7 @@ class General extends BaseComponent {
             saveOptions().then(response => {
                 this.setState({saved: true,});
             }).catch(error => {
-                this.setState({error: true, saved: false,});
+                this.setState({error: error, saved: false,});
             }).finally(() => {
                 this.setState({saving: false,});
             });
@@ -60,13 +60,13 @@ class General extends BaseComponent {
      * @returns {Element}
      */
     render() {
-        const {loading} = this.state;
+        const {loading, error} = this.state;
         return (
             <div className={styles.container}>
                 <Spin spinning={loading}>
                     <div className={styles.formWrapper}>
                         <Form/>
-                        <SaveAlert saved={this.state.saved}/>
+                        {!error && <SaveAlert saved={this.state.saved}/>}
                         <Button
                             className={styles.button}
                             type={'primary'}
@@ -75,7 +75,7 @@ class General extends BaseComponent {
                             loading={this.state.saving}
                             onClick={this.save}
                             icon={<SaveOutlined/>}
-                            shape={'round'}
+                            shape={'square'}
                         >
                             {pubjet__('update-settings')}
                         </Button>

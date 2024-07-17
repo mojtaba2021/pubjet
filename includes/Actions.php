@@ -2,7 +2,6 @@
 
 namespace triboon\pubjet\includes;
 
-use triboon\pubjet\includes\enums\EnumHttpMethods;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostTypes;
 use triboon\pubjet\includes\traits\Utils;
@@ -26,6 +25,22 @@ class Actions extends Singleton {
         add_action('created_term', [$this, 'createCategory'], 15, 5);
         add_action('delete_term', [$this, 'deleteCategory'], 15, 4);
         add_action('pubjet_new_reportage', [$this, 'reportageCustomFields'], 15, 2);
+        add_action('upgrader_process_complete', [$this, 'syncCategoriesAfterUpdate'], 15, 2);
+
+    }
+
+    /**
+     * @return void
+     */
+    public function syncCategoriesAfterUpdate($upgrader_object, $options) {
+        if ($options['action'] == 'update' && $options['type'] == 'plugin' && isset($options['plugins'])) {
+            foreach ($options['plugins'] as $plugin) {
+                if ($plugin == PUBJET_PLUGIN_BASE) {
+                    pubjet_sync_categories();
+                    break;
+                }
+            }
+        }
     }
 
     /**
@@ -60,13 +75,7 @@ class Actions extends Singleton {
         if (!$term) {
             return;
         }
-        $response = pubjet_sync_category([
-                                             [
-                                                 'title'       => $term->name,
-                                                 'unique_name' => $term->slug,
-                                             ],
-                                         ]);
-        pubjet_log($response);
+        pubjet_sync_categories();
     }
 
     /**
@@ -76,13 +85,7 @@ class Actions extends Singleton {
         if ('category' !== $taxonomy) {
             return;
         }
-        $response = pubjet_sync_category([
-                                             [
-                                                 'title' => $deleted_term->name,
-                                                                                                                                                                                                                                                                                                          'unique_name' => $deleted_term->slug,
-                                             ],
-                                         ], EnumHttpMethods::DELETE);
-        pubjet_log($response);
+        pubjet_sync_categories();
     }
 
     /**
