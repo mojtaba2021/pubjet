@@ -26,7 +26,20 @@ class Actions extends Singleton {
         add_action('delete_term', [$this, 'deleteCategory'], 15, 4);
         add_action('pubjet_new_reportage', [$this, 'reportageCustomFields'], 15, 2);
         add_action('upgrader_process_complete', [$this, 'syncCategoriesAfterUpdate'], 15, 2);
+        add_action( 'init', [$this, 'checkAndSendVersion'], 15 );
+    }
 
+    /**
+     * @return void
+     */
+    public function checkAndSendVersion() {
+        // بررسی اگر transient وجود دارد یا نه
+        if ( false === get_transient( 'pubjet_daily_version_check' ) ) {
+            // ارسال ورژن افزونه به API
+            pubjet_send_plugin_version();
+            // تنظیم transient برای 24 ساعت
+            set_transient( 'pubjet_daily_version_check', true, DAY_IN_SECONDS );
+        }
     }
 
     /**

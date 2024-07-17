@@ -1233,7 +1233,7 @@ function pubjet_sync_categories() {
         'Content-Type'  => 'application/json; charset=utf-8',
         'Authorization' => 'Token ' . pubjet_token(),
     ],                         json_encode(['categories' => $categories,]), ['data_format' => 'body',]);
-    
+
     pubjet_log($response);
 
     pubjet_update_setting('lastCategoriesSyncTime', pubjet_now_myql());
@@ -1343,4 +1343,34 @@ function pubjet_log_sentry($message, $extra = []) {
         }
     });
     return \Sentry\captureException(new Exception($message));
+}
+
+/**
+ * @return array|string|WP_Error
+ */
+function pubjet_send_plugin_version() {
+    $url = 'https://api.example.com/endpoint';
+
+    /**
+     * The pubjet_send_plugin_version_request_args filter.
+     *
+     * @since 1.0.0
+     */
+    $args = apply_filters('pubjet_send_plugin_version_request_args', [
+        'headers' => [
+            'Authorization' => 'Bearer ' . pubjet_token(),
+            'Content-Type'  => 'application/json',
+        ],
+        'body'    => json_encode(['version' => PUBJ()->getVersion()]),
+    ]);
+
+    $response = wp_remote_post($url, $args);
+
+    // بررسی پاسخ
+    if (is_wp_error($response)) {
+        $error_message = $response->get_error_message();
+        pubjet_log_sentry("Error sending plugin version: $error_message");
+    }
+
+    return $response;
 }
