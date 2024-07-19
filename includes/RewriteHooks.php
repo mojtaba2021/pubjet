@@ -44,6 +44,21 @@ class RewriteHooks extends Singleton {
         $this->endpointHandler('tags', [$this, 'findWpTags']);
         // Get WordPress tags
         $this->endpointHandler('categories', [$this, 'findWpCategories']);
+        // Sync categories
+        $this->endpointHandler('sync-categories', [$this, 'syncAndSaveCategories']);
+    }
+
+    /**
+     * @return void
+     */
+    public function syncAndSaveCategories() {
+        global $pubjet_settings;
+        $this->checkNonce();
+        $categories = $this->post('categories');
+        pubjet_update_setting('categories', trim($categories));
+        $pubjet_settings['categories'] = $categories ?? [];
+        pubjet_sync_categories();
+        $this->success();
     }
 
     /**
@@ -629,7 +644,7 @@ class RewriteHooks extends Singleton {
         if (!$result) {
             return;
         }
-        
+
         foreach ($result as $post) {
             if (!pubjet_is_reportage($post->ID)) {
                 continue; // Just publish reportage post

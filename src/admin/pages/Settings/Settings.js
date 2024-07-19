@@ -10,6 +10,7 @@ import {pubjet__} from "../../../shared/scripts/utils";
 import Misc from "./Misc";
 import RequiredPhpModules from "./RequiredPhpModules";
 import ModalMetakeys from "./ModalMetakeys";
+import SyncCategories from "./SyncCategories";
 
 const Settings = props => {
     return <div className={styles.container}>
@@ -22,6 +23,11 @@ const Settings = props => {
                     key     : 'general',
                     label   : pubjet__('general'),
                     children: <General/>,
+                },
+                {
+                    key     : 'categories',
+                    label   : pubjet__('sync'),
+                    children: <SyncCategories/>,
                 },
                 {
                     key     : 'debug',

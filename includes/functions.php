@@ -905,6 +905,10 @@ function pubjet_strings() {
         'enter-token-desc'         => esc_html__('Pubjet plugin needs an access token to work properly. Please enter the access token in the plugin settings.', 'pubjet'),
         'remindme-later'           => esc_html__('Remindme Later', 'pubjet'),
         'permanent-hide'           => esc_html__('Permanent Hide', 'pubjet'),
+        'select-categories-hints'  => esc_html__('By default, all your categories are sent to Triboon to determine the reportage category correctly. If you only want the reportage to be published in certain categories, select them in this section.', 'pubjet'),
+        'categories'               => esc_html__('Categories', 'pubjet'),
+        'sync-categories'          => esc_html__('Sync Categories', 'pubjet'),
+        'sync'                     => esc_html__('Synchronize', 'pubjet'),
     ]);
 }
 
@@ -1199,6 +1203,7 @@ function pubjet_find_wp_tags() {
  * @since 1.0.0
  */
 function pubjet_sync_categories() {
+    global $pubjet_settings;
 
     /**
      * The pubjet_before_sync_categories action.
@@ -1207,15 +1212,29 @@ function pubjet_sync_categories() {
      */
     do_action('pubjet_before_sync_categories');
 
-    $categories = pubjet_find_wp_categories(false, false);
+    if (pubjet_isset_value($pubjet_settings['categories'])) {
+        $categories     = [];
+        $categories_ids = array_map('trim', explode(',', $pubjet_settings['categories']));
+        foreach ($categories_ids as $category_id) {
+            $category = get_category($category_id);
+            if ($category) {
+                $categories[] = [
+                    'title'       => $category->name,
+                    'unique_name' => $category->slug,
+                ];
+            }
+        }
+    } else {
+        $categories = pubjet_find_wp_categories(false, false);
 
-    if ($categories) {
-        $categories = array_map(function ($item) {
-            return [
-                'title'       => $item['name'],
-                'unique_name' => $item['slug'],
-            ];
-        }, $categories);
+        if ($categories) {
+            $categories = array_map(function ($item) {
+                return [
+                    'title'       => $item['name'],
+                    'unique_name' => $item['slug'],
+                ];
+            }, $categories);
+        }
     }
 
     /**
@@ -1349,6 +1368,11 @@ function pubjet_log_sentry($message, $extra = []) {
  * @return array|string|WP_Error
  */
 function pubjet_send_plugin_version() {
+
+    if (empty(trim(pubjet_token()))) { // Check if user enter token or not
+        return;
+    }
+
     $url = 'https://api.example.com/endpoint';
 
     /**
@@ -1372,5 +1396,30 @@ function pubjet_send_plugin_version() {
         pubjet_log_sentry("Error sending plugin version: $error_message");
     }
 
+    return $response;
+}
+
+/**
+ * @param $status
+ *
+ * @return array|WP_Error|void
+ */
+function pubjet_send_plugin_status_to_api($status) {
+    if (empty(trim(pubjet_token()))) { // Check if user enter token or not
+        return;
+    }
+    $url      = 'https://api.example.com/endpoint';
+    $response = wp_remote_post($url, [
+        'headers' => [
+            'Content-Type'  => 'application/json',
+            'Authorization' => 'Bearer ' . pubjet_token(),
+        ],
+        'method'  => 'POST',
+        'body'    => json_encode(['status' => $status]),
+    ]);
+    // بررسی پاسخ API برای اشکالات احتمالی
+    if (is_wp_error($response)) {
+        pubjet_log_sentry('Error sending status to API: ' . $response->get_error_message());
+    }
     return $response;
 }
