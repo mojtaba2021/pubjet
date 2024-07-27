@@ -6,7 +6,7 @@
     Author URI:  https://triboon.net
     License: GPL v2 or later
     License URI: http://www.gnu.org/licenses/gpl-2.0.txt
-    Version: 2.8.4
+    Version: 2.9.0
 */
 
 use triboon\pubjet\includes\enums\EnumOldOptions;
@@ -175,7 +175,6 @@ if (!class_exists('Pubjet')) {
          */
         public function getVersion() {
             $plugin_data = get_plugin_data(__FILE__);
-
             return $plugin_data['Version'];
         }
 
@@ -276,7 +275,6 @@ if (!class_exists('Pubjet')) {
          * @author Triboon
          */
         public function onActivation() {
-            pubjet_send_plugin_status_to_api('active');
             $this->migrate();
             $this->trackActivationVersion();
             flush_rewrite_rules();
@@ -288,7 +286,7 @@ if (!class_exists('Pubjet')) {
          * @author Triboon
          */
         public function onDeactivation() {
-            pubjet_send_plugin_status_to_api('deactive');
+            pubjet_send_plugin_status_to_api('inactive');
         }
 
     }

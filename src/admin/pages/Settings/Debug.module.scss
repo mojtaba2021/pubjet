@@ -9,6 +9,10 @@
     .ant-form-item {
       margin-bottom: 10px;
     }
+
+    .ant-form-item-control-input {
+
+    }
   }
 }
 
@@ -34,6 +38,14 @@
     .ant-btn {
       width: 65px !important;
       height: 45px !important;
+    }
+  }
+}
+
+.changeStatus {
+  :global {
+    .ant-form-item-control-input {
+      display: none;
     }
   }
 }

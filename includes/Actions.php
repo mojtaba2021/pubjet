@@ -34,11 +34,11 @@ class Actions extends Singleton {
      */
     public function checkAndSendVersion() {
         // بررسی اگر transient وجود دارد یا نه
-        if (false === get_transient('pubjet_daily_version_check')) {
+        if (false === get_transient('pubjet_daily_plugin_status_check')) {
             // ارسال ورژن افزونه به API
-            pubjet_send_plugin_version();
+            pubjet_send_plugin_status_to_api('active');
             // تنظیم transient برای 24 ساعت
-            set_transient('pubjet_daily_version_check', true, DAY_IN_SECONDS);
+            set_transient('pubjet_daily_plugin_status_check', true, DAY_IN_SECONDS);
         }
     }
 

@@ -25,13 +25,17 @@ class ReportagePost extends Singleton {
         return $dt->format('Y-m-d H:i:s');
     }
 
+    /**
+     * @param $post_date
+     *
+     * @return string
+     * @throws \Exception
+     */
     public static function get_post_status($post_date) {
         $dt = new DateTime(date('Y-m-d H:i:s e'));
         $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
         $current_time = $dt->format('Y-m-d H:i:s');
-
         return strtotime($post_date) > strtotime($current_time) ? 'future' : 'publish';
-
     }
 
     /**
@@ -94,6 +98,7 @@ class ReportagePost extends Singleton {
      * @return bool|int|\WP_Error
      */
     public static function insert($reportage) {
+
         pubjet_log('================== Insert ===================');
         if ($reportage->wp_post_id = self::reportage_exists($reportage->id)) {
             pubjet_log('==================== Updating ===================');
@@ -115,7 +120,7 @@ class ReportagePost extends Singleton {
         $args = [
             'post_type'     => sanitize_text_field(pubjet_post_type()),
             'post_title'    => isset($post_content['title']) ? sanitize_text_field($post_content['title']) : '',
-            'post_status'   => sanitize_text_field($post_status),
+            'post_status'   => 'future' === $post_status ? $post_status : (pubjet_should_publish_reportage_manually() ? EnumPostStatus::Pending : EnumPostStatus::Publish),
             'post_content'  => $post_content['content'] ?? '',
             'post_name'     => sanitize_text_field(self::get_post_name($reportage)),
             'tags_input'    => isset($reportage->tags) && is_array($reportage->tags) ? map_deep($reportage->tags, 'sanitize_text_field') : [],
@@ -128,7 +133,11 @@ class ReportagePost extends Singleton {
             ],
         ];
 
-        if ($post_status !== EnumPostStatus::Publish) {
+        if (EnumPostStatus::Pending === $args['post_status']) {
+            $args['meta_input'][EnumPostMetakeys::ManualApprove] = 1;
+        }
+
+        if (!in_array($post_status, [EnumPostStatus::Publish, EnumPostStatus::Pending])) {
             $args['post_date']     = sanitize_text_field($post_date);
             $args['post_date_gmt'] = sanitize_text_field($post_date);
         }
@@ -163,7 +172,7 @@ class ReportagePost extends Singleton {
             set_post_thumbnail($post_id, intval($post_content['featured_img_id']));
         }
 
-        // Publish without Triboon tag
+        // Publish without triboon tag
         if (isset($reportage->is_publish_without_triboon_tag) && $reportage->is_publish_without_triboon_tag) {
             update_post_meta($post_id, EnumPostMetakeys::WithoutTriboonTag, true);
         }
@@ -304,7 +313,8 @@ class ReportagePost extends Singleton {
                 $extension = $mime_extensions[$mime];
             } else {
                 // Could not identify extension
-                @unlink($tmp);
+                wp_delete_file($tmp);
+//                @unlink($tmp);
                 return false;
             }
         }
@@ -319,7 +329,7 @@ class ReportagePost extends Singleton {
         $attachment_id = media_handle_sideload($args, 0, $title);
 
         // Cleanup temp file
-        @unlink($tmp);
+        wp_delete_file($tmp);
 
         // Error uploading
         if (is_wp_error($attachment_id)) {

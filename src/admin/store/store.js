@@ -24,6 +24,7 @@ export const state = {
             items : [],
         },
         pricingPlans     : [],
+        manualApprove    : false,
         checkToken       : {
             checking: false,
             checked : false,

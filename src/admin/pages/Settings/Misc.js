@@ -1,16 +1,20 @@
 import React, {useState} from 'react';
-import {Form, Space, Switch} from "antd";
+import {Form, Space, Switch, Tooltip} from "antd";
 import {changeInput, saveOptions, toggleModal} from "./Actions";
 import {connect} from "trim-redux";
 import {pubjet__} from "../../../shared/scripts/utils";
 
 import styles from './Misc.module.scss';
 import SavedAlert from "../../components/SaveAlert/SavedAlert";
-import {SettingOutlined} from "@ant-design/icons";
+import {QuestionCircleOutlined, SettingOutlined} from "@ant-design/icons";
 
 const Misc = props => {
     const [showAlert, setShowAlert] = useState(false);
-    const {uninstallCleanup, deleteFirstImage, metakeys = {}} = props.options;
+    const {uninstallCleanup, deleteFirstImage, manualApprove, metakeys = {}} = props.options;
+
+    /**
+     * @since 1.0.0
+     */
     const toggleSavedAlert = () => {
         setShowAlert(true);
         setTimeout(() => {
@@ -22,6 +26,24 @@ const Misc = props => {
         <React.Fragment>
             {showAlert && <SavedAlert/>}
             <Form className={styles.wrapper} layout={'vertical'} colon={false}>
+                <Form.Item className={styles.hideInput} label={<Space>
+                    <Switch
+                        size={'default'}
+                        checked={manualApprove}
+                        onChange={(checked) => {
+                            changeInput('manualApprove', checked);
+                            saveOptions();
+                            toggleSavedAlert();
+                        }}
+                    />
+                    <Space>
+                        <span>{pubjet__('manual-approve')}</span>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('manual-approve-hints')}} />}>
+                            <QuestionCircleOutlined/>
+                        </Tooltip>
+                    </Space>
+                </Space>}
+                />
                 <Form.Item className={styles.hideInput} label={<Space>
                     <Switch
                         size={'default'}

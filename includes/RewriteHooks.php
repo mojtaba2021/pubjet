@@ -20,7 +20,7 @@ class RewriteHooks extends Singleton {
      */
     public function init() {
         $this->endpointHandler('reportage', [$this, 'reportageRequest'], 15);
-        $this->endpointHandler('version', [$this, 'checkPluginVersion'], 15);;
+        $this->endpointHandler('version', [$this, 'checkPluginVersion'], 15);
         $this->endpointHandler('copyright', [$this, 'toggleCopyright'], 15);
         $this->endpointHandler('check-missed-reportage', [$this, 'checkMissedReportage'], 15);
         $this->endpointHandler('siteinfo', [$this, 'siteInfo'], 15);
@@ -46,6 +46,25 @@ class RewriteHooks extends Singleton {
         $this->endpointHandler('categories', [$this, 'findWpCategories']);
         // Sync categories
         $this->endpointHandler('sync-categories', [$this, 'syncAndSaveCategories']);
+        // Is Token Valid
+        $this->endpointHandler('is-token-valid', [$this, 'checkIfTokenValid']);
+    }
+
+    /**
+     * @return void
+     */
+    public function checkIfTokenValid() {
+        $token = $this->get('token');
+        if (empty(trim($token))) {
+            $this->error(pubjet__('missing-params'));
+        }
+        if (empty(trim(pubjet_token()))) {
+            $this->error(pubjet__('missing-token'));
+        }
+        if (pubjet_token() === trim($token)) {
+            $this->success(pubjet__('valid-token'));
+        }
+        $this->error(pubjet__('invalid-token'));
     }
 
     /**
@@ -298,7 +317,7 @@ class RewriteHooks extends Singleton {
         }
 
         if (is_writeable(pubjet_debug_dir())) {
-            unlink(pubjet_debug_dir()); // Delete debug file
+            wp_delete_file(pubjet_debug_dir()); // Delete debug file
         } else {
             $this->error(pubjet__('delete-permission-limit'));
         }
@@ -371,6 +390,8 @@ class RewriteHooks extends Singleton {
     public function saveOptions() {
         $this->checkNonce();
 
+        flush_rewrite_rules();
+
         /**
          * The pubjet_before_save_options action.
          *
@@ -388,8 +409,6 @@ class RewriteHooks extends Singleton {
         }
 
         update_option(EnumOptions::Settings, $settings);
-
-        flush_rewrite_rules();
 
         /**
          * The pubjet_after_save_options filter.
@@ -654,9 +673,11 @@ class RewriteHooks extends Singleton {
 
     }
 
+    /**
+     * @return void
+     */
     public function reportageRequest() {
-
-        // =================== Delete Reportage =================
+        //  =================== Delete Reportage =================
         if ('DELETE' === pubjet_get_request_method()) {
             $this->deleteReportage();
             return;
@@ -667,12 +688,15 @@ class RewriteHooks extends Singleton {
 
         // =================== Insert or Update ===================
         if (!$this->isValidHttpMethod([EnumHttpMethods::POST, EnumHttpMethods::PATCH])) {
-            pubjet_log_sentry('متد ارسال اطلاعات رپورتاژ اشتباه است. نوع متد باید POST و یا PATCH باشد. متد فعلی:' . $_SERVER['REQUEST_METHOD']);
+            $err_message = 'متد ارسال اطلاعات رپورتاژ اشتباه است. نوع متد باید POST و یا PATCH باشد. متد فعلی:' . $_SERVER['REQUEST_METHOD'];
+            pubjet_log_sentry($err_message);
+            pubjet_log($err_message);
             wp_send_json_error(pubjet__('invalid-http-method'), 401);
         }
 
         if (!$this->isTokenValid()) {
-            pubjet_log_sentry('توکن ارتباطی اشتباه است');
+            pubjet_log(pubjet__('invalid-token'));
+            pubjet_log('Authorization: ' . $_SERVER['HTTP_AUTHORIZATION']);
             wp_send_json_error(pubjet__('invalid-token'), 401);
         }
 

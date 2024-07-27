@@ -122,6 +122,7 @@ class Debug extends BaseComponent {
         const {debug} = this.props.options;
         return <Form layout={'vertical'} colon={false}>
             <Form.Item
+                className={styles.changeStatus}
                 label={<Space>
                     <Switch checked={debug} onChange={(checked) => {
                         changeInput('debug', checked);

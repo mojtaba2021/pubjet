@@ -838,6 +838,8 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
+        'manual-approve'           => esc_html__('Manual Approve', 'pubjet'),
+        'manual-approve-hints'     => esc_html__('Enable this option if you want to review the reportage manually after review', 'pubjet'),
         'pmk-hints'                => esc_html__('This feature is useful when you want to make Pubjet compatible with other plugins that perform actions on the text menu. By using this feature, users can easily add specific information and metadata to reports without the need for fundamental changes in other plugins and benefit from better integration and coordination between plugins.', 'pubjet'),
         'save'                     => esc_html__('Save', 'pubjet'),
         'delete'                   => esc_html__('Delete', 'pubjet'),
@@ -1205,6 +1207,7 @@ function pubjet_find_wp_tags() {
 function pubjet_sync_categories() {
     global $pubjet_settings;
 
+
     /**
      * The pubjet_before_sync_categories action.
      *
@@ -1217,7 +1220,7 @@ function pubjet_sync_categories() {
         $categories_ids = array_map('trim', explode(',', $pubjet_settings['categories']));
         foreach ($categories_ids as $category_id) {
             $category = get_category($category_id);
-            if ($category) {
+            if ($category && !is_wp_error($category)) {
                 $categories[] = [
                     'title'       => $category->name,
                     'unique_name' => $category->slug,
@@ -1237,6 +1240,8 @@ function pubjet_sync_categories() {
         }
     }
 
+    pubjet_log($categories);
+
     /**
      * The pubjet_sync_category_sync filter.
      *
@@ -1245,7 +1250,7 @@ function pubjet_sync_categories() {
     $url = apply_filters('pubjet_sync_category_sync', pubjet_api_root() . '/external/wp/relative-category/', pubjet_token());
 
     if (pubjet_is_dev_mode()) {
-        $url = 'https://api.triboon.net/external/wp/relative-category/';
+        return;
     }
 
     $response = pubjet_request($url, 'POST', [
@@ -1281,6 +1286,7 @@ function pubjet_default_settings() {
         'uninstallCleanup'        => '',
         'lastCheckingMissedPosts' => '',
         'pricingPlans'            => [],
+        'manualApprove'           => false,
     ]);
 }
 
@@ -1365,61 +1371,39 @@ function pubjet_log_sentry($message, $extra = []) {
 }
 
 /**
- * @return array|string|WP_Error
+ * @return boolean
  */
-function pubjet_send_plugin_version() {
-
-    if (empty(trim(pubjet_token()))) { // Check if user enter token or not
-        return;
-    }
-
-    $url = 'https://api.example.com/endpoint';
-
-    /**
-     * The pubjet_send_plugin_version_request_args filter.
-     *
-     * @since 1.0.0
-     */
-    $args = apply_filters('pubjet_send_plugin_version_request_args', [
-        'headers' => [
-            'Authorization' => 'Bearer ' . pubjet_token(),
-            'Content-Type'  => 'application/json',
-        ],
-        'body'    => json_encode(['version' => PUBJ()->getVersion()]),
-    ]);
-
-    $response = wp_remote_post($url, $args);
-
-    // بررسی پاسخ
-    if (is_wp_error($response)) {
-        $error_message = $response->get_error_message();
-        pubjet_log_sentry("Error sending plugin version: $error_message");
-    }
-
-    return $response;
+function pubjet_should_publish_reportage_manually() {
+    global $pubjet_settings;
+    return pubjet_isset_value($pubjet_settings['manualApprove']);
 }
 
 /**
  * @param $status
  *
- * @return array|WP_Error|void
+ * @return string
  */
 function pubjet_send_plugin_status_to_api($status) {
     if (empty(trim(pubjet_token()))) { // Check if user enter token or not
         return;
     }
-    $url      = 'https://api.example.com/endpoint';
+    $url      = 'https://api.triboon.net/external/wp/pubjet-info/';
     $response = wp_remote_post($url, [
         'headers' => [
             'Content-Type'  => 'application/json',
             'Authorization' => 'Bearer ' . pubjet_token(),
         ],
         'method'  => 'POST',
-        'body'    => json_encode(['status' => $status]),
+        'body'    => json_encode([
+                                     'status'         => $status,
+                                     'pubjet_version' => PUBJ()->getVersion(),
+                                 ]),
     ]);
     // بررسی پاسخ API برای اشکالات احتمالی
     if (is_wp_error($response)) {
         pubjet_log_sentry('Error sending status to API: ' . $response->get_error_message());
     }
-    return $response;
+    $result = wp_remote_retrieve_body($response);
+    pubjet_log($result);
+    return $result;
 }

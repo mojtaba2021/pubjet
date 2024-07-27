@@ -12,4 +12,5 @@ class EnumPostMetakeys {
     const NoFollow            = 'pubjet_nofollow';
     const Source              = 'pubjet_reporatage_source';
     const WithoutTriboonTag   = 'pubjet_without_triboon_tag';
+    const ManualApprove       = 'pubjet_manual_approve';
 }
