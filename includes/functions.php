@@ -1187,9 +1187,7 @@ function pubjet_find_wp_categories($parent_id = 0, $hierarchy = true) {
  */
 function pubjet_find_wp_tags() {
     $result = [];
-    $tags   = get_tags([
-                           'hide_empty' => false,
-                       ]);
+    $tags   = get_tags(['hide_empty' => false,]);
     foreach ($tags as $tag) {
         $result[] = [
             'id'   => $tag->term_id,

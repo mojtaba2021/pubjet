@@ -173,7 +173,7 @@ class Actions extends Singleton {
 
         pubjet_update_setting(EnumOptions::LastCheckingMissedPosts, pubjet_now_ts());
 
-        wp_remote_post(home_url('pubjet-api/check-missed-reportage'), [
+        wp_remote_post(home_url('/wp-json/pubjet/v1/check-missed-reportage'), [
             'headers'     => [
                 'Authorization' => pubjet_token(),
                 'Content-Type'  => 'application/json',
