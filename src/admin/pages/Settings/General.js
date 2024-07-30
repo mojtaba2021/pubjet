@@ -6,7 +6,7 @@ import {Button, Spin} from "antd";
 import SaveAlert from "./SaveAlert";
 import Form from "./Form";
 import {SaveOutlined} from "@ant-design/icons";
-import {loadOptions, saveOptions} from "./Actions";
+import {saveOptions} from "./Actions";
 import {pubjet__} from "../../../shared/scripts/utils";
 
 class General extends BaseComponent {
@@ -18,26 +18,6 @@ class General extends BaseComponent {
         loading: false,
         saving : false,
         saved  : false,
-    };
-
-    /**
-     * @since 1.0.0
-     */
-    componentDidMount() {
-        this.fetch();
-    }
-
-    /**
-     * @since 1.0.0
-     */
-    fetch = () => {
-        this.setState({error: false, loading: true}, () => {
-            loadOptions().catch(err => {
-                this.setState({error: true,});
-            }).finally(() => {
-                this.setState({loading: false,});
-            });
-        });
     };
 
     /**

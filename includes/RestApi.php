@@ -25,9 +25,9 @@ class RestApi extends Singleton {
      */
     public function registerRoutes() {
         $this->registerRoute('reportage', 'createOrUpdateReportage', ['POST', 'PATCH']);
-        $this->registerRoute('reportage', 'deleteReportage', ['DELETE']);
+        $this->registerRoute('reportage/(?P<reportageId>\d+)', 'deleteReportage', ['DELETE']);
         $this->registerRoute('version', 'getPluginVersion', ['GET']);
-        $this->registerRoute('copyright', 'toggleCopyright', ['POST', 'PATCH']);
+        $this->registerRoute('copyright/(?P<reportageId>\d+)/(?P<status>show|hide)', 'toggleCopyright', ['POST', 'PATCH']);
         $this->registerRoute('site/info', 'findSiteInfo', ['GET']);
         $this->registerRoute('site/tags', 'findSiteTags', ['GET']);
         $this->registerRoute('site/categories', 'findSiteCategories', ['GET']);
@@ -80,29 +80,31 @@ class RestApi extends Singleton {
      * @return void
      */
     public function deleteReportage(\WP_REST_Request $request) {
-        $reportage = (object)($request->get_json_params());
+        $reportage_id = $request->get_param('reportageId');
         pubjet_log("==== Delete Reportage Post ====");
-        pubjet_log($reportage);
-        $reportage_post_id = pubjet_find_post_id_by_reportage_id(pubjet_isset_value($reportage->id));
+        pubjet_log($reportage_id);
+        $reportage_post_id = pubjet_find_post_id_by_reportage_id(pubjet_isset_value($reportage_id));
         pubjet_log('Post: ' . $reportage_post_id);
 
         if (empty($reportage_post_id)) {
-            wp_send_json_error(pubjet__('rep-not-found'), 404);
+            wp_send_json_error(['error' => pubjet__('rep-not-found'),], 401);
         }
 
         $post = get_post($reportage_post_id);
         if ($post->post_type !== pubjet_post_type()) {
-            wp_send_json_error(pubjet__('rep-not-found'), 404);
+            wp_send_json_error(['error' => pubjet__('rep-not-found')], 401);
         }
 
-        $result = wp_delete_post($reportage_post_id, true);
+        $reportage_post = get_post($reportage_post_id);
+        $result         = wp_delete_post($reportage_post_id, true);
         if (is_wp_error($result)) {
-            wp_send_json_error($result->get_error_message(), 500);
+            wp_send_json_error(['error' => $result->get_error_message()], 500);
         }
 
         $this->success([
-                           'wpPostId'    => absint($reportage_post_id),
-                           'reportageId' => absint(pubjet_isset_value($reportage->id)),
+                           'postId'      => absint($reportage_post_id),
+                           'postTitle'   => $reportage_post->post_title,
+                           'reportageId' => absint(pubjet_isset_value($reportage_id)),
                        ]);
     }
 
@@ -116,13 +118,11 @@ class RestApi extends Singleton {
          * @since 1.0.0
          */
         $result = apply_filters('pubjet_siteinfo', [
-            'title'   => get_bloginfo('name'),
-            'descr'   => get_bloginfo('description'),
-            'url'     => get_bloginfo('wpurl'),
-            'version' => [
-                'site'   => get_bloginfo('version'),
-                'pubjet' => PUBJ()->getVersion(),
-            ],
+            'title'          => get_bloginfo('name'),
+            'description'    => get_bloginfo('description'),
+            'site_url'       => get_bloginfo('wpurl'),
+            'site_version'   => get_bloginfo('version'),
+            'pubjet_version' => PUBJ()->getVersion(),
         ]);
         $this->success($result);
     }
@@ -131,20 +131,14 @@ class RestApi extends Singleton {
      * @return void
      */
     public function toggleCopyright(\WP_REST_Request $request) {
-        $data = (object)$request->get_json_params();
         pubjet_log('==== Change Copyright Status ====');
-        pubjet_log($data);
 
-        if (empty(pubjet_isset_value($data->id))) {
-            wp_send_json_error(pubjet__('post-not-found'), 404);
-        }
-
-        $reportage_post_id = pubjet_find_post_id_by_reportage_id($data->id);
+        $reportage_post_id = pubjet_find_post_id_by_reportage_id($request->get_param('reportageId'));
         if (empty($reportage_post_id)) {
-            wp_send_json_error(pubjet__('post-not-found'), 404);
+            wp_send_json_error(['error' => pubjet__('post-not-found')], 401);
         }
 
-        $new_status = pubjet_isset_value($data->status, 'show');
+        $new_status = $request->get_param('status');
         if ('hide' === $new_status) {
             // Hide copyright
             pubjet_update_setting(EnumOptions::CopyrightStatus, 'hide');
@@ -154,8 +148,8 @@ class RestApi extends Singleton {
         }
 
         $this->success([
-                           'wpPostId'    => $reportage_post_id,
-                           'reportageId' => pubjet_isset_value($data->id),
+                           'postId'      => $reportage_post_id,
+                           'reportageId' => $request->get_param('reportageId'),
                            'status'      => $new_status,
                        ]);
     }
@@ -198,7 +192,10 @@ class RestApi extends Singleton {
         }
 
         // Success
-        wp_send_json_success($wp_post_id);
+        $this->success([
+                           'postId'      => $wp_post_id,
+                           'reportageId' => $reportage->id,
+                       ]);
     }
 
     /**
@@ -237,10 +234,11 @@ class RestApi extends Singleton {
             return true;
         }
         if (empty(pubjet_token())) {
-            wp_send_json_error(pubjet__('missing-token'), 401);
+            return false;
         }
-        $header_token = pubjet_isset_value($request['authorization'], '');
-        return pubjet_token() == $header_token;
+        $authorization_token = $request->get_header('authorization');
+        $authorization_token = is_array($authorization_token) ? reset($authorization_token) : $authorization_token;
+        return pubjet_token() == $authorization_token;
     }
 
     /**

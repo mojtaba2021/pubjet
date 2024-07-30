@@ -408,6 +408,8 @@ class RewriteHooks extends Singleton {
             }
         }
 
+        pubjet_send_plugin_status_to_api('active');
+
         update_option(EnumOptions::Settings, $settings);
 
         /**

@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Provider} from 'trim-redux';
+import {getStore, Provider, setStore} from 'trim-redux';
 import store from './store/store';
 import {pubjet__} from "../shared/scripts/utils";
+import {getStoreKey} from "./pages/Settings/Actions";
 
 const PageSettings = React.lazy(() => import('./pages/Settings/Settings'));
 const ReportagePanelData = React.lazy(() => import('./components/ReportageData/ReportageData'));
@@ -29,3 +30,28 @@ const elements = [
 elements.map(item => {
     renderElement(item.element, item.selector);
 });
+
+
+/**
+ * @since 1.0.0
+ */
+const initOptions = () => {
+    const {options = {}} = pubjet_params;
+    if (Object.keys(options).length === 0) {
+        return;
+    }
+    const {token = '', debug = false, category, categories = [], uninstall = false} = options;
+    setStore(getStoreKey(), {
+        ...options,
+    });
+    if (category) {
+        const found = categories.find(item => item.value == category);
+        if (found) {
+            setStore(getStoreKey(), {
+                ...getStore(getStoreKey()),
+                category: found,
+            });
+        }
+    }
+};
+initOptions();

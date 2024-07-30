@@ -126,10 +126,8 @@ class Filters extends Singleton {
             return $content;
         }
 
-        $content .= '<div class="pubjet-copyright"><p>منتشر شده توسط <img src="' . PUBJET_DIR_URL . 'assets/img/copyright-logo.png' . '"></img> تریبون</p></div>';
-
+        $content .= '<div class="pubjet-copyright"><p>انتشار از طریق پابجت <img src="' . PUBJET_DIR_URL . 'assets/img/logo.png' . '"></img></p></div>';
         return $content;
-
     }
 
     /**

@@ -206,7 +206,7 @@ class Actions extends Singleton {
             }
 
             body .pubjet-copyright p img {
-                width: 24px !important;
+                width: 64px !important;
                 margin: 0 8px !important;
             }
         </style>
