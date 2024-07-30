@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styles from './SelectTerms.module.scss';
-import {findEndpointUrl, getAxios} from "../../../shared/scripts/utils";
+import {findEndpointUrl, getAdminAjaxUrl, getAxios} from "../../../shared/scripts/utils";
 import DebounceSelect from "../DebounceSelect/DebounceSelect";
 
 const axios = getAxios();
@@ -10,8 +10,9 @@ const SelectTerms = props => {
     const {selectProps, taxonomy, placeholder, value, onChange, className} = props;
 
     const fetchPosts = (keyword = '') => {
-        return axios.get(findEndpointUrl('find-terms'), {
+        return axios.get(getAdminAjaxUrl(), {
             params: {
+                action  : 'pubjet-find-terms',
                 search  : keyword,
                 taxonomy: taxonomy,
             },

@@ -2,8 +2,7 @@
 
 namespace triboon\pubjet\includes;
 
-use DateTime;
-use DateTimeZone;
+use triboon\pubjet\includes\enums\EnumAjaxPrivType;
 use triboon\pubjet\includes\enums\EnumHttpMethods;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
@@ -11,7 +10,7 @@ use triboon\pubjet\includes\traits\Utils;
 
 if (!defined("ABSPATH")) exit;
 
-class RewriteHooks extends Singleton {
+class Ajax extends Singleton {
 
     use Utils;
 
@@ -19,52 +18,21 @@ class RewriteHooks extends Singleton {
      * @return void
      */
     public function init() {
-        $this->endpointHandler('reportage', [$this, 'reportageRequest'], 15);
-        $this->endpointHandler('version', [$this, 'checkPluginVersion'], 15);
-        $this->endpointHandler('copyright', [$this, 'toggleCopyright'], 15);
-        $this->endpointHandler('check-missed-reportage', [$this, 'checkMissedReportage'], 15);
-        $this->endpointHandler('siteinfo', [$this, 'siteInfo'], 15);
-        $this->endpointHandler('check-token', [$this, 'checkToken'], 15);
-        $this->endpointHandler('check-required-php-modules', [$this, 'checkRequiredPhpModules'], 15);
-        $this->endpointHandler('get-options', [$this, 'getOptions'], 15);
-        $this->endpointHandler('save-options', [$this, 'saveOptions'], 15);
-        $this->endpointHandler('get-debug', [$this, 'getDebug'], 15);
-        $this->endpointHandler('delete-debug', [$this, 'deleteDebug'], 15);
-        $this->endpointHandler('reg-thumb', [$this, 'regThumbnail']);
+        $this->ajax('save-options', [$this, 'saveOptions'], EnumAjaxPrivType::LoggedIn, 15);
+        $this->ajax('get-debug', [$this, 'getDebug'], EnumAjaxPrivType::LoggedIn, 15);
+        $this->ajax('delete-debug', [$this, 'deleteDebug'], EnumAjaxPrivType::LoggedIn, 15);
+        $this->ajax('check-token', [$this, 'checkToken'], EnumAjaxPrivType::LoggedIn, 15);
+        $this->ajax('check-required-php-modules', [$this, 'checkRequiredPhpModules'], EnumAjaxPrivType::LoggedIn, 15);
+        $this->ajax('reg-thumb', [$this, 'regThumbnail'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('permanent-hide-admin-notice', [$this, 'permanentHideAdminNotice'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('find-terms', [$this, 'findTerms'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('categories', [$this, 'findWpCategories'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('remind-admin-notice', [$this, 'remindAdminNotice'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('sync-categories', [$this, 'syncAndSaveCategories'], EnumAjaxPrivType::LoggedIn);
 
         $this->endpointHandler('find-reportage-panel-data', [$this, 'findReportagePanelData']);
         $this->endpointHandler('find-reportage-options', [$this, 'findReportageOptions']);
         $this->endpointHandler('save-reportage-options', [$this, 'saveReportageOptions']);
-
-        $this->endpointHandler('remind-admin-notice', [$this, 'remindAdminNotice']);
-        $this->endpointHandler('permanent-hide-admin-notice', [$this, 'permanentHideAdminNotice']);
-        $this->endpointHandler('find-terms', [$this, 'findTerms']);
-
-        // Get WordPress categories
-        $this->endpointHandler('tags', [$this, 'findWpTags']);
-        // Get WordPress tags
-        $this->endpointHandler('categories', [$this, 'findWpCategories']);
-        // Sync categories
-        $this->endpointHandler('sync-categories', [$this, 'syncAndSaveCategories']);
-        // Is Token Valid
-        $this->endpointHandler('is-token-valid', [$this, 'checkIfTokenValid']);
-    }
-
-    /**
-     * @return void
-     */
-    public function checkIfTokenValid() {
-        $token = $this->get('token');
-        if (empty(trim($token))) {
-            $this->error(pubjet__('missing-params'));
-        }
-        if (empty(trim(pubjet_token()))) {
-            $this->error(pubjet__('missing-token'));
-        }
-        if (pubjet_token() === trim($token)) {
-            $this->success(pubjet__('valid-token'));
-        }
-        $this->error(pubjet__('invalid-token'));
     }
 
     /**
@@ -78,15 +46,6 @@ class RewriteHooks extends Singleton {
         $pubjet_settings['categories'] = $categories ?? [];
         pubjet_sync_categories();
         $this->success();
-    }
-
-    /**
-     * @return void
-     */
-    public function findWpTags() {
-        $tags = pubjet_find_wp_tags();
-
-        $this->success($tags);
     }
 
     /**
@@ -424,32 +383,6 @@ class RewriteHooks extends Singleton {
 
     /**
      * @return void
-     */
-    public function getOptions() {
-        $this->checkNonce();
-
-        /**
-         * The pubjet_before_get_options action.
-         *
-         * @since 1.0.0
-         */
-        do_action('pubjet_before_get_options');
-
-        $options = pubjet_options();
-
-        /**
-         * The pubjet_after_get_options action.
-         *
-         * @since 1.0.0
-         */
-        do_action('pubjet_after_get_options', $options);
-
-        $this->success($options);
-
-    }
-
-    /**
-     * @return void
      * @since  1.0
      * @author Triboon
      */
@@ -500,69 +433,6 @@ class RewriteHooks extends Singleton {
         pubjet_sync_categories();
 
         $this->success($response);
-    }
-
-    /**
-     * @return void
-     */
-    public function siteInfo() {
-
-        $data = $this->check(['GET'], false);
-
-        if (is_array($data) && isset($data['error'])) {
-            wp_send_json_error(pubjet_isset_value($data['message']), pubjet_isset_value($data['status']));
-        }
-
-        /**
-         * The pubjet_siteinfo filter.
-         *
-         * @since 1.0.0
-         */
-        $result = apply_filters('pubjet_siteinfo', [
-            'title'     => get_bloginfo('name'),
-            'descr'     => get_bloginfo('description'),
-            'url'       => get_bloginfo('wpurl'),
-            'wpversion' => get_bloginfo('version'),
-        ]);
-
-        $this->success($result);
-    }
-
-    /**
-     * @return void
-     */
-    public function toggleCopyright() {
-        $data = $this->check(['POST', 'PATCH']);
-        if (is_array($data) && isset($data['error'])) {
-            wp_send_json_error(pubjet_isset_value($data['message']), pubjet_isset_value($data['status']));
-        }
-
-        pubjet_log('==== Change Copyright Status ====');
-        pubjet_log($data);
-
-        if (empty(pubjet_isset_value($data->id))) {
-            wp_send_json_error(pubjet__('post-not-found'), 404);
-        }
-
-        $reportage_post_id = pubjet_find_post_id_by_reportage_id($data->id);
-        if (empty($reportage_post_id)) {
-            wp_send_json_error(pubjet__('post-not-found'), 404);
-        }
-
-        $new_status = pubjet_isset_value($data->status, 'show');
-        if ('hide' === $new_status) {
-            // Hide copyright
-            pubjet_update_setting(EnumOptions::CopyrightStatus, 'hide');
-        } else {
-            // Show copyright
-            pubjet_update_setting(EnumOptions::CopyrightStatus, '');
-        }
-
-        $this->success([
-                           'wpPostId'    => $reportage_post_id,
-                           'reportageId' => pubjet_isset_value($data->id),
-                           'status'      => $new_status,
-                       ]);
     }
 
     /**
@@ -626,110 +496,6 @@ class RewriteHooks extends Singleton {
                            'title' => $reportage_post->post_title,
                            'url'   => get_permalink($reportage_post->ID),
                        ]);
-    }
-
-    /**
-     * @return void
-     */
-    public function checkPluginVersion() {
-        $this->success([
-                           'version' => PUBJ()->getVersion(),
-                       ]);
-    }
-
-    /**
-     * @return void
-     * @throws \Exception
-     */
-    public function checkMissedReportage() {
-
-        if (!$this->isValidHttpMethod(['POST'])) {
-            wp_send_json_error(pubjet__('invalid-http-method'), 401);
-        }
-
-        if (!$this->isTokenValid()) {
-            wp_send_json_error(pubjet__('invalid-token'), 401);
-        }
-
-        $this->finishRequest();
-
-        global $wpdb;
-
-        $dt = new DateTime(date('Y-m-d H:i:s e'));
-        $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
-        $now = $dt->format('Y-m-d H:i:s');
-
-        $sql    = $wpdb->prepare("SELECT `ID` FROM $wpdb->posts WHERE `post_type` = %s AND post_status='future' AND post_date_gmt < %s", PUBJET_POST_TYPE, $now);
-        $result = $wpdb->get_results($sql);
-
-        if (!$result) {
-            return;
-        }
-
-        foreach ($result as $post) {
-            if (!pubjet_is_reportage($post->ID)) {
-                continue; // Just publish reportage post
-            }
-            wp_publish_post($post->ID);
-        }
-
-    }
-
-    /**
-     * @return void
-     */
-    public function reportageRequest() {
-        //  =================== Delete Reportage =================
-        if ('DELETE' === pubjet_get_request_method()) {
-            $this->deleteReportage();
-            return;
-        } else if ('GET' === pubjet_get_request_method()) {
-            $this->findReportage();
-            return;
-        }
-
-        // =================== Insert or Update ===================
-        if (!$this->isValidHttpMethod([EnumHttpMethods::POST, EnumHttpMethods::PATCH])) {
-            $err_message = 'متد ارسال اطلاعات رپورتاژ اشتباه است. نوع متد باید POST و یا PATCH باشد. متد فعلی:' . $_SERVER['REQUEST_METHOD'];
-            pubjet_log_sentry($err_message);
-            pubjet_log($err_message);
-            wp_send_json_error(pubjet__('invalid-http-method'), 401);
-        }
-
-        if (!$this->isTokenValid()) {
-            pubjet_log(pubjet__('invalid-token'));
-            pubjet_log('Authorization: ' . $_SERVER['HTTP_AUTHORIZATION']);
-            wp_send_json_error(pubjet__('invalid-token'), 401);
-        }
-
-        $reportage = (object)$this->getRequestData();
-
-        pubjet_log($reportage);
-
-        $wp_post_id = ReportagePost::insert($reportage);
-
-        if (!$wp_post_id || is_wp_error($wp_post_id)) {
-            if (is_wp_error($wp_post_id)) {
-                pubjet_log('Error: ' . $wp_post_id->get_error_message());
-            }
-            $sentry_error = is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در فرایند ثبت نوشته رپورتاژ رخ داده است.';
-            pubjet_log_sentry($sentry_error, [
-                'reportage_id'    => pubjet_isset_value($reportage->id),
-                'reportage_title' => pubjet_isset_value($reportage->title),
-            ]);
-            wp_send_json_error($wp_post_id);
-        }
-
-        if (!empty($reportage->wp_post_id)) {
-            // Update
-            pubjet_log('Post updated successfully. Post ID: ' . $reportage->wp_post_id);
-        } else {
-            // Insert
-            pubjet_log('Post created successfully. New Post ID: ' . $wp_post_id);
-        }
-
-        // Success
-        wp_send_json_success($wp_post_id);
     }
 
     public function finishRequest() {

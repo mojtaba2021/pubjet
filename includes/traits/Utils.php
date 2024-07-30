@@ -30,7 +30,15 @@ trait Utils {
      * @author Pish00k
      */
     public function checkNonce($nonce = false) {
+        // Get from $_POST
+        $nonce = $this->post('security');
+        // Get from $_GET
         if (!$nonce) {
+            $nonce = $this->get('security');
+        }
+        // Get from $_SERVER header
+        if (!$nonce) {
+            pubjet_log(2);
             $nonce = pubjet_isset_value($_SERVER['HTTP_X_PUBJET_NONCE']);
         }
         if (!wp_verify_nonce($nonce, 'pubjet-nonce')) {

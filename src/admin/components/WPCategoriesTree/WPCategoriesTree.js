@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {Spin, Tree} from 'antd';
-import {findEndpointUrl, getAxios} from "../../../shared/scripts/utils";
+import {findEndpointUrl, getAdminAjaxUrl, getAxios, getSecurityNonce} from "../../../shared/scripts/utils";
 import styles from './WPCategoriesTree.module.scss';
 
 const axios = getAxios();
@@ -17,7 +17,12 @@ const WPCategoriesTree = (props) => {
 
     const fetchCategories = async () => {
         setLoading(true);
-        const response = await axios.get(findEndpointUrl('categories'));
+        const response = await axios.get(getAdminAjaxUrl(), {
+            params: {
+                action  : 'pubjet-categories',
+                security: getSecurityNonce(),
+            },
+        });
         setLoading(false);
         onLoad();
         const formattedData = formatCategories(response.payload);

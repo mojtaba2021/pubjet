@@ -14,7 +14,8 @@ jQuery(document).ready(function ($) {
         const $self = $(this);
         const postId = $self.data('post-id');
         $self.addClass('pubjet-disabled');
-        axios.post(findEndpointUrl('reg-thumb'), {
+        axios.post(getAdminAjaxUrl(), {
+            action  : 'pubjet-reg-thumb',
             postId  : postId,
             security: getSecurityNonce(),
         }).then(response => {
@@ -31,7 +32,8 @@ jQuery(document).ready(function ($) {
         const $self    = $(this),
               $wrapper = $(this).closest('.pubjet-notice');
         $wrapper.slideUp('fast');
-        axios.post(findEndpointUrl('remind-admin-notice'), formDataFromObj({
+        axios.post(getAdminAjaxUrl(), formDataFromObj({
+            action  : 'pubjet-remind-admin-notice',
             noticeId: $wrapper.attr('id'),
             security: $self.attr('data-security'),
         }));
@@ -42,7 +44,8 @@ jQuery(document).ready(function ($) {
         const $self    = $(this),
               $wrapper = $(this).closest('.pubjet-notice');
         $wrapper.slideUp('fast');
-        axios.post(findEndpointUrl('permanent-hide-admin-notice'), formDataFromObj({
+        axios.post(getAdminAjaxUrl(), formDataFromObj({
+            action  : 'pubjet-permanent-hide-admin-notice',
             noticeId: $wrapper.attr('id'),
             security: $self.attr('data-security'),
         }));

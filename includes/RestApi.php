@@ -24,6 +24,7 @@ class RestApi extends Singleton {
      * @return void
      */
     public function registerRoutes() {
+        $this->registerRoute('reportage/(?P<reportageId>\d+)', 'findReportage', ['GET']);
         $this->registerRoute('reportage', 'createOrUpdateReportage', ['POST', 'PATCH']);
         $this->registerRoute('reportage/(?P<reportageId>\d+)', 'deleteReportage', ['DELETE']);
         $this->registerRoute('version', 'getPluginVersion', ['GET']);
@@ -74,6 +75,24 @@ class RestApi extends Singleton {
             }
             wp_publish_post($post->ID);
         }
+    }
+
+    /**
+     * @return void
+     */
+    public function findReportage(\WP_REST_Request $request) {
+        $reportage_id = $request->get_param('reportageId');
+        pubjet_log('===== Get Reportage Post =====');
+        $reportage_post_id = pubjet_find_post_id_by_reportage_id($reportage_id);
+        $reportage_post    = get_post($reportage_post_id);
+        if (!$reportage_post_id || empty($reportage_post)) {
+            wp_send_json_error(pubjet__('post-not-found'), 404);
+        }
+        $this->success([
+                           'postId'    => $reportage_post->ID,
+                           'postTitle' => $reportage_post->post_title,
+                           'postUrl'   => get_permalink($reportage_post->ID),
+                       ]);
     }
 
     /**

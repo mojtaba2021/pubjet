@@ -10,13 +10,9 @@ import PricingPlans from "./PricingPlans";
 import SelectTerms from "../../components/SelectTerms/SelectTerms";
 
 const {TextArea} = Input;
+
 const Form = props => {
-    const {
-              token,
-              defaultCategory,
-              alignCenterImages,
-              pricingPlans,
-          } = props.options;
+    const {token, defaultCategory, pricingPlans,} = props.options;
 
     /**
      * @since 1.0

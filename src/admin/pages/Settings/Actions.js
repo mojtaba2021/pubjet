@@ -1,5 +1,5 @@
 import {getStore, setStore} from "trim-redux";
-import {findEndpointUrl, getAxios} from "../../../shared/scripts/utils";
+import {findEndpointUrl, getAdminAjaxUrl, getAxios, getSecurityNonce} from "../../../shared/scripts/utils";
 import {v4 as uuid} from 'uuid';
 
 const axios = getAxios();
@@ -7,46 +7,13 @@ const axios = getAxios();
 /**
  * @since 1.0.0
  */
-export const loadOptions = () => {
-    return new Promise((resolve, reject) => {
-        const options = getStore(getStoreKey());
-        axios.get(findEndpointUrl('get-options')).then(response => {
-            if (response.success) {
-                const {token, debug, category, categories, uninstall} = response.payload;
-                setStore(getStoreKey(), {
-                    ...options,
-                    ...response.payload
-                });
-
-                if (category) {
-                    const found = categories.find(item => item.value == category);
-                    if (found) {
-                        setStore(getStoreKey(), {
-                            ...getStore(getStoreKey()),
-                            category: found,
-                        });
-                    }
-                }
-
-                resolve(response);
-
-            } else {
-                reject(response.error);
-            }
-        }).catch(err => {
-            reject(err);
-        });
-    });
-};
-
-/**
- * @since 1.0.0
- */
 export const saveOptions = () => {
     return new Promise((resolve, reject) => {
         const options = getStore(getStoreKey());
-        axios.post(findEndpointUrl('save-options'), {
+        axios.post(getAdminAjaxUrl(), {
+            action  : 'pubjet-save-options',
             settings: JSON.stringify({...options, modal: false}),
+            security: getSecurityNonce(),
         }).then(response => {
             if (response.success) {
                 resolve(response);
@@ -90,10 +57,11 @@ export const doCheckToken = () => {
                 payload : {},
             },
         });
-
-        axios.get(findEndpointUrl('check-token'), {
+        axios.get(getAdminAjaxUrl(), {
             params   : {
-                token: curstate.token,
+                action  : 'pubjet-check-token',
+                token   : curstate.token,
+                security: getSecurityNonce(),
             },
             hideError: true,
         }).then(response => {

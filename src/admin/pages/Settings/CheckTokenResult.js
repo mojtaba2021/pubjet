@@ -7,6 +7,10 @@ import {connect} from "trim-redux";
 import {getStoreKey} from "./Actions";
 
 const CheckTokenResult = props => {
+    const {checkToken} = props;
+    if (!checkToken || 'undefined' === typeof checkToken || Object.keys(checkToken).length === 0) {
+        return;
+    }
     const {checked, checking, valid} = props.checkToken;
     const {website_id, website_url} = props.checkToken.payload;
     if (!checked && !checking) {

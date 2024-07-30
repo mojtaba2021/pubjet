@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './RequiredPhpModules.module.scss';
 import BaseComponent from '../../components/BaseComponent/BaseComponent';
-import {findEndpointUrl, getAxios, getSecurityNonce, pubjet__} from '../../../shared/scripts/utils';
+import {findEndpointUrl, getAdminAjaxUrl, getAxios, getSecurityNonce, pubjet__} from '../../../shared/scripts/utils';
 import {Alert, Badge, Table, Tooltip} from 'antd';
 import {LoadingOutlined, ReloadOutlined} from '@ant-design/icons';
 import Button from "../../components/Button/Button";
@@ -28,8 +28,9 @@ class RequiredPhpModules extends BaseComponent {
      */
     handleCheck = () => {
         this.setState({error: false, loading: true}, () => {
-            axios.get(findEndpointUrl('check-required-php-modules'), {
+            axios.get(getAdminAjaxUrl(), {
                 params: {
+                    action  : 'pubjet-check-required-php-modules',
                     security: getSecurityNonce(),
                 },
             }).then(response => {

@@ -14,9 +14,9 @@ class Initializer extends Singleton {
         Actions::getInstance();
         Filters::getInstance();
         ReportagePost::getInstance();
-        AssetsLoader::getInstance();
-        RewriteHooks::getInstance();
         RewriteRequest::getInstance();
+        AssetsLoader::getInstance();
+        Ajax::getInstance();
         Metaboxes::getInstance();
         RestApi::getInstance();
         \triboon\pubjet\includes\notices\Initializer::getInstance();
