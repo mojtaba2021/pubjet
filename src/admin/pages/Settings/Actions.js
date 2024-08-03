@@ -1,5 +1,5 @@
 import {getStore, setStore} from "trim-redux";
-import {findEndpointUrl, getAdminAjaxUrl, getAxios, getSecurityNonce} from "../../../shared/scripts/utils";
+import {getAdminAjaxUrl, getAxios, getSecurityNonce} from "../../../shared/scripts/utils";
 import {v4 as uuid} from 'uuid';
 
 const axios = getAxios();
@@ -229,6 +229,23 @@ export const changeMetakey = (itemId, propName, propValue) => {
                 }
                 return item;
             })
+        },
+    });
+};
+
+/**
+ * @since 1.0.0
+ * @param propName
+ * @param propValue
+ */
+export const saveAuthorProps = (propName, propValue) => {
+    const options = getStore(getStoreKey());
+    const {repauthor = {}} = options;
+    setStore(getStoreKey(), {
+        ...options,
+        repauthor: {
+            ...repauthor,
+            [propName]: propValue,
         },
     });
 };

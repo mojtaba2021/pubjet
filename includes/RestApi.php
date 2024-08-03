@@ -24,8 +24,8 @@ class RestApi extends Singleton {
      * @return void
      */
     public function registerRoutes() {
-        $this->registerRoute('reportage/(?P<reportageId>\d+)', 'findReportage', ['GET']);
         $this->registerRoute('reportage', 'createOrUpdateReportage', ['POST', 'PATCH']);
+        $this->registerRoute('reportage/(?P<reportageId>\d+)', 'findReportage', ['GET']);
         $this->registerRoute('reportage/(?P<reportageId>\d+)', 'deleteReportage', ['DELETE']);
         $this->registerRoute('version', 'getPluginVersion', ['GET']);
         $this->registerRoute('copyright/(?P<reportageId>\d+)/(?P<status>show|hide)', 'toggleCopyright', ['POST', 'PATCH']);
@@ -199,7 +199,7 @@ class RestApi extends Singleton {
                 'reportage_id'    => pubjet_isset_value($reportage->id),
                 'reportage_title' => pubjet_isset_value($reportage->title),
             ]);
-            wp_send_json_error($wp_post_id);
+            wp_send_json_error($wp_post_id, 400);
         }
 
         if (!empty($reportage->wp_post_id)) {

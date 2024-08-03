@@ -25,6 +25,10 @@ export const state = {
         },
         pricingPlans     : [],
         manualApprove    : false,
+        repauthor  : {
+            status  : false,
+            authorId: false,
+        },
         checkToken       : {
             checking: false,
             checked : false,

@@ -1,0 +1,31 @@
+.wrapper {
+  margin-top: 16px;
+}
+
+.table {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+
+  :global {
+    .ant-table-cell {
+      padding: 8px 8px !important;
+    }
+  }
+}
+
+.saveButton {
+  height: 50px !important;
+}
+
+.savedAlert {
+  margin-top: 16px;
+}
+
+.alert {
+  text-align: justify;
+  margin-bottom: 8px;
+}
+
+.cursorPointer {
+  cursor: pointer;
+}

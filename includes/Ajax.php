@@ -29,10 +29,57 @@ class Ajax extends Singleton {
         $this->ajax('categories', [$this, 'findWpCategories'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('remind-admin-notice', [$this, 'remindAdminNotice'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('sync-categories', [$this, 'syncAndSaveCategories'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('find-authors', [$this, 'findAuthors'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('save-reportage-author', [$this, 'saveReportageAuthor'], EnumAjaxPrivType::LoggedIn);
 
         $this->endpointHandler('find-reportage-panel-data', [$this, 'findReportagePanelData']);
         $this->endpointHandler('find-reportage-options', [$this, 'findReportageOptions']);
         $this->endpointHandler('save-reportage-options', [$this, 'saveReportageOptions']);
+    }
+
+    /**
+     * @return void
+     */
+    public function saveReportageAuthor() {
+        global $pubjet_settings;
+        $this->checkNonce();
+
+        $author_id = sanitize_text_field($this->post('authorId'));
+        if (!$author_id) {
+            $this->error(pubjet__('missing-params'));
+        }
+
+        /**
+         * The pubjet_before_save_reportage_author action.
+         *
+         * @since 1.0.0
+         */
+        do_action('pubjet_before_save_reportage_author', $author_id);
+
+        pubjet_update_setting('repauthor', [
+            'status'   => pubjet_isset_value($pubjet_settings['repauthor']['status']),
+            'authorId' => $author_id,
+        ]);
+
+        /**
+         * The pubjet_after_save_reportage_author action.
+         *
+         * @since 1.0.0
+         */
+        do_action('pubjet_after_save_reportage_author', $author_id);
+
+        $this->success();
+    }
+
+    /**
+     * @since 1.0.0
+     */
+    public function findAuthors() {
+        $this->checkNonce();
+
+        $authors = pubjet_find_authors();
+
+        $this->success($authors);
     }
 
     /**

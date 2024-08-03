@@ -1,7 +1,7 @@
 === Pubjet | پاب‌جت ===
 Contributors: rastakheez
 Tags: seo,reportage
-Stable tag: 2.9.1
+Stable tag: 3.0.0
 Tested up to: 6.5.5
 Requires PHP: 7.4
 License: GPL v2 or later

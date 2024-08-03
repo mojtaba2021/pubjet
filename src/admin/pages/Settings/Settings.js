@@ -11,6 +11,7 @@ import Misc from "./Misc";
 import RequiredPhpModules from "./RequiredPhpModules";
 import ModalMetakeys from "./ModalMetakeys";
 import SyncCategories from "./SyncCategories";
+import ModalReportageAuthor from "./ModalReportageAuthor";
 
 const Settings = props => {
     return <div className={styles.container}>
@@ -47,6 +48,7 @@ const Settings = props => {
             ]}
         />
         <ModalMetakeys/>
+        <ModalReportageAuthor/>
     </div>
 };
 

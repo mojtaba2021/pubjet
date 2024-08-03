@@ -27,6 +27,23 @@ class Actions extends Singleton {
         add_action('pubjet_new_reportage', [$this, 'reportageCustomFields'], 15, 2);
         add_action('upgrader_process_complete', [$this, 'syncCategoriesAfterUpdate'], 15, 2);
         add_action('init', [$this, 'checkAndSendVersion'], 15);
+        // Change Reportage Author
+        add_action('pubjet_new_reportage', [$this, 'changeReportageAuthor'], 15, 2);
+    }
+
+    /**
+     * @return void
+     */
+    public function changeReportageAuthor($reportage_post_id, $reportage) {
+        global $pubjet_settings;
+        $status    = pubjet_isset_value($pubjet_settings['repauthor']['status']);
+        $author_id = pubjet_isset_value($pubjet_settings['repauthor']['authorId']);
+        if (!$author_id || !$status) {
+            return;
+        }
+        $reportage_post              = get_post($reportage_post_id);
+        $reportage_post->post_author = $author_id;
+        wp_update_post($reportage_post);
     }
 
     /**

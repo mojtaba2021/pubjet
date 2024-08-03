@@ -10,7 +10,7 @@ import {QuestionCircleOutlined, SettingOutlined} from "@ant-design/icons";
 
 const Misc = props => {
     const [showAlert, setShowAlert] = useState(false);
-    const {uninstallCleanup, deleteFirstImage, manualApprove, metakeys = {}} = props.options;
+    const {uninstallCleanup, deleteFirstImage, manualApprove, metakeys = {}, repauthor = {}} = props.options;
 
     /**
      * @since 1.0.0
@@ -38,7 +38,7 @@ const Misc = props => {
                     />
                     <Space>
                         <span>{pubjet__('manual-approve')}</span>
-                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('manual-approve-hints')}} />}>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('manual-approve-hints')}}/>}>
                             <QuestionCircleOutlined/>
                         </Tooltip>
                     </Space>
@@ -75,6 +75,28 @@ const Misc = props => {
                         className={styles.showModalMetakeys}
                         onClick={() => {
                             toggleModal('metakeys');
+                        }}/>
+                    }
+                </Space>}
+                />
+                <Form.Item htmlFor={''} className={styles.hideInput} label={<Space>
+                    <Switch
+                        size={'default'}
+                        checked={repauthor.status}
+                        onChange={(checked) => {
+                            changeInput('repauthor', {
+                                status  : checked,
+                                authorId: repauthor.authorId ?? false,
+                            });
+                            saveOptions();
+                            toggleSavedAlert();
+                        }}
+                    />
+                    <span>{pubjet__('select-rep-author')}</span>
+                    {repauthor.status && <SettingOutlined
+                        className={`${styles.showModalMetakeys} ${styles.showModalReportageAuthor}`}
+                        onClick={() => {
+                            toggleModal('repauthor');
                         }}/>
                     }
                 </Space>}

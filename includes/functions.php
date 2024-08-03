@@ -838,6 +838,9 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
+        'username'                 => esc_html__('Username', 'pubjet'),
+        'displayname'              => esc_html__('Display Name', 'pubjet'),
+        'author-name'              => esc_html__('Author Name', 'pubjet'),
         'manual-approve'           => esc_html__('Manual Approve', 'pubjet'),
         'manual-approve-hints'     => esc_html__('Enable this option if you want to review the reportage manually after review', 'pubjet'),
         'pmk-hints'                => esc_html__('This feature is useful when you want to make Pubjet compatible with other plugins that perform actions on the text menu. By using this feature, users can easily add specific information and metadata to reports without the need for fundamental changes in other plugins and benefit from better integration and coordination between plugins.', 'pubjet'),
@@ -911,7 +914,38 @@ function pubjet_strings() {
         'categories'               => esc_html__('Categories', 'pubjet'),
         'sync-categories'          => esc_html__('Sync Categories', 'pubjet'),
         'sync'                     => esc_html__('Synchronize', 'pubjet'),
+        'select-rep-author'        => esc_html__('Select Reportage Post Author', 'pubjet'),
+        'select-rep-author-hints'  => esc_html__('By default, when Pabjet publishes a reportage on your website, it uses the account of the site administrator as the author of the reportage, if you want to use another author, select it.', 'pubjet'),
     ]);
+}
+
+/**
+ * @return array
+ */
+function pubjet_find_authors() {
+    $args = [
+        'role__in' => ['author', 'administrator'],
+        'orderby'  => 'ID',
+        'order'    => 'ASC',
+    ];
+
+    $users = get_users($args);
+
+    $result = [];
+
+    foreach ($users as $user) {
+        $result[] = [
+            'ID'           => $user->ID,
+            'user_login'   => $user->user_login,
+            'display_name' => $user->display_name,
+        ];
+    }
+    /**
+     * The pubjet_authors_and_admins filter.
+     *
+     * @since 1.0.0
+     */
+    return apply_filters('pubjet_authors', $result);
 }
 
 /**
