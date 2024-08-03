@@ -118,7 +118,6 @@ class ModalReportageAuthor extends AntModal {
      */
     table = () => {
         const {loading, authorId} = this.state;
-        console.log(authorId);
         return <Spin spinning={loading}>
             <Table
                 rowKey={'ID'}
@@ -205,7 +204,7 @@ class ModalReportageAuthor extends AntModal {
     content = () => {
         const {saved} = this.state;
         return <div className={styles.wrapper}>
-            {this.alert()}
+            {/*{this.alert()}*/}
             {this.table()}
             {saved && <SavedAlert className={styles.savedAlert}/>}
             {this.buttonSave()}
