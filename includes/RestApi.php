@@ -28,6 +28,7 @@ class RestApi extends Singleton {
         $this->registerRoute('reportage/(?P<reportageId>\d+)', 'findReportage', ['GET']);
         $this->registerRoute('reportage/(?P<reportageId>\d+)', 'deleteReportage', ['DELETE']);
         $this->registerRoute('version', 'getPluginVersion', ['GET']);
+        $this->registerRoute('status', 'getPluginStatus', ['GET']);
         $this->registerRoute('copyright/(?P<reportageId>\d+)/(?P<status>show|hide)', 'toggleCopyright', ['POST', 'PATCH']);
         $this->registerRoute('site/info', 'findSiteInfo', ['GET']);
         $this->registerRoute('site/tags', 'findSiteTags', ['GET']);
@@ -170,6 +171,21 @@ class RestApi extends Singleton {
                            'postId'      => $reportage_post_id,
                            'reportageId' => $request->get_param('reportageId'),
                            'status'      => $new_status,
+                       ]);
+    }
+
+    /**
+     * @param \WP_REST_Request $request
+     *
+     * @return void
+     */
+    public function getPluginStatus(\WP_REST_Request $request) {
+        $this->success([
+                           'title'         => get_bloginfo('name'),
+                           'description'   => get_bloginfo('description'),
+                           'wpVersion'     => get_bloginfo('version'),
+                           'phpVersion'    => phpversion(),
+                           'pubjetVersion' => PUBJ()->getVersion(),
                        ]);
     }
 
