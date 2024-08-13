@@ -3,8 +3,11 @@
 namespace triboon\pubjet\includes;
 
 use triboon\pubjet\includes\enums\EnumOptions;
+use triboon\pubjet\includes\enums\EnumPostStatus;
 use triboon\pubjet\includes\enums\EnumPostTypes;
+use triboon\pubjet\includes\enums\EnumTransients;
 use triboon\pubjet\includes\traits\Utils;
+use triboon\pubjet\includes\widgets\Backlinks;
 
 defined('ABSPATH') || exit;
 
@@ -27,8 +30,45 @@ class Actions extends Singleton {
         add_action('pubjet_new_reportage', [$this, 'reportageCustomFields'], 15, 2);
         add_action('upgrader_process_complete', [$this, 'syncCategoriesAfterUpdate'], 15, 2);
         add_action('init', [$this, 'checkAndSendVersion'], 15);
+        add_action('init', [$this, 'publishFutureBacklinks'], 25);
         // Change Reportage Author
         add_action('pubjet_new_reportage', [$this, 'changeReportageAuthor'], 15, 2);
+        // Create database tables
+        add_action('admin_init', [$this, 'createDbTables'], 15);
+        // Register Widgets
+        add_action('widgets_init', [$this, 'registerWidgets'], 15);
+    }
+
+    /**
+     * @return void
+     */
+    public function registerWidgets() {
+        /**
+         * The pubjet_widgets_classes filter.
+         *
+         * @since 1.0.0
+         */
+        $instances = apply_filters('pubjet_widgets_instances', [
+            new Backlinks(),
+        ]);
+        foreach ($instances as $instance) {
+            register_widget($instance);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function createDbTables() {
+        /**
+         * The pubjet_database_tables filter.
+         *
+         * @since 1.0.0
+         */
+        $tables = DBLoader::getInstance()->getTables();
+        foreach ($tables as $table) {
+            $table->createTable();
+        }
     }
 
     /**
@@ -44,6 +84,29 @@ class Actions extends Singleton {
         $reportage_post              = get_post($reportage_post_id);
         $reportage_post->post_author = $author_id;
         wp_update_post($reportage_post);
+    }
+
+    /**
+     * @return void
+     */
+    public function publishFutureBacklinks() {
+        // بررسی اگر transient وجود دارد یا نه
+        if (false === get_transient(EnumTransients::PublishFutureBacklinks)) {
+            // ارسال ورژن افزونه به API
+            $futures_backlinks = pubjet_db()->backlinks->findFutures();
+            if ($futures_backlinks && is_array($futures_backlinks)) {
+                foreach ($futures_backlinks as $row_item) {
+                    // Notify Triboon
+                    pubjet_publish_backlink_request($row_item->backlink_id);
+                    // Update Database
+                    pubjet_db()->backlinks->update($row_item->id, [
+                        'status' => EnumPostStatus::Publish,
+                    ]);
+                }
+            }
+            // تنظیم transient برای 1 دقیقه
+            set_transient(EnumTransients::PublishFutureBacklinks, true, 60);
+        }
     }
 
     /**
@@ -261,7 +324,7 @@ class Actions extends Singleton {
             'pubjet_settings',
             [$this, 'pubjetSettingsPageCallback'],
             PUBJET_IMAGES_URL . 'pubjet-icon.svg',
-            100,
+            100
         );
     }
 

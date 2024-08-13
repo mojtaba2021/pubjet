@@ -6,7 +6,7 @@
     Author URI:  https://triboon.net
     License: GPL v2 or later
     License URI: http://www.gnu.org/licenses/gpl-2.0.txt
-    Version: 3.1.0
+    Version: 3.2.1
 */
 
 use triboon\pubjet\includes\enums\EnumOldOptions;
@@ -105,8 +105,6 @@ if (!class_exists('Pubjet')) {
             $this->defineConstant('PUBJET_CSS_URL', PUBJET_ASSETS_URL . "css/");
             $this->defineConstant('PUBJET_JS_URL', PUBJET_ASSETS_URL . "js/");
             $this->defineConstant('PUBJET_VERSION', $this->getScriptsVersion());
-            $this->defineConstant('PUBJET_CURRENT_DATE_TS', current_datetime()->format('U'));
-            $this->defineConstant('PUBJET_CURRENT_DATE_MYSQL', current_datetime()->format('Y-m-d H:i:s'));
             $this->defineConstant('PUBJET_DB_VERSION', '1.0.0');
             $this->defineConstant('PUBJET_API_ROOT', 'https://api.triboon.net');
             $this->defineConstant('PUBJET_TBL_NAME', 'pubjet_reportages');
@@ -275,6 +273,7 @@ if (!class_exists('Pubjet')) {
          * @author Triboon
          */
         public function onActivation() {
+            pubjet_send_plugin_status_to_api('active');
             $this->migrate();
             $this->trackActivationVersion();
             flush_rewrite_rules();

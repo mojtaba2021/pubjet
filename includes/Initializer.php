@@ -10,6 +10,7 @@ class Initializer extends Singleton {
      * @return void
      */
     public function init() {
+        DBLoader::getInstance();
         RestApi::getInstance();
         Actions::getInstance();
         Filters::getInstance();
@@ -19,6 +20,7 @@ class Initializer extends Singleton {
         Ajax::getInstance();
         Metaboxes::getInstance();
         RestApi::getInstance();
+        Shortcodes::getInstance();
         \triboon\pubjet\includes\notices\Initializer::getInstance();
     }
 

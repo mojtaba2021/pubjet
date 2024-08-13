@@ -31,3 +31,14 @@
     margin: 0 8px;
   }
 }
+
+.version {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  display: inline-flex;
+  background-color: black;
+  border-radius: 8px;
+  padding: 2px 8px;
+  font-size: 10px;
+}

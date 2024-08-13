@@ -73,7 +73,7 @@ class Metaboxes extends Singleton {
                 pubjet_isset_value($metabox['callback']),
                 pubjet_isset_value($metabox['screen'], 'post'),
                 pubjet_isset_value($metabox['context'], 'normal'),
-                pubjet_isset_value($metabox['priority'], 'low'),
+                pubjet_isset_value($metabox['priority'], 'low')
             );
         }
     }

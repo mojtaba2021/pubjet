@@ -38,7 +38,6 @@ trait Utils {
         }
         // Get from $_SERVER header
         if (!$nonce) {
-            pubjet_log(2);
             $nonce = pubjet_isset_value($_SERVER['HTTP_X_PUBJET_NONCE']);
         }
         if (!wp_verify_nonce($nonce, 'pubjet-nonce')) {
@@ -52,7 +51,7 @@ trait Utils {
      * @author Triboon
      */
     public function permissionError() {
-        $this->error('شما دسترسی لازم برای انجام این عملیات را ندارید.');
+        $this->error(pubjet__('permission-error'));
     }
 
     /**

@@ -10,7 +10,14 @@ import {QuestionCircleOutlined, SettingOutlined} from "@ant-design/icons";
 
 const Misc = props => {
     const [showAlert, setShowAlert] = useState(false);
-    const {uninstallCleanup, deleteFirstImage, manualApprove, metakeys = {}, repauthor = {}} = props.options;
+    const {
+              uninstallCleanup,
+              deleteFirstImage,
+              manualApprove,
+              useGoogleTranslate,
+              metakeys  = {},
+              repauthor = {}
+          } = props.options;
 
     /**
      * @since 1.0.0
@@ -55,6 +62,19 @@ const Misc = props => {
                         }}
                     />
                     <span>{pubjet__('delete-first-image')}</span>
+                </Space>}
+                />
+                <Form.Item className={styles.hideInput} label={<Space>
+                    <Switch
+                        size={'default'}
+                        checked={useGoogleTranslate}
+                        onChange={(checked) => {
+                            changeInput('useGoogleTranslate', checked);
+                            saveOptions();
+                            toggleSavedAlert();
+                        }}
+                    />
+                    <span>{pubjet__('use-google-translate')}</span>
                 </Space>}
                 />
                 <Form.Item htmlFor={''} className={styles.hideInput} label={<Space>

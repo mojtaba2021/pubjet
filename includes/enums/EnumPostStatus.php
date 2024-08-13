@@ -12,4 +12,5 @@ abstract class EnumPostStatus {
     const Sent    = 'sent';
     const Failed  = 'failed';
     const Trash   = 'trash';
+    const Future  = 'future';
 }

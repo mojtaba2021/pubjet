@@ -24,9 +24,11 @@ class RestApi extends Singleton {
      * @return void
      */
     public function registerRoutes() {
-        $this->registerRoute('reportage', 'createOrUpdateReportage', ['POST', 'PATCH']);
+        $this->registerRoute('reportage', 'createReportage', ['POST']);
+        $this->registerRoute('reportage/(?P<reportageId>\d+)', 'updateReportage', ['PUT']);
         $this->registerRoute('reportage/(?P<reportageId>\d+)', 'findReportage', ['GET']);
         $this->registerRoute('reportage/(?P<reportageId>\d+)', 'deleteReportage', ['DELETE']);
+        $this->registerRoute('backlink', 'createBacklink', ['POST']);
         $this->registerRoute('version', 'getPluginVersion', ['GET']);
         $this->registerRoute('status', 'getPluginStatus', ['GET']);
         $this->registerRoute('copyright/(?P<reportageId>\d+)/(?P<status>show|hide)', 'toggleCopyright', ['POST', 'PATCH']);
@@ -199,38 +201,135 @@ class RestApi extends Singleton {
     /**
      * @return void
      */
-    public function createOrUpdateReportage(\WP_REST_Request $request) {
-        $reportage = (object)$request->get_json_params();
+    public function updateReportage(\WP_REST_Request $request) {
+        try {
+            $reportage_id      = $request->get_param('reportageId');
+            $reportage_post_id = pubjet_find_post_id_by_reportage_id(pubjet_isset_value($reportage_id));
+            pubjet_log("====== Update Reportage Post ======");
+            pubjet_log('Reportage ID: ' . $reportage_id);
+            pubjet_log('Reportage Post ID: ' . $reportage_post_id);
 
-        pubjet_log($reportage);
-
-        $wp_post_id = ReportagePost::insert($reportage);
-
-        if (!$wp_post_id || is_wp_error($wp_post_id)) {
-            if (is_wp_error($wp_post_id)) {
-                pubjet_log('Error: ' . $wp_post_id->get_error_message());
+            if (empty($reportage_post_id)) {
+                $this->error(pubjet__('rep-not-found'), 404);
             }
-            $sentry_error = is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در فرایند ثبت نوشته رپورتاژ رخ داده است.';
-            pubjet_log_sentry($sentry_error, [
-                'reportage_id'    => pubjet_isset_value($reportage->id),
-                'reportage_title' => pubjet_isset_value($reportage->title),
-            ]);
-            wp_send_json_error($wp_post_id, 400);
-        }
 
-        if (!empty($reportage->wp_post_id)) {
-            // Update
-            pubjet_log('Post updated successfully. Post ID: ' . $reportage->wp_post_id);
-        } else {
-            // Insert
-            pubjet_log('Post created successfully. New Post ID: ' . $wp_post_id);
-        }
+            $post = get_post($reportage_post_id);
+            if ($post->post_type !== pubjet_post_type()) {
+                $this->error(pubjet__('rep-not-found'), 404);
+            }
 
-        // Success
-        $this->success([
-                           'postId'      => $wp_post_id,
-                           'reportageId' => $reportage->id,
-                       ]);
+            $reportage_post        = get_post($reportage_post_id);
+            $reportage             = (object)$request->get_json_params();
+            $reportage->wp_post_id = $reportage_post->ID;
+            pubjet_log($reportage);
+
+            $wp_post_id = ReportagePost::update($reportage);
+
+            if (!$wp_post_id || is_wp_error($wp_post_id)) {
+                if (is_wp_error($wp_post_id)) {
+                    pubjet_log('Error: ' . $wp_post_id->get_error_message());
+                }
+                $sentry_error = is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در فرایند ثبت نوشته رپورتاژ رخ داده است.';
+                pubjet_log_sentry($sentry_error, [
+                    'reportage_id'    => pubjet_isset_value($reportage->id),
+                    'reportage_title' => pubjet_isset_value($reportage->title),
+                ]);
+                wp_send_json_error($sentry_error, 400);
+            }
+
+            pubjet_log('====== Post updated successfully. ======');
+            // Success
+            $this->success(['postId' => $wp_post_id, 'reportageId' => $reportage->id,]);
+        } catch (\Exception $ex) {
+            $this->error($ex->getMessage(), 500);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function createBacklink(\WP_REST_Request $request) {
+        try {
+            $backlink_data = (object)$request->get_json_params();
+
+            /**
+             * The pubjet_should_create_backlink filter.
+             *
+             * @since 1.0.0
+             */
+            if (!apply_filters('pubjet_should_create_backlink', true, $backlink_data)) {
+                $this->error(pubjet__('error-occured'));
+            }
+
+            $backlink_status = 'publish';
+            $need_scheduling = pubjet_isset_value($backlink_data->publish_at);
+            if ($need_scheduling) {
+
+            }
+
+            /**
+             * The pubjet_before_create_backlink action.
+             *
+             * @since 1.0.0
+             */
+            do_action('pubjet_before_create_backlink', $backlink_data);
+
+            $new_backlink_id = pubjet_db()->backlinks->insert([
+                                                                  'text'       => sanitize_text_field($backlink_data->text),
+                                                                  'url'        => sanitize_text_field($backlink_data->url),
+                                                                  'position'   => sanitize_text_field($backlink_data->position),
+                                                                  'expired_at' => sanitize_text_field($backlink_data->position),
+                                                              ]);
+
+            /**
+             * The pubjet_after_create_backlink action.
+             *
+             * @since 1.0.0
+             */
+            do_action('pubjet_after_create_backlink', $backlink_data);
+
+            $this->success(['rowId' => $new_backlink_id]);
+        } catch (\Exception $ex) {
+            $this->error($ex->getMessage(), 500);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function createReportage(\WP_REST_Request $request) {
+        try {
+            $reportage = (object)$request->get_json_params();
+
+            pubjet_log($reportage);
+
+            $wp_post_id = ReportagePost::insert($reportage);
+
+            if (!$wp_post_id || is_wp_error($wp_post_id)) {
+                if (is_wp_error($wp_post_id)) {
+                    pubjet_log('Error: ' . $wp_post_id->get_error_message());
+                }
+                $sentry_error = is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در فرایند ثبت نوشته رپورتاژ رخ داده است.';
+                pubjet_log_sentry($sentry_error, [
+                    'reportage_id'    => pubjet_isset_value($reportage->id),
+                    'reportage_title' => pubjet_isset_value($reportage->title),
+                ]);
+                wp_send_json_error($sentry_error, 400);
+            }
+
+            if (!empty($reportage->wp_post_id)) {
+                // Update
+                pubjet_log('Post updated successfully. Post ID: ' . $reportage->wp_post_id);
+            } else {
+                // Insert
+                pubjet_log('Post created successfully. New Post ID: ' . $wp_post_id);
+            }
+
+            // Success
+            $this->success(['postId' => $wp_post_id, 'reportageId' => $reportage->id,]);
+        } catch (\Exception $ex) {
+            wp_send_json_error($ex->getMessage(), 400);
+        }
     }
 
     /**

@@ -1,7 +1,7 @@
 import React from 'react';
 import BaseComponent from "../../components/BaseComponent/BaseComponent";
 import {connect} from "trim-redux";
-import {findEndpointUrl, getAxios, getSecurityNonce, pubjet__} from "../../../shared/scripts/utils";
+import {getAdminAjaxUrl, getAxios, getSecurityNonce, pubjet__} from "../../../shared/scripts/utils";
 import {Alert, Button} from "antd";
 import styles from './SyncCategories.module.scss';
 import WPCategoriesTree from "../../components/WPCategoriesTree/WPCategoriesTree";
@@ -48,7 +48,7 @@ class SyncCategories extends BaseComponent {
     handleSync = () => {
         const {categories} = this.state;
         this.setState({error: false, syncing: true}, () => {
-            axios.post(findEndpointUrl(), {
+            axios.post(getAdminAjaxUrl(), {
                 action    : 'pubjet-sync-categories',
                 categories: Array.isArray(categories) ? categories.join(',') : '',
                 security  : getSecurityNonce(),

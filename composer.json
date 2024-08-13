@@ -13,6 +13,12 @@
     ],
     "require": {
         "statickidz/php-google-translate-free": "^1.2",
-        "sentry/sentry": "^4.7"
+        "sentry/sentry": "^4.7",
+        "symfony/options-resolver": "^4.4"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
     }
 }

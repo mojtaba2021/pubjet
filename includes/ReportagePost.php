@@ -101,8 +101,9 @@ class ReportagePost extends Singleton {
 
         pubjet_log('================== Insert ===================');
         if ($reportage->wp_post_id = self::reportage_exists($reportage->id)) {
-            pubjet_log('==================== Updating ===================');
-            return self::update($reportage);
+//            pubjet_log('==================== Updating ===================');
+//            return self::update($reportage);
+            return new \WP_Error('reportage-exists', 'رپورتاژ قبلا در رسانه منتشر شده است و امکان ثبت مجدد آن نیست');
         }
 
         $def_category = self::findReportageCategory($reportage);
@@ -164,7 +165,7 @@ class ReportagePost extends Singleton {
                 'reportage_id'    => $reportage->id,
                 'reportage_title' => $reportage->title,
             ]);
-            return false;
+            return new \WP_Error('insert-reportage', $post_id->get_error_message());
         }
 
         // =================== Success ===================
@@ -223,10 +224,16 @@ class ReportagePost extends Singleton {
      * @return string
      */
     public static function get_post_name($reportage) {
+        global $pubjet_settings;
         $post_name = $reportage->title;
-        $trans     = new GoogleTranslate();
-        $post_name = $trans->translate('fa', 'en', $reportage->title);
-        return sanitize_title_with_dashes($post_name, '', 'save');
+        // Use Google Translate service for translating post title
+        $use_google_translate = pubjet_isset_value($pubjet_settings['useGoogleTranslate']);
+        if ($use_google_translate) {
+            $trans     = new GoogleTranslate();
+            $post_name = $trans->translate('fa', 'en', $reportage->title);
+            return sanitize_title_with_dashes($post_name, '', 'save');
+        }
+        return false;
     }
 
     public static function nomalize_html($post_content) {

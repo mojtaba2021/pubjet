@@ -1,6 +1,7 @@
 <?php
 
 use Sentry\State\Scope;
+use triboon\pubjet\includes\DBLoader;
 use triboon\pubjet\includes\enums\EnumHttpMethods;
 use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumOptions;
@@ -115,7 +116,7 @@ function pubjet_api_success($data = []) {
  * @return array|bool[]|mixed[]|string[]
  * @since 3.3.4
  */
-function pubjet_ajax_error($error = '', $args = []) {
+function pubjet_ajax_error($error = '', $status_code = 403) {
     if (is_wp_error($error)) {
         $error = $error->get_error_messages();
     } else {
@@ -126,7 +127,7 @@ function pubjet_ajax_error($error = '', $args = []) {
     if (is_array($error) && count($error) == 1) {
         $error = reset($error);
     }
-    wp_send_json(array_merge(['success' => false, 'error' => $error,], $args));
+    wp_send_json(['success' => false, 'error' => $error,], $status_code);
 }
 
 /**
@@ -189,7 +190,7 @@ function pubjet_now_ts() {
  * @return string
  */
 function pubjet_now_myql() {
-    return PUBJET_CURRENT_DATE_MYSQL;
+    return current_time('mysql');
 }
 
 /**
@@ -838,84 +839,92 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
-        'username'                 => esc_html__('Username', 'pubjet'),
-        'displayname'              => esc_html__('Display Name', 'pubjet'),
-        'author-name'              => esc_html__('Author Name', 'pubjet'),
-        'manual-approve'           => esc_html__('Manual Approve', 'pubjet'),
-        'manual-approve-hints'     => esc_html__('Enable this option if you want to review the reportage manually after review', 'pubjet'),
-        'pmk-hints'                => esc_html__('This feature is useful when you want to make Pubjet compatible with other plugins that perform actions on the text menu. By using this feature, users can easily add specific information and metadata to reports without the need for fundamental changes in other plugins and benefit from better integration and coordination between plugins.', 'pubjet'),
-        'save'                     => esc_html__('Save', 'pubjet'),
-        'delete'                   => esc_html__('Delete', 'pubjet'),
-        'actions'                  => esc_html__('Actions', 'pubjet'),
-        'keyname'                  => esc_html__('Key Name', 'pubjet'),
-        'keyvalue'                 => esc_html__('Key Value', 'pubjet'),
-        'define-post-metakeys'     => esc_html__('Defining Custom Metakeys for Posts', 'pubjet'),
-        'add-metakey'              => esc_html__('Add Metakey', 'pubjet'),
-        'metakeys'                 => esc_html__('Metakeys', 'pubjet'),
-        'delete-first-image'       => esc_html__('Delete First Image', 'pubjet'),
-        'align-center-images'      => esc_html__('Align Center Images', 'pubjet'),
-        'align-center-images-help' => esc_html__('If you want all the images in the reports to be displayed in the middle of the fold, activate this option. Please note that this option is only applied to reports and other writings are ignored.', 'pubjet'),
-        'title'                    => esc_html__('Plan Name', 'pubjet'),
-        'category'                 => esc_html__('Category', 'pubjet'),
-        'pricing-plans'            => esc_html__('Pricing Plans', 'pubjet'),
-        'plans-categories'         => esc_html__('Plans Categories', 'pubjet'),
-        'check-token'              => esc_html__('Check Token', 'pubjet'),
-        'default-category'         => esc_html__('Default Category', 'pubjet'),
-        'triboon-token'            => esc_html__('Access Token', 'pubjet'),
-        'congratulation'           => esc_html__('Congratulations !', 'pubjet'),
-        'valid-token'              => esc_html__('The Access Token is Valid', 'pubjet'),
-        'invalid-token'            => esc_html__('The Access Token is Invalid', 'pubjet'),
-        'pubjet'                   => esc_html__('Pubjet', 'pubjet'),
-        'reportage'                => esc_html__('Reportage', 'pubjet'),
-        'enable'                   => esc_html__('Enable', 'pubjet'),
-        'disable'                  => esc_html__('Disable', 'pubjet'),
-        'copy'                     => esc_html__('Copy', 'pubjet'),
-        'copied'                   => esc_html__('Copied !', 'pubjet'),
-        'uninstall'                => esc_html__('Clearing Plugin Data After Deletion', 'pubjet'),
-        'no'                       => esc_html__('No', 'pubjet'),
-        'yes'                      => esc_html__('Yes', 'pubjet'),
-        'delete-log'               => esc_html__('Delete Log', 'pubjet'),
-        'delete-log-confirm'       => esc_html__('Are you sure to delete the log file?', 'pubjet'),
-        'reload'                   => esc_html__('Refresh', 'pubjet'),
-        'refresh-data'             => esc_html__('Refresh Data', 'pubjet'),
-        'error-occured'            => esc_html__('An error has occurred. Try again', 'pubjet'),
-        'post-not-found'           => esc_html__('Post not found', 'pubjet'),
-        'rep-not-found'            => esc_html__('Reportage not found', 'pubjet'),
-        'post-not-reportage'       => esc_html__('Unfortunately, the operation was not done. This post is not a reportage', 'pubjet'),
-        'delete-permission-limit'  => esc_html__('Error deleting file. File deletion access is restricted from the host side', 'pubjet'),
-        'missing-params'           => esc_html__('Some required parameters were not sent with the request', 'pubjet'),
-        'permission-error'         => esc_html__('You do not have access to perform this operation', 'pubjet'),
-        'missing-token'            => esc_html__('Please enter the access token in the pubjet plugin settings menu', 'pubjet'),
-        'invalid-http-method'      => esc_html__('The http request method is wrong', 'pubjet'),
-        'empty-reportage-content'  => esc_html__('The content of the reportage is empty', 'pubjet'),
-        'general'                  => esc_html__('General', 'pubjet'),
-        'debug'                    => esc_html__('Debugging', 'pubjet'),
-        'enable-debugging'         => esc_html__('Enable Debugging', 'pubjet'),
-        'advanced'                 => esc_html__('Advanced', 'pubjet'),
-        'saved'                    => esc_html__('Saved !', 'pubjet'),
-        'reportage-data'           => esc_html__('Pubjet :: Reportage Data', 'pubjet'),
-        'reportage-options'        => esc_html__('Pubjet :: Reportage Options', 'pubjet'),
-        'enable-nofollow'          => esc_html__('Enable NoFollow Links', 'pubjet'),
-        'pwait'                    => esc_html__('Please Wait ...', 'pubjet'),
-        'modules'                  => esc_html__('Modules', 'pubjet'),
-        'curl-module'              => esc_html__('cUrl', 'pubjet'),
-        'openssl-module'           => esc_html__('OpenSSL', 'pubjet'),
-        'required-modules'         => esc_html__('Required Modules', 'pubjet'),
-        'required-modules-help'    => esc_html__('Pubjet plugin requires the activation of the following modules for its proper functioning. If any of the following items are not active, ask your hosting support to activate the inactive items for you.', 'pubjet'),
-        'check-now'                => esc_html__('Check  Now', 'pubjet'),
-        'update-settings'          => esc_html__('Update Settings', 'pubjet'),
-        'settings-saved'           => esc_html__('Settings saved successfully', 'pubjet'),
-        'gateway-error'            => esc_html__('Gateway 504 error', 'pubjet'),
-        'pubjet-token'             => esc_html__('Pubjet Token', 'pubjet'),
-        'enter-token-desc'         => esc_html__('Pubjet plugin needs an access token to work properly. Please enter the access token in the plugin settings.', 'pubjet'),
-        'remindme-later'           => esc_html__('Remindme Later', 'pubjet'),
-        'permanent-hide'           => esc_html__('Permanent Hide', 'pubjet'),
-        'select-categories-hints'  => esc_html__('By default, all your categories are sent to Triboon to determine the reportage category correctly. If you only want the reportage to be published in certain categories, select them in this section.', 'pubjet'),
-        'categories'               => esc_html__('Categories', 'pubjet'),
-        'sync-categories'          => esc_html__('Sync Categories', 'pubjet'),
-        'sync'                     => esc_html__('Synchronize', 'pubjet'),
-        'select-rep-author'        => esc_html__('Select Reportage Post Author', 'pubjet'),
-        'select-rep-author-hints'  => esc_html__('By default, when Pabjet publishes a reportage on your website, it uses the account of the site administrator as the author of the reportage, if you want to use another author, select it.', 'pubjet'),
+        'widget-title'               => esc_html__('Widget Title', 'pubjet'),
+        'all-backlinks'              => esc_html__('All Backlinks', 'pubjet'),
+        'backlinks-position'         => esc_html__('Backlinks Position', 'pubjet'),
+        'pubjet-backlinks'           => esc_html__('Pubjet Backlinks', 'pubjet'),
+        'pubjet-backlinks-hints'     => esc_html__('Using this widget, you can display backlinks in different parts of your website', 'pubjet'),
+        'use-google-translate'       => esc_html__('Use Google Translate for English Slug', 'pubjet'),
+        'use-google-translate-hints' => esc_html__('By default, the URL of the reportage post is generated from the reportage title in Persian, if you want to use the Google Translate service to English the slug and the URL, activate this option. Please note that activating this option will reduce the speed of publishing the reportage.', 'pubjet'),
+        'version'                    => esc_html__('Version', 'pubjet'),
+        'username'                   => esc_html__('Username', 'pubjet'),
+        'displayname'                => esc_html__('Display Name', 'pubjet'),
+        'author-name'                => esc_html__('Author Name', 'pubjet'),
+        'manual-approve'             => esc_html__('Manual Approve', 'pubjet'),
+        'manual-approve-hints'       => esc_html__('Enable this option if you want to review the reportage manually after review', 'pubjet'),
+        'pmk-hints'                  => esc_html__('This feature is useful when you want to make Pubjet compatible with other plugins that perform actions on the text menu. By using this feature, users can easily add specific information and metadata to reports without the need for fundamental changes in other plugins and benefit from better integration and coordination between plugins.', 'pubjet'),
+        'save'                       => esc_html__('Save', 'pubjet'),
+        'delete'                     => esc_html__('Delete', 'pubjet'),
+        'actions'                    => esc_html__('Actions', 'pubjet'),
+        'keyname'                    => esc_html__('Key Name', 'pubjet'),
+        'keyvalue'                   => esc_html__('Key Value', 'pubjet'),
+        'define-post-metakeys'       => esc_html__('Defining Custom Metakeys for Posts', 'pubjet'),
+        'add-metakey'                => esc_html__('Add Metakey', 'pubjet'),
+        'metakeys'                   => esc_html__('Metakeys', 'pubjet'),
+        'delete-first-image'         => esc_html__('Delete First Image', 'pubjet'),
+        'align-center-images'        => esc_html__('Align Center Images', 'pubjet'),
+        'align-center-images-help'   => esc_html__('If you want all the images in the reports to be displayed in the middle of the fold, activate this option. Please note that this option is only applied to reports and other writings are ignored.', 'pubjet'),
+        'title'                      => esc_html__('Plan Name', 'pubjet'),
+        'category'                   => esc_html__('Category', 'pubjet'),
+        'pricing-plans'              => esc_html__('Pricing Plans', 'pubjet'),
+        'plans-categories'           => esc_html__('Plans Categories', 'pubjet'),
+        'check-token'                => esc_html__('Check Token', 'pubjet'),
+        'default-category'           => esc_html__('Default Category', 'pubjet'),
+        'triboon-token'              => esc_html__('Access Token', 'pubjet'),
+        'congratulation'             => esc_html__('Congratulations !', 'pubjet'),
+        'valid-token'                => esc_html__('The Access Token is Valid', 'pubjet'),
+        'invalid-token'              => esc_html__('The Access Token is Invalid', 'pubjet'),
+        'pubjet'                     => esc_html__('Pubjet', 'pubjet'),
+        'reportage'                  => esc_html__('Reportage', 'pubjet'),
+        'enable'                     => esc_html__('Enable', 'pubjet'),
+        'disable'                    => esc_html__('Disable', 'pubjet'),
+        'copy'                       => esc_html__('Copy', 'pubjet'),
+        'copied'                     => esc_html__('Copied !', 'pubjet'),
+        'uninstall'                  => esc_html__('Clearing Plugin Data After Deletion', 'pubjet'),
+        'no'                         => esc_html__('No', 'pubjet'),
+        'yes'                        => esc_html__('Yes', 'pubjet'),
+        'delete-log'                 => esc_html__('Delete Log', 'pubjet'),
+        'delete-log-confirm'         => esc_html__('Are you sure to delete the log file?', 'pubjet'),
+        'reload'                     => esc_html__('Refresh', 'pubjet'),
+        'refresh-data'               => esc_html__('Refresh Data', 'pubjet'),
+        'error-occured'              => esc_html__('An error has occurred. Try again', 'pubjet'),
+        'post-not-found'             => esc_html__('Post not found', 'pubjet'),
+        'rep-not-found'              => esc_html__('Reportage not found', 'pubjet'),
+        'post-not-reportage'         => esc_html__('Unfortunately, the operation was not done. This post is not a reportage', 'pubjet'),
+        'delete-permission-limit'    => esc_html__('Error deleting file. File deletion access is restricted from the host side', 'pubjet'),
+        'missing-params'             => esc_html__('Some required parameters were not sent with the request', 'pubjet'),
+        'permission-error'           => esc_html__('You do not have access to perform this operation', 'pubjet'),
+        'missing-token'              => esc_html__('Please enter the access token in the pubjet plugin settings menu', 'pubjet'),
+        'invalid-http-method'        => esc_html__('The http request method is wrong', 'pubjet'),
+        'empty-reportage-content'    => esc_html__('The content of the reportage is empty', 'pubjet'),
+        'general'                    => esc_html__('General', 'pubjet'),
+        'debug'                      => esc_html__('Debugging', 'pubjet'),
+        'enable-debugging'           => esc_html__('Enable Debugging', 'pubjet'),
+        'advanced'                   => esc_html__('Advanced', 'pubjet'),
+        'saved'                      => esc_html__('Saved !', 'pubjet'),
+        'reportage-data'             => esc_html__('Pubjet :: Reportage Data', 'pubjet'),
+        'reportage-options'          => esc_html__('Pubjet :: Reportage Options', 'pubjet'),
+        'enable-nofollow'            => esc_html__('Enable NoFollow Links', 'pubjet'),
+        'pwait'                      => esc_html__('Please Wait ...', 'pubjet'),
+        'modules'                    => esc_html__('Modules', 'pubjet'),
+        'curl-module'                => esc_html__('cUrl', 'pubjet'),
+        'openssl-module'             => esc_html__('OpenSSL', 'pubjet'),
+        'required-modules'           => esc_html__('Required Modules', 'pubjet'),
+        'required-modules-help'      => esc_html__('Pubjet plugin requires the activation of the following modules for its proper functioning. If any of the following items are not active, ask your hosting support to activate the inactive items for you.', 'pubjet'),
+        'check-now'                  => esc_html__('Check  Now', 'pubjet'),
+        'update-settings'            => esc_html__('Update Settings', 'pubjet'),
+        'settings-saved'             => esc_html__('Settings saved successfully', 'pubjet'),
+        'gateway-error'              => esc_html__('Gateway 504 error', 'pubjet'),
+        'pubjet-token'               => esc_html__('Pubjet Token', 'pubjet'),
+        'enter-token-desc'           => esc_html__('Pubjet plugin needs an access token to work properly. Please enter the access token in the plugin settings.', 'pubjet'),
+        'remindme-later'             => esc_html__('Remindme Later', 'pubjet'),
+        'permanent-hide'             => esc_html__('Permanent Hide', 'pubjet'),
+        'select-categories-hints'    => esc_html__('By default, all your categories are sent to Triboon to determine the reportage category correctly. If you only want the reportage to be published in certain categories, select them in this section.', 'pubjet'),
+        'categories'                 => esc_html__('Categories', 'pubjet'),
+        'sync-categories'            => esc_html__('Sync Categories', 'pubjet'),
+        'sync'                       => esc_html__('Synchronize', 'pubjet'),
+        'select-rep-author'          => esc_html__('Select Reportage Post Author', 'pubjet'),
+        'select-rep-author-hints'    => esc_html__('By default, when Pabjet publishes a reportage on your website, it uses the account of the site administrator as the author of the reportage, if you want to use another author, select it.', 'pubjet'),
     ]);
 }
 
@@ -1111,9 +1120,10 @@ function pubjet_notify_version($version = false, $update = false) {
  */
 function pubjet_request($url, $method = 'GET', $headers = [], $body = [], $pargs = []) {
     $args = [
-        'method'  => $method,
-        'headers' => $headers,
-        'body'    => $body,
+        'method'    => $method,
+        'headers'   => $headers,
+        'body'      => $body,
+        'sslverify' => false,
     ];
 
     if ($pargs) {
@@ -1291,9 +1301,6 @@ function pubjet_sync_categories() {
     ],                         json_encode(['categories' => $categories,]), ['data_format' => 'body',]);
 
     pubjet_log($response);
-
-    pubjet_update_setting('lastCategoriesSyncTime', pubjet_now_myql());
-
     return $response;
 }
 
@@ -1319,6 +1326,7 @@ function pubjet_default_settings() {
         'lastCheckingMissedPosts' => '',
         'pricingPlans'            => [],
         'manualApprove'           => false,
+        'useGoogleTranslate'      => false,
     ]);
 }
 
@@ -1437,5 +1445,51 @@ function pubjet_send_plugin_status_to_api($status) {
     }
     $result = wp_remote_retrieve_body($response);
     pubjet_log($result);
+    return $result;
+}
+
+
+/**
+ * @param $request_date
+ *
+ * @return string|WP_Error
+ */
+function pubjet_find_mysql_date_by_request_date($request_date) {
+    try {
+        $dt = new DateTime($request_date);
+        $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
+        return $dt->format('Y-m-d H:i:s');
+    } catch (\Exception $ex) {
+        return new WP_Error('error-occured', $ex->getMessage());
+    }
+}
+
+/**
+ * @return DBLoader
+ */
+function pubjet_db() {
+    return DBLoader::getInstance();
+}
+
+/**
+ * @param $backlink_id
+ *
+ * @return array|WP_Error
+ */
+function pubjet_publish_backlink_request($backlink_id) {
+    $url = pubjet_api_root() . '/external/wp/backlinks/' . $backlink_id . '/publish';
+    pubjet_log($url);
+
+    if (pubjet_is_dev_mode()) {
+        return new WP_Error('development-mode', pubjet__('dev-mode'));
+    }
+
+    $result = pubjet_request($url, 'POST', [
+        'Content-Type'  => 'application/json',
+        'Authorization' => 'api-key ' . pubjet_token(),
+    ],                       json_encode([]), ['data_format' => 'body']);
+
+    pubjet_log($result);
+
     return $result;
 }
