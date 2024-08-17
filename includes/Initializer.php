@@ -10,6 +10,7 @@ class Initializer extends Singleton {
      * @return void
      */
     public function init() {
+        Backlink::getInstance();
         DBLoader::getInstance();
         RestApi::getInstance();
         Actions::getInstance();

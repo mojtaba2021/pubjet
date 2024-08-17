@@ -2,6 +2,8 @@
 
 namespace triboon\pubjet\includes;
 
+use triboon\pubjet\includes\enums\EnumBacklinkPosition;
+
 defined('ABSPATH') || exit;
 
 class Shortcodes extends Singleton {
@@ -18,10 +20,10 @@ class Shortcodes extends Singleton {
      */
     public function renderBacklinks($shortcode_atts) {
         $shortcode_atts = pubjet_parse_args($shortcode_atts, [
-            'position' => 'all',
-            'style'    => 'vertical',
+            'position' => EnumBacklinkPosition::HeaderAll,
+            'style'    => 'horizontal',
         ]);
-        $backlinks      = pubjet_db()->backlinks->findActives();
+        $backlinks      = pubjet_db()->backlinks->findActives($shortcode_atts['position']);
         if (!$backlinks) {
             return '';
         }

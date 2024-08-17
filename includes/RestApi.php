@@ -249,49 +249,15 @@ class RestApi extends Singleton {
      * @return void
      */
     public function createBacklink(\WP_REST_Request $request) {
-        try {
-            $backlink_data = (object)$request->get_json_params();
-
-            /**
-             * The pubjet_should_create_backlink filter.
-             *
-             * @since 1.0.0
-             */
-            if (!apply_filters('pubjet_should_create_backlink', true, $backlink_data)) {
-                $this->error(pubjet__('error-occured'));
-            }
-
-            $backlink_status = 'publish';
-            $need_scheduling = pubjet_isset_value($backlink_data->publish_at);
-            if ($need_scheduling) {
-
-            }
-
-            /**
-             * The pubjet_before_create_backlink action.
-             *
-             * @since 1.0.0
-             */
-            do_action('pubjet_before_create_backlink', $backlink_data);
-
-            $new_backlink_id = pubjet_db()->backlinks->insert([
-                                                                  'text'       => sanitize_text_field($backlink_data->text),
-                                                                  'url'        => sanitize_text_field($backlink_data->url),
-                                                                  'position'   => sanitize_text_field($backlink_data->position),
-                                                                  'expired_at' => sanitize_text_field($backlink_data->position),
-                                                              ]);
-
-            /**
-             * The pubjet_after_create_backlink action.
-             *
-             * @since 1.0.0
-             */
-            do_action('pubjet_after_create_backlink', $backlink_data);
-
-            $this->success(['rowId' => $new_backlink_id]);
-        } catch (\Exception $ex) {
-            $this->error($ex->getMessage(), 500);
-        }
+        $backlink_json_data = (object)$request->get_json_params();
+        /**
+         * The pubjet_create_backlink action.
+         *
+         * @hooked [Backlink, 'createBacklink'] - 15
+         *
+         * @since 1.0.0
+         */
+        do_action('pubjet_create_backlink', $backlink_json_data);
     }
 
     /**

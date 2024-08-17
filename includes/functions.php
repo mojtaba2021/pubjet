@@ -839,6 +839,15 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
+        'footer_inner'               => esc_html__('Footer Inner', 'pubjet'),
+        'footer_main'                => esc_html__('Footer Main', 'pubjet'),
+        'footer_all'                 => esc_html__('Footer All', 'pubjet'),
+        'sidebar_inner'              => esc_html__('Sidebar Inner', 'pubjet'),
+        'sidebar_main'               => esc_html__('Sidebar Main', 'pubjet'),
+        'sidebar_all'                => esc_html__('Sidebar All', 'pubjet'),
+        'header_inner'               => esc_html__('Header Inner', 'pubjet'),
+        'header_main'                => esc_html__('Header Main', 'pubjet'),
+        'header_all'                 => esc_html__('Header All', 'pubjet'),
         'widget-title'               => esc_html__('Widget Title', 'pubjet'),
         'all-backlinks'              => esc_html__('All Backlinks', 'pubjet'),
         'backlinks-position'         => esc_html__('Backlinks Position', 'pubjet'),
@@ -1471,6 +1480,18 @@ function pubjet_db() {
     return DBLoader::getInstance();
 }
 
+function pubjet_http_json_request_headers() {
+    /*
+     * The pubjet_http_json_requests filter.
+     *
+     * @since 1.0.0
+     */
+    return apply_filters('pubjet_http_json_requests', [
+        'Content-Type'  => 'application/json',
+        'Authorization' => 'api-key ' . pubjet_token(),
+    ]);
+}
+
 /**
  * @param $backlink_id
  *
@@ -1484,10 +1505,7 @@ function pubjet_publish_backlink_request($backlink_id) {
         return new WP_Error('development-mode', pubjet__('dev-mode'));
     }
 
-    $result = pubjet_request($url, 'POST', [
-        'Content-Type'  => 'application/json',
-        'Authorization' => 'api-key ' . pubjet_token(),
-    ],                       json_encode([]), ['data_format' => 'body']);
+    $result = pubjet_request($url, 'POST', pubjet_http_json_request_headers(), json_encode([]), ['data_format' => 'body']);
 
     pubjet_log($result);
 

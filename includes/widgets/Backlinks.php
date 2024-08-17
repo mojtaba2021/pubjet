@@ -50,7 +50,33 @@ class Backlinks extends \WP_Widget {
         echo $args['after_widget'];
     }
 
-    // Function to handle the backend widget form
+    /**
+     * @return array
+     */
+    public function getPositionOptions() {
+        /**
+         * The pubjet_backlink_positions filter.
+         *
+         * @since 1.0.0
+         */
+        return apply_filters('pubjet_backlink_positions', [
+            'footer_inner',
+            'footer_main',
+            'footer_all',
+            'sidebar_inner',
+            'sidebar_main',
+            'sidebar_all',
+            'header_inner',
+            'header_main',
+            'header_all',
+        ]);
+    }
+
+    /**
+     * @param $instance
+     *
+     * @return void
+     */
     public function form($instance) {
         // Default values
         $title    = !empty($instance['title']) ? $instance['title'] : '';
@@ -71,15 +97,16 @@ class Backlinks extends \WP_Widget {
                     id="<?php echo esc_attr($this->get_field_id('position')); ?>"
                     name="<?php echo esc_attr($this->get_field_name('position')); ?>"
             >
-                <option value="all" <?php selected($position, 'all'); ?>>
-                    <?php echo pubjet__('all-backlinks'); ?>
-                </option>
-                <option value="option2" <?php selected($position, 'option2'); ?>>
+                <?php
+                foreach ($this->getPositionOptions() as $option) {
+                    ?>
+                    <option value="<?php echo esc_attr($option); ?>" <?php selected($position, $option); ?>>
+                        <?php echo pubjet__($option); ?>
+                    </option>
+                    <?php
+                }
+                ?>
 
-                </option>
-                <option value="option3" <?php selected($position, 'option3'); ?>>
-
-                </option>
             </select>
         </p>
         <?php

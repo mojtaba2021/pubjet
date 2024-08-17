@@ -55,6 +55,7 @@ class Backlinks extends DbTable {
         global $wpdb;
         $query  = "SELECT * FROM {$this->table_name} WHERE `status` = 'future' AND `publish_at` <= %s";
         $pquery = $wpdb->prepare($query, pubjet_now_myql());
+        pubjet_log($pquery);
         return $wpdb->get_results($pquery);
     }
 
@@ -124,9 +125,9 @@ class Backlinks extends DbTable {
 				`backlink_id`  VARCHAR(255) NOT NULL,
 				`text`         VARCHAR(255) NOT NULL,
 				`url` 		   TEXT NOT NULL,
-				`position` 	   TEXT NULL,
+				`position` 	   VARCHAR(32) NULL,
 				`nofollow` 	   TINYINT(1) DEFAULT '0',
-				`status` 	   VARCHAR(64) NULL,
+				`status` 	   VARCHAR(16) NULL,
 				`data` 	       TEXT NULL,
 				`created_at`   DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
 				`publish_at`   DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,

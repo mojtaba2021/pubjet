@@ -2,8 +2,8 @@
 
 namespace triboon\pubjet\includes;
 
+use triboon\pubjet\includes\enums\EnumBacklinkStatus;
 use triboon\pubjet\includes\enums\EnumOptions;
-use triboon\pubjet\includes\enums\EnumPostStatus;
 use triboon\pubjet\includes\enums\EnumPostTypes;
 use triboon\pubjet\includes\enums\EnumTransients;
 use triboon\pubjet\includes\traits\Utils;
@@ -94,13 +94,14 @@ class Actions extends Singleton {
         if (false === get_transient(EnumTransients::PublishFutureBacklinks)) {
             // ارسال ورژن افزونه به API
             $futures_backlinks = pubjet_db()->backlinks->findFutures();
+            pubjet_log($futures_backlinks);
             if ($futures_backlinks && is_array($futures_backlinks)) {
                 foreach ($futures_backlinks as $row_item) {
                     // Notify Triboon
                     pubjet_publish_backlink_request($row_item->backlink_id);
                     // Update Database
                     pubjet_db()->backlinks->update($row_item->id, [
-                        'status' => EnumPostStatus::Publish,
+                        'status' => EnumBacklinkStatus::Publish,
                     ]);
                 }
             }
