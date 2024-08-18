@@ -1026,6 +1026,10 @@ function pubjet_find_token_details($token) {
     ];
 
     $result = pubjet_request($url, EnumHttpMethods::GET, $headers);
+    pubjet_log('====== Check Token ======');
+    pubjet_log($headers);
+    pubjet_log($result);
+    pubjet_log('====== END Check Token ======');
 
     if (is_wp_error($result)) {
         return new \WP_Error('error', $result->get_error_message());
@@ -1498,14 +1502,17 @@ function pubjet_http_json_request_headers() {
  * @return array|WP_Error
  */
 function pubjet_publish_backlink_request($backlink_id) {
-    $url = pubjet_api_root() . '/external/wp/backlinks/' . $backlink_id . '/publish';
+    $url = pubjet_api_root() . '/external/wp/backlink/confirm';
     pubjet_log($url);
-
+    
     if (pubjet_is_dev_mode()) {
         return new WP_Error('development-mode', pubjet__('dev-mode'));
     }
 
-    $result = pubjet_request($url, 'POST', pubjet_http_json_request_headers(), json_encode([]), ['data_format' => 'body']);
+    $result = pubjet_request($url, 'POST', pubjet_http_json_request_headers(), json_encode([
+            'id' => $backlink_id,
+            'status' => 'publisher_published',
+    ]), ['data_format' => 'body']);
 
     pubjet_log($result);
 

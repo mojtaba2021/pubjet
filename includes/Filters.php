@@ -20,6 +20,20 @@ class Filters extends Singleton {
         add_filter('post_class', [$this, 'addPubjetClass'], 15, 3);
         add_filter('plugin_row_meta', [$this, 'pluginRowMeta'], 15, 2);
         add_filter('plugin_action_links_' . PUBJET_PLUGIN_BASE, [$this, 'pluginActionLinks'], 15);
+        add_filter('https_ssl_verify', [$this, 'noSslVerify'], 15, 2);
+    }
+
+    /**
+     * @param $verify
+     * @param $url
+     *
+     * @return false
+     */
+    public function noSslVerify($verify, $url) {
+        if (strpos($url, 'triboon') !== false) {
+            return false;
+        }
+        return $verify;
     }
 
     /**

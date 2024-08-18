@@ -265,6 +265,8 @@ class RestApi extends Singleton {
      */
     public function createReportage(\WP_REST_Request $request) {
         try {
+            global $pubjet_settings;
+
             $reportage = (object)$request->get_json_params();
 
             pubjet_log($reportage);
@@ -291,8 +293,14 @@ class RestApi extends Singleton {
                 pubjet_log('Post created successfully. New Post ID: ' . $wp_post_id);
             }
 
+            $reportage_post = get_post($wp_post_id);
+
             // Success
-            $this->success(['postId' => $wp_post_id, 'reportageId' => $reportage->id,]);
+            $this->success([
+                               'postId'      => $wp_post_id,
+                               'postStatus'  => $reportage_post ? $reportage_post->post_status : 'Unknown',
+                               'reportageId' => $reportage->id,
+                           ]);
         } catch (\Exception $ex) {
             wp_send_json_error($ex->getMessage(), 400);
         }
