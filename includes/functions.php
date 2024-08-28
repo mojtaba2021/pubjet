@@ -831,6 +831,25 @@ function pubjet_find_post_id_by_reportage_id($reportage_id) {
 }
 
 /**
+ * @return array
+ */
+function pubjet_plugin_status() {
+    /**
+     * The pubjet_plugin_status filter.
+     *
+     * @since 1.0.0
+     */
+    return apply_filters('pubjet_plugin_status', [
+        'title'         => get_bloginfo('name'),
+        'description'   => get_bloginfo('description'),
+        'wpVersion'     => get_bloginfo('version'),
+        'phpVersion'    => phpversion(),
+        'pubjetVersion' => PUBJ()->getVersion(),
+        'restUrl'       => trailingslashit(site_url()) . rest_get_url_prefix(),
+    ]);
+}
+
+/**
  * @since 1.0.0
  */
 function pubjet_strings() {

@@ -182,13 +182,7 @@ class RestApi extends Singleton {
      * @return void
      */
     public function getPluginStatus(\WP_REST_Request $request) {
-        $this->success([
-                           'title'         => get_bloginfo('name'),
-                           'description'   => get_bloginfo('description'),
-                           'wpVersion'     => get_bloginfo('version'),
-                           'phpVersion'    => phpversion(),
-                           'pubjetVersion' => PUBJ()->getVersion(),
-                       ]);
+        $this->success(pubjet_plugin_status());
     }
 
     /**

@@ -6,6 +6,7 @@ namespace triboon\pubjet\includes\enums;
 defined('ABSPATH') || exit;
 
 class EnumActions {
-    const CreateReportage = 'creportage';
-    const CreateBacklink  = 'cbacklink';
+    const CreateReportage  = 'creportage';
+    const CreateBacklink   = 'cbacklink';
+    const PubjetStatus = 'pubjet-status';
 }

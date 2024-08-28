@@ -43,7 +43,19 @@ class Actions extends Singleton {
         // Process reportage by query string
         add_action('init', [$this, 'createReportageByActionQueryString'], 15);
         add_action('init', [$this, 'createBacklinkByActionQueryString'], 15);
+        add_action('init', [$this, 'showPluginStatus'], 15);
         add_action('pubjet_create_reportage', [$this, 'processCreateReportage'], 15);
+    }
+
+    /**
+     * @return void
+     */
+    public function showPluginStatus() {
+        $action = $this->get('action');
+        if (EnumActions::PubjetStatus !== $action) {
+            return;
+        }
+        $this->success(pubjet_plugin_status());
     }
 
     /**
