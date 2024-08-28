@@ -840,8 +840,12 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
+        'horizontal'                 => esc_html__('Horizontal', 'pubjet'),
+        'vertical'                   => esc_html__('Vertical', 'pubjet'),
         'pbqs'                       => esc_html__('Process Data By Query String', 'pubjet'),
         'pbqs-hints'                 => esc_html__('By default, Pabjet uses the REST method to process information. If for any reason this method does not work and you want to use the old method of data processing, enable this option', 'pubjet'),
+        'style'                      => esc_html__('Style', 'pubjet'),
+        'backlinks'                  => esc_html__('Backlinks', 'pubjet'),
         'all-backlinks'              => esc_html__('All Backlinks', 'pubjet'),
         'footer_inner'               => esc_html__('Footer Inner', 'pubjet'),
         'footer_main'                => esc_html__('Footer Main', 'pubjet'),
@@ -1474,6 +1478,28 @@ function pubjet_log_sentry($message, $extra = []) {
 function pubjet_should_publish_reportage_manually() {
     global $pubjet_settings;
     return pubjet_isset_value($pubjet_settings['manualApprove']);
+}
+
+/**
+ * @return array
+ */
+function pubjet_find_backlink_positions() {
+    /**
+     * The pubjet_backlink_positions filter.
+     *
+     * @since 1.0.0
+     */
+    return apply_filters('pubjet_backlink_positions', [
+        'footer_inner',
+        'footer_main',
+        'footer_all',
+        'sidebar_inner',
+        'sidebar_main',
+        'sidebar_all',
+        'header_inner',
+        'header_main',
+        'header_all',
+    ]);
 }
 
 /**

@@ -51,28 +51,6 @@ class Backlinks extends \WP_Widget {
     }
 
     /**
-     * @return array
-     */
-    public function getPositionOptions() {
-        /**
-         * The pubjet_backlink_positions filter.
-         *
-         * @since 1.0.0
-         */
-        return apply_filters('pubjet_backlink_positions', [
-            'footer_inner',
-            'footer_main',
-            'footer_all',
-            'sidebar_inner',
-            'sidebar_main',
-            'sidebar_all',
-            'header_inner',
-            'header_main',
-            'header_all',
-        ]);
-    }
-
-    /**
      * @param $instance
      *
      * @return void
@@ -101,7 +79,7 @@ class Backlinks extends \WP_Widget {
                     <?php echo pubjet__('all-backlinks'); ?>
                 </option>
                 <?php
-                foreach ($this->getPositionOptions() as $option) {
+                foreach (pubjet_find_backlink_positions() as $option) {
                     ?>
                     <option value="<?php echo esc_attr($option); ?>" <?php selected($position, $option); ?>>
                         <?php echo pubjet__($option); ?>

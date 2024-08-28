@@ -148,7 +148,7 @@ class ReportagePost extends Singleton {
          *
          * @since 1.0.0
          */
-        $args = apply_filters('pubjet_new_reportage_post_args', $args);
+        $args = apply_filters('pubjet_new_reportage_post_args', $args, $reportage);
 
         pubjet_log('======= Reportage =======');
         pubjet_log($reportage);
@@ -173,7 +173,7 @@ class ReportagePost extends Singleton {
             set_post_thumbnail($post_id, intval($post_content['featured_img_id']));
         }
 
-        // Publish without triboon tag
+        // Publish without Triboon tag
         if (isset($reportage->is_publish_without_triboon_tag) && $reportage->is_publish_without_triboon_tag) {
             update_post_meta($post_id, EnumPostMetakeys::WithoutTriboonTag, true);
         }
@@ -188,6 +188,12 @@ class ReportagePost extends Singleton {
         return $post_id;
     }
 
+    /**
+     * @param $utc_datetime_str
+     *
+     * @return string
+     * @throws \Exception
+     */
     public static function get_time_format($utc_datetime_str) {
         $dt = new DateTime($utc_datetime_str, new DateTimeZone('UTC'));
         $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
@@ -478,7 +484,6 @@ class ReportagePost extends Singleton {
                 }
             }
         }
-
         return $result ? $result : pubjet_isset_value($pubjet_settings['defaultCategory']);
     }
 

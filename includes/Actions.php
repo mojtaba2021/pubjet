@@ -38,6 +38,8 @@ class Actions extends Singleton {
         add_action('admin_init', [$this, 'createDbTables'], 15);
         // Register Widgets
         add_action('widgets_init', [$this, 'registerWidgets'], 15);
+        // Elementor Widgets
+        add_action('elementor/widgets/widgets_registered', [$this, 'registerElementorWidgets'], 15);
         // Process reportage by query string
         add_action('init', [$this, 'createReportageByActionQueryString'], 15);
         add_action('init', [$this, 'createBacklinkByActionQueryString'], 15);
@@ -146,6 +148,23 @@ class Actions extends Singleton {
     /**
      * @return void
      */
+    public function registerElementorWidgets() {
+        /**
+         * The pubjet_elementor_widgets_instances filter.
+         *
+         * @since 1.0.0
+         */
+        $instances = apply_filters('pubjet_elementor_widgets_instances', [
+            new \triboon\pubjet\includes\elementor\Backlinks(),
+        ]);
+        foreach ($instances as $instance) {
+            \Elementor\Plugin::instance()->widgets_manager->register_widget_type($instance);
+        }
+    }
+
+    /**
+     * @return void
+     */
     public function registerWidgets() {
         /**
          * The pubjet_widgets_classes filter.
@@ -158,7 +177,6 @@ class Actions extends Singleton {
         foreach ($instances as $instance) {
             register_widget($instance);
         }
-
 
     }
 
