@@ -182,6 +182,7 @@ class ReportagePost extends Singleton {
          * The pubjet_new_reportage action.
          *
          * Hooked [Actions, 'changeReportageAuthor'] - 15
+         *
          * @since 1.0.0
          */
         do_action('pubjet_new_reportage', $post_id, $reportage);

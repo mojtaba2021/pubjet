@@ -29,6 +29,7 @@ class RestApi extends Singleton {
         $this->registerRoute('reportage/(?P<reportageId>\d+)', 'findReportage', ['GET']);
         $this->registerRoute('reportage/(?P<reportageId>\d+)', 'deleteReportage', ['DELETE']);
         $this->registerRoute('backlink', 'createBacklink', ['POST']);
+        $this->registerRoute('backlink/(?P<backlinkId>\d+)', 'findBacklink', ['GET']);
         $this->registerRoute('version', 'getPluginVersion', ['GET']);
         $this->registerRoute('status', 'getPluginStatus', ['GET']);
         $this->registerRoute('copyright/(?P<reportageId>\d+)/(?P<status>show|hide)', 'toggleCopyright', ['POST', 'PATCH']);
@@ -237,6 +238,21 @@ class RestApi extends Singleton {
         } catch (\Exception $ex) {
             $this->error($ex->getMessage(), 500);
         }
+    }
+
+    /**
+     * @param \WP_REST_Request $request
+     *
+     * @return void
+     */
+    public function findBacklink(\WP_REST_Request $request) {
+        $backlink_id = $request->get_param('backlinkId');
+        pubjet_log('===== Get Backlink Details =====');
+        $backlink_row = pubjet_find_backlink_by_id($backlink_id);
+        if (!$backlink_row || empty($backlink_row)) {
+            $this->error(pubjet__('backlink-not-found'), 404);
+        }
+        $this->success($backlink_row);
     }
 
     /**

@@ -831,6 +831,18 @@ function pubjet_find_post_id_by_reportage_id($reportage_id) {
 }
 
 /**
+ * @param $reportage_id
+ *
+ * @return array|bool|int|object|stdClass|void
+ */
+function pubjet_find_backlink_by_id($backlink_id) {
+    global $wpdb;
+    $sql  = "SELECT * FROM  {$wpdb->pubjet_backlinks} WHERE `backlink_id` = %s LIMIT 1";
+    $psql = $wpdb->prepare($sql, $backlink_id);
+    return $wpdb->get_row($psql);
+}
+
+/**
  * @return array
  */
 function pubjet_plugin_status() {
@@ -859,6 +871,7 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
+        'backlink-not-found'         => esc_html__('Backlink not found', 'pubjet'),
         'horizontal'                 => esc_html__('Horizontal', 'pubjet'),
         'vertical'                   => esc_html__('Vertical', 'pubjet'),
         'pbqs'                       => esc_html__('Process Data By Query String', 'pubjet'),

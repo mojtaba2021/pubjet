@@ -49,7 +49,7 @@ class Backlinks extends Widget_Base {
             [
                 'label' => pubjet__('general'),
                 'tab'   => \Elementor\Controls_Manager::TAB_CONTENT,
-            ]
+            ],
         );
         $options = [
             'all' => pubjet__('all-backlinks'),
@@ -65,7 +65,7 @@ class Backlinks extends Widget_Base {
                 'type'    => Controls_Manager::SELECT,
                 'default' => 'all',
                 'options' => $options,
-            ]
+            ],
         );
         $this->add_control(
             'dlayout',
@@ -78,7 +78,7 @@ class Backlinks extends Widget_Base {
                     'horizontal' => pubjet__('horizontal'),
                     'vertical'   => pubjet__('vertical'),
                 ],
-            ]
+            ],
         );
         $this->end_controls_section();
     }
