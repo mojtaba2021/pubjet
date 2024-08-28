@@ -2,6 +2,7 @@
 
 namespace triboon\pubjet\includes;
 
+use triboon\pubjet\includes\enums\EnumActions;
 use triboon\pubjet\includes\enums\EnumBacklinkStatus;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostTypes;
@@ -37,6 +38,109 @@ class Actions extends Singleton {
         add_action('admin_init', [$this, 'createDbTables'], 15);
         // Register Widgets
         add_action('widgets_init', [$this, 'registerWidgets'], 15);
+        // Process reportage by query string
+        add_action('init', [$this, 'createReportageByActionQueryString'], 15);
+        add_action('init', [$this, 'createBacklinkByActionQueryString'], 15);
+        add_action('pubjet_create_reportage', [$this, 'processCreateReportage'], 15);
+    }
+
+    /**
+     * @return void
+     */
+    public function createBacklinkByActionQueryString() {
+        $action = $this->get('action');
+        if (EnumActions::CreateBacklink !== $action) {
+            return;
+        }
+        // Check token
+        $check_token = pubjet_is_request_token_valid();
+        if (is_wp_error($check_token)) {
+            $this->error($check_token->get_error_message(), 403);
+        }
+        try {
+            // Get backlink data
+            $backlink_data = file_get_contents("php://input");
+            $backlink_data = json_decode($backlink_data);
+            if (empty($backlink_data)) {
+                $this->error(pubjet__('missing-params'), 400);
+            }
+            /**
+             * Hooked [Backlink, 'createBacklink'] - 15
+             *
+             * @since 4.0.0
+             */
+            do_action('pubjet_create_backlink', $backlink_data);
+        } catch (\Exception $ex) {
+            $this->error($ex->getMessage(), 500);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function createReportageByActionQueryString() {
+        $action = $this->get('action');
+        if (EnumActions::CreateReportage !== $action) {
+            return;
+        }
+        // Check token
+        $check_token = pubjet_is_request_token_valid();
+        if (is_wp_error($check_token)) {
+            $this->error($check_token->get_error_message(), 403);
+        }
+        try {
+            // Get reportage data
+            $reportage_data = file_get_contents("php://input");
+            $reportage_data = json_decode($reportage_data);
+            if (empty($reportage_data)) {
+                $this->error(pubjet__('missing-params'), 400);
+            }
+            /**
+             * Hooked [Actions, 'processCreateReportage'] - 15
+             *
+             * @since 4.0.0
+             */
+            do_action('pubjet_create_reportage', $reportage_data);
+        } catch (\Exception $ex) {
+            $this->error($ex->getMessage(), 500);
+        }
+    }
+
+    /**
+     * @return void
+     * @since 4.0.0
+     */
+    public function processCreateReportage($reportage) {
+        $wp_post_id = ReportagePost::insert($reportage);
+
+        if (!$wp_post_id || is_wp_error($wp_post_id)) {
+            if (is_wp_error($wp_post_id)) {
+                pubjet_log('Error: ' . $wp_post_id->get_error_message());
+            }
+            $sentry_error = is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در فرایند ثبت نوشته رپورتاژ رخ داده است.';
+            pubjet_log_sentry($sentry_error, [
+                'reportage_id'    => pubjet_isset_value($reportage->id),
+                'reportage_title' => pubjet_isset_value($reportage->title),
+            ]);
+            $this->error($sentry_error, 400);
+        }
+
+        if (!empty($reportage->wp_post_id)) {
+            // Update
+            pubjet_log('Post updated successfully. Post ID: ' . $reportage->wp_post_id);
+        } else {
+            // Insert
+            pubjet_log('Post created successfully. New Post ID: ' . $wp_post_id);
+        }
+
+        $reportage_post = get_post($wp_post_id);
+
+        // Success
+        $this->success([
+                           'postId'      => $wp_post_id,
+                           'postStatus'  => $reportage_post ? $reportage_post->post_status : 'Unknown',
+                           'reportageId' => $reportage->id,
+                       ]);
     }
 
     /**
@@ -54,6 +158,8 @@ class Actions extends Singleton {
         foreach ($instances as $instance) {
             register_widget($instance);
         }
+
+
     }
 
     /**

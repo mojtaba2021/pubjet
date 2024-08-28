@@ -29,11 +29,14 @@ class Shortcodes extends Singleton {
         }
         ob_start();
         ?>
-        <div class="pubjet-backlinks pubjet-backlinks-<?php echo esc_attr($shortcode_atts['style']); ?>">
+            <style>
+
+            </style>
+        <div class="pubjet-backlinks pubjet-backlinks--<?php echo esc_attr($shortcode_atts['style']); ?>">
             <?php
             foreach ($backlinks as $backlink_row) {
                 ?>
-                <a href="<?php echo esc_url($backlink_row->url); ?>" class="pubjet-backlinks__item" rel="nofollow">
+                <a href="<?php echo esc_url($backlink_row->url); ?>" class="pubjet-backlinks__item" <?php echo $backlink_row->nofollow ? 'rel="nofollow"' : ''; ?>>
                     <?php echo esc_html($backlink_row->text); ?>
                 </a>
                 <?php

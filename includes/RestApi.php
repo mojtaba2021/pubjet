@@ -89,7 +89,7 @@ class RestApi extends Singleton {
         $reportage_post_id = pubjet_find_post_id_by_reportage_id($reportage_id);
         $reportage_post    = get_post($reportage_post_id);
         if (!$reportage_post_id || empty($reportage_post)) {
-            wp_send_json_error(pubjet__('post-not-found'), 404);
+            $this->error(pubjet__('post-not-found'), 404);
         }
         $this->success([
                            'postId'    => $reportage_post->ID,
@@ -109,18 +109,18 @@ class RestApi extends Singleton {
         pubjet_log('Post: ' . $reportage_post_id);
 
         if (empty($reportage_post_id)) {
-            wp_send_json_error(['error' => pubjet__('rep-not-found'),], 401);
+            $this->error(['error' => pubjet__('rep-not-found'),], 401);
         }
 
         $post = get_post($reportage_post_id);
         if ($post->post_type !== pubjet_post_type()) {
-            wp_send_json_error(['error' => pubjet__('rep-not-found')], 401);
+            $this->error(['error' => pubjet__('rep-not-found')], 401);
         }
 
         $reportage_post = get_post($reportage_post_id);
         $result         = wp_delete_post($reportage_post_id, true);
         if (is_wp_error($result)) {
-            wp_send_json_error(['error' => $result->get_error_message()], 500);
+            $this->error($result->get_error_message(), 500);
         }
 
         $this->success([
@@ -157,7 +157,7 @@ class RestApi extends Singleton {
 
         $reportage_post_id = pubjet_find_post_id_by_reportage_id($request->get_param('reportageId'));
         if (empty($reportage_post_id)) {
-            wp_send_json_error(['error' => pubjet__('post-not-found')], 401);
+            $this->error(pubjet__('post-not-found'), 404);
         }
 
         $new_status = $request->get_param('status');
@@ -234,7 +234,7 @@ class RestApi extends Singleton {
                     'reportage_id'    => pubjet_isset_value($reportage->id),
                     'reportage_title' => pubjet_isset_value($reportage->title),
                 ]);
-                wp_send_json_error($sentry_error, 400);
+                $this->error($sentry_error, 400);
             }
 
             pubjet_log('====== Post updated successfully. ======');
@@ -265,44 +265,16 @@ class RestApi extends Singleton {
      */
     public function createReportage(\WP_REST_Request $request) {
         try {
-            global $pubjet_settings;
-
             $reportage = (object)$request->get_json_params();
-
             pubjet_log($reportage);
-
-            $wp_post_id = ReportagePost::insert($reportage);
-
-            if (!$wp_post_id || is_wp_error($wp_post_id)) {
-                if (is_wp_error($wp_post_id)) {
-                    pubjet_log('Error: ' . $wp_post_id->get_error_message());
-                }
-                $sentry_error = is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در فرایند ثبت نوشته رپورتاژ رخ داده است.';
-                pubjet_log_sentry($sentry_error, [
-                    'reportage_id'    => pubjet_isset_value($reportage->id),
-                    'reportage_title' => pubjet_isset_value($reportage->title),
-                ]);
-                wp_send_json_error($sentry_error, 400);
-            }
-
-            if (!empty($reportage->wp_post_id)) {
-                // Update
-                pubjet_log('Post updated successfully. Post ID: ' . $reportage->wp_post_id);
-            } else {
-                // Insert
-                pubjet_log('Post created successfully. New Post ID: ' . $wp_post_id);
-            }
-
-            $reportage_post = get_post($wp_post_id);
-
-            // Success
-            $this->success([
-                               'postId'      => $wp_post_id,
-                               'postStatus'  => $reportage_post ? $reportage_post->post_status : 'Unknown',
-                               'reportageId' => $reportage->id,
-                           ]);
+            /**
+             * Hooked [Actions, 'processCreateReportage'] - 15
+             *
+             * @since 4.0.0
+             */
+            do_action('pubjet_create_reportage', $reportage);
         } catch (\Exception $ex) {
-            wp_send_json_error($ex->getMessage(), 400);
+            $this->error($ex->getMessage(), 400);
         }
     }
 

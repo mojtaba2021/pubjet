@@ -2,6 +2,7 @@
 
 use Sentry\State\Scope;
 use triboon\pubjet\includes\DBLoader;
+use triboon\pubjet\includes\enums\EnumActions;
 use triboon\pubjet\includes\enums\EnumHttpMethods;
 use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumOptions;
@@ -839,6 +840,9 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
+        'pbqs'                       => esc_html__('Process Data By Query String', 'pubjet'),
+        'pbqs-hints'                 => esc_html__('By default, Pabjet uses the REST method to process information. If for any reason this method does not work and you want to use the old method of data processing, enable this option', 'pubjet'),
+        'all-backlinks'              => esc_html__('All Backlinks', 'pubjet'),
         'footer_inner'               => esc_html__('Footer Inner', 'pubjet'),
         'footer_main'                => esc_html__('Footer Main', 'pubjet'),
         'footer_all'                 => esc_html__('Footer All', 'pubjet'),
@@ -849,7 +853,6 @@ function pubjet_strings() {
         'header_main'                => esc_html__('Header Main', 'pubjet'),
         'header_all'                 => esc_html__('Header All', 'pubjet'),
         'widget-title'               => esc_html__('Widget Title', 'pubjet'),
-        'all-backlinks'              => esc_html__('All Backlinks', 'pubjet'),
         'backlinks-position'         => esc_html__('Backlinks Position', 'pubjet'),
         'pubjet-backlinks'           => esc_html__('Pubjet Backlinks', 'pubjet'),
         'pubjet-backlinks-hints'     => esc_html__('Using this widget, you can display backlinks in different parts of your website', 'pubjet'),
@@ -968,6 +971,33 @@ function pubjet_find_authors() {
 
 /**
  * @param $key
+ * @param $default
+ *
+ * @return mixed|null
+ */
+function pubjet_get_server_var($key, $default = null) {
+    $key_upper = strtoupper($key);
+    $key_lower = strtolower($key);
+
+    if (isset($_SERVER[$key_upper])) {
+        return $_SERVER[$key_upper];
+    } elseif (isset($_SERVER[$key_lower])) {
+        return $_SERVER[$key_lower];
+    } else {
+        // بررسی وجود متغیر با پیشوند HTTP_
+        $http_key_upper = 'HTTP_' . $key_upper;
+        $http_key_lower = 'http_' . $key_lower;
+        if (isset($_SERVER[$http_key_upper])) {
+            return $_SERVER[$http_key_upper];
+        } elseif (isset($_SERVER[$http_key_lower])) {
+            return $_SERVER[$http_key_lower];
+        }
+        return $default;
+    }
+}
+
+/**
+ * @param $key
  *
  * @return false|mixed|string
  */
@@ -1005,6 +1035,20 @@ function pubjet_array($data) {
         return $data;
     }
     return is_array($data) ? $data : [$data];
+}
+
+/**
+ * @return boolean|WP_Error
+ */
+function pubjet_is_request_token_valid() {
+    if (empty(pubjet_token())) {
+        return new \WP_Error('missing-token', pubjet__('missing-token'));
+    }
+    $request_token = pubjet_get_server_var('authorization');
+    if ($request_token === pubjet_token()) {
+        return true;
+    }
+    return new WP_Error('invalid-token', pubjet__('invalid-token'));
 }
 
 /**
@@ -1327,19 +1371,20 @@ function pubjet_default_settings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_default_settings', [
-        'token'                   => '',
-        'defaultCategory'         => '',
-        'debug'                   => '',
-        'alignCenterImages'       => '',
-        'nofollow'                => '',
-        'lastCategoriesSyncTime'  => '',
-        'activationVersion'       => '',
-        'copyrightStatus'         => '',
-        'uninstallCleanup'        => '',
-        'lastCheckingMissedPosts' => '',
-        'pricingPlans'            => [],
-        'manualApprove'           => false,
-        'useGoogleTranslate'      => false,
+        'token'                    => '',
+        'defaultCategory'          => '',
+        'debug'                    => '',
+        'alignCenterImages'        => '',
+        'nofollow'                 => '',
+        'lastCategoriesSyncTime'   => '',
+        'activationVersion'        => '',
+        'copyrightStatus'          => '',
+        'uninstallCleanup'         => '',
+        'lastCheckingMissedPosts'  => '',
+        'pricingPlans'             => [],
+        'manualApprove'            => false,
+        'useGoogleTranslate'       => false,
+        'processDataByQueryString' => false,
     ]);
 }
 
@@ -1440,17 +1485,22 @@ function pubjet_send_plugin_status_to_api($status) {
     if (empty(trim(pubjet_token()))) { // Check if user enter token or not
         return;
     }
-    $url      = 'https://api.triboon.net/external/wp/pubjet-info/';
+    $settings     = pubjet_settings();
+    $url          = 'https://api.triboon.net/external/wp/pubjet-info/';
+    $request_data = [
+        'status'                   => $status,
+        'pubjet_version'           => PUBJ()->getVersion(),
+        'backlink_recipient_path'  => pubjet_isset_value($settings['processDataByQueryString']) ? '?action=' . EnumActions::CreateBacklink : rest_get_url_prefix() . '/pubjet/v1/backlink',
+        'reportage_recipient_path' => pubjet_isset_value($settings['processDataByQueryString']) ? '?action=' . EnumActions::CreateReportage : rest_get_url_prefix() . '/pubjet/v1/reportage',
+    ];
+    pubjet_log($request_data);
     $response = wp_remote_post($url, [
         'headers' => [
             'Content-Type'  => 'application/json',
             'Authorization' => 'Bearer ' . pubjet_token(),
         ],
         'method'  => 'POST',
-        'body'    => json_encode([
-                                     'status'         => $status,
-                                     'pubjet_version' => PUBJ()->getVersion(),
-                                 ]),
+        'body'    => json_encode($request_data),
     ]);
     // بررسی پاسخ API برای اشکالات احتمالی
     if (is_wp_error($response)) {
@@ -1484,6 +1534,9 @@ function pubjet_db() {
     return DBLoader::getInstance();
 }
 
+/**
+ * @return mixed|null
+ */
 function pubjet_http_json_request_headers() {
     /*
      * The pubjet_http_json_requests filter.
@@ -1504,15 +1557,12 @@ function pubjet_http_json_request_headers() {
 function pubjet_publish_backlink_request($backlink_id) {
     $url = pubjet_api_root() . '/external/wp/backlink/confirm';
     pubjet_log($url);
-    
+
     if (pubjet_is_dev_mode()) {
         return new WP_Error('development-mode', pubjet__('dev-mode'));
     }
 
-    $result = pubjet_request($url, 'POST', pubjet_http_json_request_headers(), json_encode([
-            'id' => $backlink_id,
-            'status' => 'publisher_published',
-    ]), ['data_format' => 'body']);
+    $result = pubjet_request($url, 'POST', pubjet_http_json_request_headers(), json_encode(['id' => $backlink_id, 'status' => 'publisher_published',]), ['data_format' => 'body']);
 
     pubjet_log($result);
 

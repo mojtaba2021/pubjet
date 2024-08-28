@@ -414,9 +414,9 @@ class Ajax extends Singleton {
             }
         }
 
-        pubjet_send_plugin_status_to_api('active');
-
         update_option(EnumOptions::Settings, $settings);
+
+        pubjet_send_plugin_status_to_api('active');
 
         /**
          * The pubjet_after_save_options filter.
@@ -488,7 +488,7 @@ class Ajax extends Singleton {
     public function deleteReportage() {
         $reportage = $this->check(['DELETE']);
         if (is_array($reportage) && isset($reportage['error'])) {
-            wp_send_json_error(pubjet_isset_value($reportage['message']), pubjet_isset_value($reportage['status']));
+            $this->error(pubjet_isset_value($reportage['message']), pubjet_isset_value($reportage['status']));
         }
 
         pubjet_log("==== Delete Reportage Post ====");
@@ -497,17 +497,17 @@ class Ajax extends Singleton {
         pubjet_log('Post: ' . $reportage_post_id);
 
         if (empty($reportage_post_id)) {
-            wp_send_json_error(pubjet__('post-not-found'), 404);
+            $this->error(pubjet__('post-not-found'), 404);
         }
 
         $post = get_post($reportage_post_id);
         if ($post->post_type !== pubjet_post_type()) {
-            wp_send_json_error(pubjet__('post-not-found'), 404);
+            $this->error(pubjet__('post-not-found'), 404);
         }
 
         $result = wp_delete_post($reportage_post_id, true);
         if (is_wp_error($result)) {
-            wp_send_json_error($result->get_error_message(), 500);
+            $this->error($result->get_error_message(), 500);
         }
 
         $this->success([
@@ -522,11 +522,11 @@ class Ajax extends Singleton {
     public function findReportage() {
         $request_data = $this->check(['GET'], false);
         if (is_array($request_data) && isset($request_data['error'])) {
-            wp_send_json_error(pubjet_isset_value($request_data['message']), pubjet_isset_value($request_data['status']));
+            $this->error(pubjet_isset_value($request_data['message']), pubjet_isset_value($request_data['status']));
         }
 
         if (empty($this->get('id'))) {
-            wp_send_json_error(pubjet__('post-not-found'), 404);
+            $this->error(pubjet__('post-not-found'), 404);
         }
 
         pubjet_log('===== Get Reportage Post =====');
@@ -535,7 +535,7 @@ class Ajax extends Singleton {
         $reportage_post_id = pubjet_find_post_id_by_reportage_id($this->get('id'));
         $reportage_post    = get_post($reportage_post_id);
         if (!$reportage_post_id || empty($reportage_post)) {
-            wp_send_json_error(pubjet__('post-not-found'), 404);
+            $this->error(pubjet__('post-not-found'), 404);
         }
 
         $this->success([
@@ -579,7 +579,7 @@ class Ajax extends Singleton {
         }
 
         if (empty(pubjet_token())) {
-            wp_send_json_error(pubjet__('missing-token'), 401);
+            $this->error(pubjet__('missing-token'), 401);
         }
 
         $header_token = pubjet_isset_value($_SERVER['HTTP_AUTHORIZATION'], '');

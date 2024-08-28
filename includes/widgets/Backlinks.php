@@ -97,6 +97,9 @@ class Backlinks extends \WP_Widget {
                     id="<?php echo esc_attr($this->get_field_id('position')); ?>"
                     name="<?php echo esc_attr($this->get_field_name('position')); ?>"
             >
+                <option value="all" <?php selected($position, 'all'); ?>>
+                    <?php echo pubjet__('all-backlinks'); ?>
+                </option>
                 <?php
                 foreach ($this->getPositionOptions() as $option) {
                     ?>

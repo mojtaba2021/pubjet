@@ -21,6 +21,15 @@ class Filters extends Singleton {
         add_filter('plugin_row_meta', [$this, 'pluginRowMeta'], 15, 2);
         add_filter('plugin_action_links_' . PUBJET_PLUGIN_BASE, [$this, 'pluginActionLinks'], 15);
         add_filter('https_ssl_verify', [$this, 'noSslVerify'], 15, 2);
+        add_filter('query_vars', [$this, 'allowActionQueryVar'], 15);
+    }
+    
+    /**
+     * @return void
+     */
+    public function allowActionQueryVar($query_vars) {
+        $query_vars[] = 'action';
+        return $query_vars;
     }
 
     /**

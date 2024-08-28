@@ -10,27 +10,28 @@ const composeEnhancers =
 
 export const state = {
     options: {
-        token             : '',
-        debug             : false,
-        category          : '',
-        categories        : [],
-        modal             : false,
-        uninstall         : false,
-        nofollow          : false,
-        alignCenterImages : false,
-        deleteFirstImage  : false,
-        useGoogleTranslate: false,
-        metakeys          : {
+        token                   : '',
+        debug                   : false,
+        category                : '',
+        categories              : [],
+        modal                   : false,
+        uninstall               : false,
+        nofollow                : false,
+        alignCenterImages       : false,
+        deleteFirstImage        : false,
+        useGoogleTranslate      : false,
+        processDataByQueryString: false,
+        metakeys                : {
             status: false,
             items : [],
         },
-        pricingPlans      : [],
-        manualApprove     : false,
-        repauthor         : {
+        pricingPlans            : [],
+        manualApprove           : false,
+        repauthor               : {
             status  : false,
             authorId: false,
         },
-        checkToken        : {
+        checkToken              : {
             checking: false,
             checked : false,
             valid   : false,

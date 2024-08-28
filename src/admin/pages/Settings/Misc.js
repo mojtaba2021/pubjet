@@ -15,6 +15,7 @@ const Misc = props => {
               deleteFirstImage,
               manualApprove,
               useGoogleTranslate,
+              processDataByQueryString,
               metakeys  = {},
               repauthor = {}
           } = props.options;
@@ -75,6 +76,25 @@ const Misc = props => {
                         }}
                     />
                     <span>{pubjet__('use-google-translate')}</span>
+                </Space>}
+                />
+                <Form.Item className={styles.hideInput} label={<Space>
+                    <Switch
+                        size={'default'}
+                        checked={processDataByQueryString}
+                        onChange={(checked) => {
+                            changeInput('processDataByQueryString', checked);
+                            saveOptions();
+                            toggleSavedAlert();
+                        }}
+                    />
+                    <Space>
+                        <span>{pubjet__('pbqs')}</span>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('pbqs-hints')}}/>}>
+                            <QuestionCircleOutlined/>
+                        </Tooltip>
+                    </Space>
+                    <span>{pubjet__('pdbq')}</span>
                 </Space>}
                 />
                 <Form.Item htmlFor={''} className={styles.hideInput} label={<Space>

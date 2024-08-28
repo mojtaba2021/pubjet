@@ -6,6 +6,7 @@ namespace triboon\pubjet\includes\enums;
 defined('ABSPATH') || exit;
 
 abstract class EnumBacklinkPosition {
+    const All          = 'all';
     const FooterInner  = 'footer_inner';
     const FooterMain   = 'footer_main';
     const FooterAll    = 'footer_all';

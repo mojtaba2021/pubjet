@@ -2,6 +2,8 @@
 
 namespace triboon\pubjet\includes;
 
+defined('ABSPATH') || exit;
+
 use triboon\pubjet\includes\enums\EnumBacklinkStatus;
 use triboon\pubjet\includes\traits\Utils;
 
@@ -13,6 +15,7 @@ class Backlink extends Singleton {
      * @return void
      */
     public function init() {
+        // Create backlink
         add_action('pubjet_create_backlink', [$this, 'createBacklink'], 15);
     }
 
@@ -98,7 +101,10 @@ class Backlink extends Singleton {
              */
             do_action('pubjet_after_create_backlink', $new_backlink_id, $backlink_json_data);
 
-            $this->success(['rowId' => $new_backlink_id]);
+            $this->success([
+                               'id'     => $new_backlink_id,
+                               'status' => $new_backlink_args['status'],
+                           ]);
         } catch (\Exception $ex) {
             $this->error($ex->getMessage(), 500);
         }
