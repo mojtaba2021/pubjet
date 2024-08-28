@@ -28,7 +28,7 @@ class Backlinks extends Widget_Base {
      * @return string
      */
     public function get_icon() {
-        return 'fa fa-link';
+        return 'eicon eicon-editor-link';
     }
 
     /**

@@ -23,7 +23,7 @@ class Filters extends Singleton {
         add_filter('https_ssl_verify', [$this, 'noSslVerify'], 15, 2);
         add_filter('query_vars', [$this, 'allowActionQueryVar'], 15);
     }
-    
+
     /**
      * @return void
      */
@@ -52,7 +52,7 @@ class Filters extends Singleton {
      */
     public function pluginActionLinks($links) {
         array_unshift($links,
-                      sprintf('<a href="%1$s">%2$s</a>', admin_url('admin.php?page=pubjet_settings'), 'تنظیمات')
+                      sprintf('<a href="%1$s">%2$s</a>', admin_url('admin.php?page=pubjet_settings'), 'تنظیمات'),
         );
 
         return $links;
