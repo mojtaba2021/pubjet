@@ -871,6 +871,7 @@ function pubjet_strings() {
      * @since 1.0.0
      */
     return apply_filters('pubjet_strings', [
+        'every-minute'               => esc_html__('Every Minute', 'pubjet'),
         'backlink-not-found'         => esc_html__('Backlink not found', 'pubjet'),
         'horizontal'                 => esc_html__('Horizontal', 'pubjet'),
         'vertical'                   => esc_html__('Vertical', 'pubjet'),
@@ -1605,6 +1606,40 @@ function pubjet_http_json_request_headers() {
         'Content-Type'  => 'application/json',
         'Authorization' => 'api-key ' . pubjet_token(),
     ]);
+}
+
+/**
+ * @param $post_ID
+ * @param $reportage_ID
+ *
+ * @return array|void
+ */
+function pubjet_publish_reportage($post_id, $reportage_id) {
+    $url = pubjet_api_root() . '/external/wp/reportages/' . $reportage_id . '/publish';
+    pubjet_log($url);
+
+    if (pubjet_is_dev_mode()) {
+        return;
+    }
+
+    $args = [
+        'headers'     => [
+            'Authorization' => 'api-key ' . pubjet_token(),
+            'Content-Type'  => 'application/json',
+        ],
+        'method'      => 'POST',
+        'data_format' => 'body',
+        'body'        => json_encode(['url' => get_permalink($post_id)]),
+    ];
+
+    $response = wp_remote_post($url, $args);
+
+    pubjet_log([$response, $url, $args]);
+
+    return [
+        'code' => wp_remote_retrieve_response_code($response),
+        'body' => json_decode(wp_remote_retrieve_body($response), true),
+    ];
 }
 
 /**

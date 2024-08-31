@@ -429,7 +429,10 @@ class ReportagePost extends Singleton {
         if (empty($reportage_id)) {
             return;
         }
-        $this->publishReportageRequest($post->ID, $reportage_id);
+        $result = $this->publishReportageRequest($post->ID, $reportage_id);
+        if (isset($result['code']) && 200 != $result['code']) {
+            update_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl, true);
+        }
     }
 
     /**
@@ -439,29 +442,7 @@ class ReportagePost extends Singleton {
      * @return mixed
      */
     public function publishReportageRequest($post_id, $reportage_id) {
-
-        $url = pubjet_api_root() . '/external/wp/reportages/' . $reportage_id . '/publish';
-        pubjet_log($url);
-
-        if (pubjet_is_dev_mode()) {
-            return;
-        }
-
-        $args = [
-            'headers'     => [
-                'Authorization' => 'api-key ' . pubjet_token(),
-                'Content-Type'  => 'application/json',
-            ],
-            'method'      => 'POST',
-            'data_format' => 'body',
-            'body'        => json_encode(['url' => get_permalink($post_id)]),
-        ];
-
-        $response = wp_remote_post($url, $args);
-
-        pubjet_log([$response, $url, $args]);
-
-        return json_decode(wp_remote_retrieve_body($response), true);
+        return pubjet_publish_reportage($post_id, $reportage_id);
     }
 
     /**

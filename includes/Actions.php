@@ -189,7 +189,6 @@ class Actions extends Singleton {
         foreach ($instances as $instance) {
             register_widget($instance);
         }
-
     }
 
     /**

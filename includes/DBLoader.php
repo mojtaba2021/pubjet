@@ -6,6 +6,7 @@ namespace triboon\pubjet\includes;
 defined('ABSPATH') || exit;
 
 use triboon\pubjet\includes\db\Backlinks;
+use triboon\pubjet\includes\db\Faileds;
 
 class DBLoader extends Singleton {
 
