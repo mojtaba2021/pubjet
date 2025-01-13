@@ -30,6 +30,7 @@ export const state = {
         repauthor               : {
             status  : false,
             authorId: false,
+            authorCategory : []
         },
         checkToken              : {
             checking: false,

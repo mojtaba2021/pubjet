@@ -249,3 +249,22 @@ export const saveAuthorProps = (propName, propValue) => {
         },
     });
 };
+
+export const deleteAuthorCategory = (itemId, callback) => {
+    const options = getStore(getStoreKey()) || {};
+    const newOptions = {
+        ...options,
+        repauthor: {
+            ...options.repauthor,
+            authorCategory: options.repauthor?.authorCategory
+                ? options.repauthor.authorCategory.filter(item => item.id !== itemId)
+                : [],
+        },
+    };
+
+    setStore(getStoreKey(), newOptions);
+
+    if (callback) {
+        callback(newOptions.repauthor.authorCategory || []);
+    }
+};

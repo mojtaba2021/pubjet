@@ -45,7 +45,9 @@ class Ajax extends Singleton {
         $this->checkNonce();
 
         $author_id = sanitize_text_field($this->post('authorId'));
-        if (!$author_id) {
+        $authorCategory = pubjet_get_json($this->post('authorCategory'));
+        pubjet_log(['authorCategory',$authorCategory]);
+        if (!$author_id ) {
             $this->error(pubjet__('missing-params'));
         }
 
@@ -59,6 +61,7 @@ class Ajax extends Singleton {
         pubjet_update_setting('repauthor', [
             'status'   => pubjet_isset_value($pubjet_settings['repauthor']['status']),
             'authorId' => $author_id,
+            'authorCategory' => $authorCategory
         ]);
 
         /**
