@@ -1561,8 +1561,10 @@ function pubjet_send_plugin_status_to_api($status) {
     $request_data = [
         'status'                   => $status,
         'pubjet_version'           => PUBJ()->getVersion(),
-        'backlink_recipient_path'  => pubjet_isset_value($settings['processDataByQueryString']) ? '?action=' . EnumActions::CreateBacklink : rest_get_url_prefix() . '/pubjet/v1/backlink',
-        'reportage_recipient_path' => pubjet_isset_value($settings['processDataByQueryString']) ? '?action=' . EnumActions::CreateReportage : rest_get_url_prefix() . '/pubjet/v1/reportage',
+        'backlink_recipient_path'  => pubjet_isset_value($settings['processDataByQueryString']) ? '?action=' . EnumActions::CreateBacklink      : rest_get_url_prefix()     . '/pubjet/v1/backlink',
+        'reportage_recipient_path' => pubjet_isset_value($settings['processDataByQueryString']) ? '?action=' . EnumActions::CreateReportage     : rest_get_url_prefix()     . '/pubjet/v1/reportage',
+        'status_recipient_path'    => pubjet_isset_value($settings['processDataByQueryString']) ? '?action=' . EnumActions::PubjetStatus        : rest_get_url_prefix()     . '/pubjet/v1/status',
+        'category_recipient_path'  => pubjet_isset_value($settings['processDataByQueryString']) ? '?action=' . EnumActions::PubjetCategories    : rest_get_url_prefix()     . '/pubjet/v1/site/categories',
     ];
     pubjet_log($request_data);
     $response = wp_remote_post($url, [
