@@ -6,7 +6,7 @@
     Author URI:  https://triboon.net
     License: GPL v2 or later
     License URI: http://www.gnu.org/licenses/gpl-2.0.txt
-    Version: 4.1.0
+    Version: 4.4.0
 */
 
 use triboon\pubjet\includes\enums\EnumOldOptions;
@@ -225,6 +225,10 @@ if (!class_exists('Pubjet')) {
          * @return void
          */
         private function migrateNewSettings() {
+            $newToken = pubjet_token();
+            if(!empty($newToken)){
+                return;
+            }
             $token = get_option(EnumOldOptions::Token);
             if (empty($token)) {
                 update_option(EnumOptions::Settings, pubjet_default_settings());
