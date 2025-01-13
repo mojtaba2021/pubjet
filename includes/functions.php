@@ -1429,6 +1429,8 @@ function pubjet_default_settings() {
         'uninstallCleanup'         => '',
         'lastCheckingMissedPosts'  => '',
         'pricingPlans'             => [],
+        'authorCategory'           => [],
+        'addReportageSource'       => false,
         'manualApprove'            => false,
         'useGoogleTranslate'       => false,
         'processDataByQueryString' => false,
