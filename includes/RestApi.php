@@ -276,7 +276,7 @@ class RestApi extends Singleton {
     public function createReportage(\WP_REST_Request $request) {
         try {
             $reportage = (object)$request->get_json_params();
-            pubjet_log($reportage);
+            pubjet_log(['Create Reportage By Rest Api : ' => $reportage]);
             /**
              * Hooked [Actions, 'processCreateReportage'] - 15
              *
