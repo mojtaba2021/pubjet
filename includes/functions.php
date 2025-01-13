@@ -1078,10 +1078,16 @@ function pubjet_array($data) {
  * @return boolean|WP_Error
  */
 function pubjet_is_request_token_valid() {
+    if (pubjet_is_dev_mode()) {
+        return true;
+    }
     if (empty(pubjet_token())) {
         return new \WP_Error('missing-token', pubjet__('missing-token'));
     }
     $request_token = pubjet_get_server_var('authorization');
+    pubjet_log('request token : ' . $request_token);
+    pubjet_log('pubjet token : ' . pubjet_token());
+
     if ($request_token === pubjet_token()) {
         return true;
     }
