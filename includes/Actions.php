@@ -132,7 +132,13 @@ class Actions extends Singleton {
         try {
             // Get reportage data
             $reportage_data = file_get_contents("php://input");
-            $reportage_data = json_decode($reportage_data);
+
+            $reportage_data = json_decode($reportage_data, true);
+            $reportage_data = (object)$reportage_data;
+            
+
+            pubjet_log(['Query String Reportage : ' => $reportage_data]);
+
             if (empty($reportage_data)) {
                 $this->error(pubjet__('missing-params'), 400);
             }
