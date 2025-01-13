@@ -14,7 +14,7 @@ class Filters extends Singleton {
     public function init() {
         add_filter("display_post_states", [$this, "displayPostStates"], 15, 2);
         add_filter('parse_query', [$this, "adminFilterPosts"], 15);
-        add_filter("the_content", [$this, "filterTheContent"], 0, 2);
+        // add_filter("the_content", [$this, "filterTheContent"], 0, 2);
         add_filter("the_content", [$this, "deleteFirstImage"], 15, 2);
         add_filter("the_content", [$this, "addReportageSource"], 15, 2);
         add_filter('post_row_actions', [$this, 'regenerateThumbnail'], 15, 2);
