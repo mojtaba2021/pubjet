@@ -43,6 +43,8 @@ class Actions extends Singleton {
         // Process reportage by query string
         add_action('init', [$this, 'createReportageByActionQueryString'], 15);
         add_action('init', [$this, 'createBacklinkByActionQueryString'], 15);
+
+        // get pubjet status by action query string
         add_action('init', [$this, 'showPluginStatus'], 15);
         add_action('pubjet_create_reportage', [$this, 'processCreateReportage'], 15);
     }
@@ -54,6 +56,11 @@ class Actions extends Singleton {
         $action = $this->get('action');
         if (EnumActions::PubjetStatus !== $action) {
             return;
+        }
+        // Check token
+        $check_token = pubjet_is_request_token_valid();
+        if (is_wp_error($check_token)) {
+            $this->error($check_token->get_error_message(), 403);
         }
         $this->success(pubjet_plugin_status());
     }
