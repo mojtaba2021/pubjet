@@ -9,4 +9,5 @@ class EnumActions {
     const CreateReportage  = 'creportage';
     const CreateBacklink   = 'cbacklink';
     const PubjetStatus = 'pubjet-status';
+    const PubjetCategories = 'pubjet-get-categories';
 }
