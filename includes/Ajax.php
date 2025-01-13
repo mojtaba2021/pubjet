@@ -102,6 +102,7 @@ class Ajax extends Singleton {
      * @return void
      */
     public function findWpCategories() {
+        $this->checkNonce();
 
         $mode = $this->get('mode', 'flat');
 
@@ -410,12 +411,18 @@ class Ajax extends Singleton {
 
         $settings = pubjet_get_json($this->post('settings'));
         $token    = pubjet_isset_value($settings['token']);
-        if (trim($token)) { // Check if token is valid or not
+
+        if(!pubjet_is_dev_mode()){
+            if(!$token ){
+                $this->error(pubjet__('empty-token'));
+            }
+
             $token_data = pubjet_find_token_details(trim($token));
             if (is_wp_error($token_data)) {
                 $this->error($token_data->get_error_message());
             }
         }
+
 
         update_option(EnumOptions::Settings, $settings);
 
