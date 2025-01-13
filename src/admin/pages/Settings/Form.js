@@ -42,7 +42,8 @@ const Form = props => {
         </AntForm.Item>
         <CheckTokenResult/>
         <AntForm.Item label={pubjet__('default-category')}>
-            <SelectTerms taxonomy={'category'} value={defaultCategory} onChange={selected => {
+            <SelectTerms taxonomy={'category'} placeholder=''
+                         value={defaultCategory} onChange={selected => {
                 changeInput('defaultCategory', selected);
             }}/>
         </AntForm.Item>

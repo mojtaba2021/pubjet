@@ -19,6 +19,7 @@ export const state = {
         nofollow                : false,
         alignCenterImages       : false,
         deleteFirstImage        : false,
+        addReportageSource      : false,
         useGoogleTranslate      : false,
         processDataByQueryString: false,
         metakeys                : {

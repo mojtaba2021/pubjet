@@ -13,6 +13,7 @@ const Misc = props => {
     const {
               uninstallCleanup,
               deleteFirstImage,
+              addReportageSource,
               manualApprove,
               useGoogleTranslate,
               processDataByQueryString,
@@ -63,6 +64,19 @@ const Misc = props => {
                         }}
                     />
                     <span>{pubjet__('delete-first-image')}</span>
+                </Space>}
+                />
+                <Form.Item className={styles.hideInput} label={<Space>
+                    <Switch
+                        size={'default'}
+                        checked={addReportageSource}
+                        onChange={(checked) => {
+                            changeInput('addReportageSource', checked);
+                            saveOptions();
+                            toggleSavedAlert();
+                        }}
+                    />
+                    <span>{pubjet__('add-reportage-source')}</span>
                 </Space>}
                 />
                 <Form.Item className={styles.hideInput} label={<Space>

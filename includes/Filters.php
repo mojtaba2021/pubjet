@@ -16,6 +16,7 @@ class Filters extends Singleton {
         add_filter('parse_query', [$this, "adminFilterPosts"], 15);
         add_filter("the_content", [$this, "filterTheContent"], 0, 2);
         add_filter("the_content", [$this, "deleteFirstImage"], 15, 2);
+        add_filter("the_content", [$this, "addReportageSource"], 15, 2);
         add_filter('post_row_actions', [$this, 'regenerateThumbnail'], 15, 2);
         add_filter('post_class', [$this, 'addPubjetClass'], 15, 3);
         add_filter('plugin_row_meta', [$this, 'pluginRowMeta'], 15, 2);
@@ -127,6 +128,59 @@ class Filters extends Singleton {
         // جایگزینی اولین مطابقت با رشته خالی
         return preg_replace($pattern, '', $content, 1);
     }
+
+
+    /**
+     * @param $content
+     * @return string
+     */
+    public function addReportageSource($content) {
+        global $pubjet_settings;
+        if (!pubjet_is_reportage(get_the_ID())) {
+            return $content;
+        }
+        $status = pubjet_isset_value($pubjet_settings['addReportageSource']);
+        if (!$status) {
+            return $content;
+        }
+
+        libxml_use_internal_errors(true);
+        $dom = new \DOMDocument();
+        libxml_clear_errors();
+        if (!$dom->loadHTML($content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD)) {
+            return $content;
+        }
+
+        $links = $dom->getElementsByTagName('a');
+        $follow_links = [];
+        foreach ($links as $link) {
+            $rel = $link->getAttribute('rel');
+            $href = $link->getAttribute('href');
+            if (!empty($href) && filter_var($href, FILTER_VALIDATE_URL) && (empty($rel) || strpos($rel, 'nofollow') === false)) {
+                $follow_links[] = $href;
+            }
+        }
+
+        if (empty($follow_links)) {
+            return $content;
+        }
+
+        $link_counts = array_count_values($follow_links);
+        arsort($link_counts);
+        $most_repeated_link = array_key_first($link_counts);
+
+        if (!$most_repeated_link) {
+            return $content;
+        }
+
+        $parsed_url = parse_url($most_repeated_link);
+        $base_domain = preg_replace('#^(www\.)#', '', $parsed_url['host']);
+        $content .= '<p> منبع خبر : ' . esc_html($base_domain) . '</p>';
+
+        return $content;
+    }
+
+
 
     /**
      * @param $content
