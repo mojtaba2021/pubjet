@@ -243,15 +243,43 @@ class Actions extends Singleton {
      * @return void
      */
     public function changeReportageAuthor($reportage_post_id, $reportage) {
+
+
         global $pubjet_settings;
         $status    = pubjet_isset_value($pubjet_settings['repauthor']['status']);
-        $author_id = pubjet_isset_value($pubjet_settings['repauthor']['authorId']);
-        if (!$author_id || !$status) {
+        $default_author_id  = pubjet_isset_value($pubjet_settings['repauthor']['authorId']);
+        $authorCategory = pubjet_isset_value($pubjet_settings['repauthor']['authorCategory'] , []);
+
+        if (!$default_author_id || !$status) {
             return;
         }
+        pubjet_log("======= Change Reportage Author =======");
+
         $reportage_post              = get_post($reportage_post_id);
-        $reportage_post->post_author = $author_id;
+        $reportage_post->post_author = $default_author_id;
+
+        $reportage_category = wp_get_post_categories($reportage_post_id);
+
+        pubjet_log(["Reportage Category : " => $reportage_category]);
+
+        pubjet_log(["Author Category list: " => $authorCategory]);
+
+        $matchingCategories = array_values(array_filter($authorCategory, function ($item) use ($reportage_category) {
+            return in_array($item['category'], $reportage_category);
+        }));
+
+        pubjet_log(["Matched Categories : " => $matchingCategories]);
+
+        $author = pubjet_isset_value($matchingCategories[0]['author'], $default_author_id);
+        if (count($matchingCategories) > 0 && $author) {
+            $reportage_post->post_author = $author;
+        }
+
+        pubjet_log(["Reportage Author: " => $author]);
+
         wp_update_post($reportage_post);
+
+        pubjet_log("======= Reportage Author Updated =======");
     }
 
     /**
