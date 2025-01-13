@@ -923,6 +923,7 @@ function pubjet_strings() {
         'congratulation'             => esc_html__('Congratulations !', 'pubjet'),
         'valid-token'                => esc_html__('The Access Token is Valid', 'pubjet'),
         'invalid-token'              => esc_html__('The Access Token is Invalid', 'pubjet'),
+        'empty-token'                => esc_html__('The Access Token cannot be Empty', 'pubjet'),
         'pubjet'                     => esc_html__('Pubjet', 'pubjet'),
         'reportage'                  => esc_html__('Reportage', 'pubjet'),
         'enable'                     => esc_html__('Enable', 'pubjet'),
@@ -974,6 +975,9 @@ function pubjet_strings() {
         'sync'                       => esc_html__('Synchronize', 'pubjet'),
         'select-rep-author'          => esc_html__('Select Reportage Post Author', 'pubjet'),
         'select-rep-author-hints'    => esc_html__('By default, when Pabjet publishes a reportage on your website, it uses the account of the site administrator as the author of the reportage, if you want to use another author, select it.', 'pubjet'),
+        'add-authorCategory'         => esc_html__('Add author for Category', 'pubjet'),
+        'add-reportage-source'       => esc_html__('Add source domain at the bottom of the reportage', 'pubjet'),
+        'add-authorCategory-hints'   => esc_html__('You can assign a specific author to each report category.', 'pubjet'),
     ]);
 }
 
