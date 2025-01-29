@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Pubjet | پاب‌جت\n"
-"POT-Creation-Date: 2025-01-06 14:31+0330\n"
-"PO-Revision-Date: 2025-01-06 14:32+0330\n"
+"POT-Creation-Date: 2025-01-29 13:30+0330\n"
+"PO-Revision-Date: 2025-01-29 13:31+0330\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fa\n"
@@ -513,6 +513,36 @@ msgstr "افزودن منبع خبر در انتهای رپورتاژ"
 msgid "You can assign a specific author to each report category."
 msgstr ""
 "شما می توانید به ازای هر دسته بندی رپورتاژ یک نویسنده خاص را  اختصاص دهید."
+
+#: includes/functions.php:981
+#, php-format
+msgid ""
+"Pubjet version %s has been released. This version includes performance "
+"improvements and fixes for previous issues. Please update to get the latest "
+"features."
+msgstr ""
+"نسخه %s پابجت شامل بهبودهای عملکردی و رفع مشکلات قبلی است. جهت بهره‌مندی از "
+"جدیدترین ویژگی‌ها، لطفاً بروزرسانی کنید."
+
+#: includes/functions.php:982
+msgid "A new version of Pubjet has been released."
+msgstr "نسخه جدید پابجت منتشر شد!"
+
+#: includes/functions.php:983
+#, php-format
+msgid ""
+"The number of categories that can be selected for synchronization exceeds the "
+"allowed limit (%s items)."
+msgstr ""
+"تعداد دسته بندی های قابل انتخاب جهت همگام سازی بیش از حد مجاز (%s مورد ) است."
+
+#: includes/functions.php:984
+msgid "Sync categories cannot be empty."
+msgstr "همگام سازی دسته بندی ها نمی تواند خالی باشد."
+
+#: includes/functions.php:985
+msgid "Default category cannot be empty."
+msgstr "دسته بندی پیش فرض نمی تواند خالی باشد."
 
 #: pubjet.php:53 pubjet.php:63
 msgid "Cheatin&#8217; huh?"
