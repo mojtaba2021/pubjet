@@ -3,3 +3,10 @@ body.rtl {
     margin-left: 32px;
   }
 }
+
+.ant-select-multiple.ant-select-show-arrow .ant-select-selector{
+    padding-inline-end: 40px !important;
+}
+.ant-select-multiple {
+  min-height: 60px !important;
+}
