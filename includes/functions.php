@@ -978,6 +978,11 @@ function pubjet_strings() {
         'add-authorCategory'         => esc_html__('Add author for Category', 'pubjet'),
         'add-reportage-source'       => esc_html__('Add source domain at the bottom of the reportage', 'pubjet'),
         'add-authorCategory-hints'   => esc_html__('You can assign a specific author to each report category.', 'pubjet'),
+        'pubjet-update-plugin-desc'  => esc_html__('Pubjet version %s has been released. This version includes performance improvements and fixes for previous issues. Please update to get the latest features.', 'pubjet'),
+        'pubjet-update-plugin-title' => esc_html__('A new version of Pubjet has been released.', 'pubjet'),
+        'max-sync-categories'        => esc_html__('The number of categories that can be selected for synchronization exceeds the allowed limit (%s items).', 'pubjet'),
+        'empty-sync-categories'      => esc_html__('Sync categories cannot be empty.', 'pubjet'),
+        'empty-default-category'      => esc_html__('Default category cannot be empty.', 'pubjet'),
     ]);
 }
 
