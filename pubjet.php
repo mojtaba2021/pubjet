@@ -180,10 +180,12 @@ if (!class_exists('Pubjet')) {
          * @return void
          */
         private function trackActivationVersion() {
-            $activation_option = \triboon\pubjet\includes\enums\EnumOldOptions::ActivationVersion;
-            $activation_value  = get_option($activation_option);
-            if (!$activation_value) {
-                update_option($activation_option, $this->getVersion());
+            global $pubjet_settings;
+            $activation_version = pubjet_isset_value($pubjet_settings[EnumOptions::ActivationVersion]);
+            $current_version = $this->getVersion();
+            if ($activation_version !== $current_version) {
+                $pubjet_settings[EnumOptions::ActivationVersion] = $current_version;
+                update_option(EnumOptions::Settings, $pubjet_settings);
             }
         }
 
