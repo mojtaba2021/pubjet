@@ -25,11 +25,11 @@ const Settings = props => {
                     label   : pubjet__('general'),
                     children: <General/>,
                 },
-                {
-                    key     : 'categories',
-                    label   : pubjet__('sync'),
-                    children: <SyncCategories/>,
-                },
+                // {
+                //     key     : 'categories',
+                //     label   : pubjet__('sync'),
+                //     children: <SyncCategories/>,
+                // },
                 {
                     key     : 'debug',
                     label   : pubjet__('debug'),
