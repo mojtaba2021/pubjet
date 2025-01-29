@@ -1368,7 +1368,8 @@ function pubjet_sync_categories() {
 
     if (pubjet_isset_value($pubjet_settings['categories'])) {
         $categories     = [];
-        $categories_ids = array_map('trim', explode(',', $pubjet_settings['categories']));
+        $categories_ids = is_array($pubjet_settings['categories']) ? $pubjet_settings['categories'] : array_map('trim', explode(',', $pubjet_settings['categories']  ?? ''));
+
         foreach ($categories_ids as $category_id) {
             $category = get_category($category_id);
             if ($category && !is_wp_error($category)) {
