@@ -460,19 +460,18 @@ class Ajax extends Singleton
         }
 
 
-
         global $pubjet_settings;
+
+        $settings['categories'] = $categories ?? [];
+        update_option(EnumOptions::Settings, $settings);
 
         if (count(array_diff($pubjet_settings['categories'], $settings['categories'])) > 0 ||
             count(array_diff($settings['categories'], $pubjet_settings['categories'])) > 0) {
             pubjet_log('===== pubjet sync categories =====');
+            $pubjet_settings['categories'] = $settings['categories'];
             pubjet_sync_categories();
         }
 
-
-        $settings['categories'] = $categories ?? [];
-
-        update_option(EnumOptions::Settings, $settings);
         pubjet_send_plugin_status_to_api('active');
 
         /**
