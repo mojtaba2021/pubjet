@@ -10,14 +10,16 @@ use triboon\pubjet\includes\traits\Utils;
 
 if (!defined("ABSPATH")) exit;
 
-class Ajax extends Singleton {
+class Ajax extends Singleton
+{
 
     use Utils;
 
     /**
      * @return void
      */
-    public function init() {
+    public function init()
+    {
         $this->ajax('save-options', [$this, 'saveOptions'], EnumAjaxPrivType::LoggedIn, 15);
         $this->ajax('get-debug', [$this, 'getDebug'], EnumAjaxPrivType::LoggedIn, 15);
         $this->ajax('delete-debug', [$this, 'deleteDebug'], EnumAjaxPrivType::LoggedIn, 15);
@@ -40,14 +42,15 @@ class Ajax extends Singleton {
     /**
      * @return void
      */
-    public function saveReportageAuthor() {
+    public function saveReportageAuthor()
+    {
         global $pubjet_settings;
         $this->checkNonce();
 
         $author_id = sanitize_text_field($this->post('authorId'));
         $authorCategory = pubjet_get_json($this->post('authorCategory'));
-        pubjet_log(['authorCategory',$authorCategory]);
-        if (!$author_id ) {
+        pubjet_log(['authorCategory', $authorCategory]);
+        if (!$author_id) {
             $this->error(pubjet__('missing-params'));
         }
 
@@ -59,7 +62,7 @@ class Ajax extends Singleton {
         do_action('pubjet_before_save_reportage_author', $author_id);
 
         pubjet_update_setting('repauthor', [
-            'status'   => pubjet_isset_value($pubjet_settings['repauthor']['status']),
+            'status' => pubjet_isset_value($pubjet_settings['repauthor']['status']),
             'authorId' => $author_id,
             'authorCategory' => $authorCategory
         ]);
@@ -77,7 +80,8 @@ class Ajax extends Singleton {
     /**
      * @since 1.0.0
      */
-    public function findAuthors() {
+    public function findAuthors()
+    {
         $this->checkNonce();
 
         $authors = pubjet_find_authors();
@@ -88,7 +92,8 @@ class Ajax extends Singleton {
     /**
      * @return void
      */
-    public function syncAndSaveCategories() {
+    public function syncAndSaveCategories()
+    {
         global $pubjet_settings;
         $this->checkNonce();
         $categories = $this->post('categories');
@@ -101,7 +106,8 @@ class Ajax extends Singleton {
     /**
      * @return void
      */
-    public function findWpCategories() {
+    public function findWpCategories()
+    {
         $this->checkNonce();
 
         $mode = $this->get('mode', 'flat');
@@ -115,11 +121,14 @@ class Ajax extends Singleton {
         $this->success($categories);
     }
 
-    public function findTerms() {
+    public function findTerms()
+    {
         $this->checkNonce();
 
         $sanitized_taxonomy = sanitize_text_field($this->get('taxonomy'));
         $sanitized_taxonomy = $sanitized_taxonomy ? $sanitized_taxonomy : 'category';
+
+        $search = sanitize_text_field($this->get('search'));
 
         /**
          * The pubjet_before_search_terms filter.
@@ -129,9 +138,10 @@ class Ajax extends Singleton {
         do_action('pubjet_before_search_terms', $sanitized_taxonomy);
 
         $terms = get_terms([
-                               'taxonomy'   => $sanitized_taxonomy,
-                               'hide_empty' => false,
-                           ]);
+            'taxonomy' => $sanitized_taxonomy,
+            'hide_empty' => false,
+            'search' => $search,
+        ]);
 
         /**
          * The pubjet_after_search_terms filter.
@@ -155,9 +165,10 @@ class Ajax extends Singleton {
      * @since  1.0
      * @author Triboon
      */
-    public function permanentHideAdminNotice() {
+    public function permanentHideAdminNotice()
+    {
         $notice_id = sanitize_text_field($this->post('noticeId'));
-        $security  = sanitize_text_field($this->post('security'));
+        $security = sanitize_text_field($this->post('security'));
 
         if (!wp_verify_nonce($security, 'pubjet-admin-notice')) {
             $this->permissionError();
@@ -173,9 +184,10 @@ class Ajax extends Singleton {
      * @since  1.0
      * @author Triboon
      */
-    public function remindAdminNotice() {
+    public function remindAdminNotice()
+    {
         $notice_id = sanitize_text_field($this->post('noticeId'));
-        $security  = sanitize_text_field($this->post('security'));
+        $security = sanitize_text_field($this->post('security'));
 
         if (!wp_verify_nonce($security, 'pubjet-admin-notice')) {
             $this->permissionError();
@@ -188,7 +200,8 @@ class Ajax extends Singleton {
     /**
      * @return void
      */
-    public function saveReportageOptions() {
+    public function saveReportageOptions()
+    {
 
         $this->checkNonce();
 
@@ -210,7 +223,8 @@ class Ajax extends Singleton {
     /**
      * @return void
      */
-    public function findReportageOptions() {
+    public function findReportageOptions()
+    {
         $this->checkNonce();
 
         if (empty($this->get('postId')) || !pubjet_is_reportage($this->get('postId'))) {
@@ -225,14 +239,15 @@ class Ajax extends Singleton {
         $nofollow = get_post_meta($post->ID, EnumPostMetakeys::NoFollow, true);
 
         $this->success([
-                           'nofollow' => boolval($nofollow),
-                       ]);
+            'nofollow' => boolval($nofollow),
+        ]);
     }
 
     /**
      * @return void
      */
-    public function findReportagePanelData() {
+    public function findReportagePanelData()
+    {
         $this->checkNonce();
 
         // Missing params
@@ -246,17 +261,18 @@ class Ajax extends Singleton {
         }
 
         $panel_data = get_post_meta($post->ID, EnumPostMetakeys::PanelData, true);
-        $result     = print_r($panel_data, true);
+        $result = print_r($panel_data, true);
 
         $this->success([
-                           'data' => $result,
-                       ]);
+            'data' => $result,
+        ]);
     }
 
     /**
      * @return void
      */
-    public function regThumbnail() {
+    public function regThumbnail()
+    {
         $this->checkNonce();
 
         if (empty($this->post('postId'))) {
@@ -285,10 +301,10 @@ class Ajax extends Singleton {
             $this->error(pubjet__('empty-reportage-content'));
         }
 
-        $reportage      = [
+        $reportage = [
             'content_file' => $triboon_panel_reportage_content,
         ];
-        $post_content   = ReportagePost::get_content_file((object)$reportage);
+        $post_content = ReportagePost::get_content_file((object)$reportage);
         $post_thumbnail = ReportagePost::handle_images($post_content, true);
 
         if (empty($post_thumbnail['featured_img_id'])) {
@@ -311,7 +327,8 @@ class Ajax extends Singleton {
     /**
      * @return void
      */
-    public function deleteDebug() {
+    public function deleteDebug()
+    {
         $this->checkNonce();
 
         /**
@@ -345,7 +362,8 @@ class Ajax extends Singleton {
     /**
      * @return void
      */
-    public function getDebug() {
+    public function getDebug()
+    {
         $this->checkNonce();
 //
 //        pubjet_log(site_url() . '/pubjet-api/reportage');
@@ -411,10 +429,12 @@ class Ajax extends Singleton {
         do_action('pubjet_before_save_options');
 
         $settings = pubjet_get_json($this->post('settings'));
-        $token    = pubjet_isset_value($settings['token']);
+        $token = pubjet_isset_value($settings['token']);
+        $categories = pubjet_isset_value($settings['categories']);
+        $defaultCategory = pubjet_isset_value($settings['defaultCategory']);
 
-        if(!pubjet_is_dev_mode()){
-            if(!$token ){
+        if (!pubjet_is_dev_mode()) {
+            if (!$token) {
                 $this->error(pubjet__('empty-token'));
             }
 
@@ -424,9 +444,35 @@ class Ajax extends Singleton {
             }
         }
 
+        if (is_string($categories)) {
+            $categories = array_map('trim', explode(',', $categories));
+
+        }
+        $max_sync_cat = 10;
+        if (!$categories) {
+            $this->error(pubjet__('empty-sync-categories'));
+        }
+        if (count($categories) > $max_sync_cat) {
+            $this->error(sprintf(pubjet__('max-sync-categories'), $max_sync_cat));
+        }
+        if (!$defaultCategory) {
+            $this->error(pubjet__('empty-default-category'));
+        }
+
+
+
+        global $pubjet_settings;
+
+        if (count(array_diff($pubjet_settings['categories'], $settings['categories'])) > 0 ||
+            count(array_diff($settings['categories'], $pubjet_settings['categories'])) > 0) {
+            pubjet_log('===== pubjet sync categories =====');
+            pubjet_sync_categories();
+        }
+
+
+        $settings['categories'] = $categories ?? [];
 
         update_option(EnumOptions::Settings, $settings);
-
         pubjet_send_plugin_status_to_api('active');
 
         /**
@@ -444,7 +490,8 @@ class Ajax extends Singleton {
      * @since  1.0
      * @author Triboon
      */
-    public function checkRequiredPhpModules() {
+    public function checkRequiredPhpModules()
+    {
         $this->checkNonce();
 
         /**
@@ -453,8 +500,8 @@ class Ajax extends Singleton {
          * @since 1.0.0
          */
         $data = apply_filters('pubjet_required_php_modules', [
-            'curl'     => function_exists('curl_version'),
-            'openssl'  => function_exists('openssl_encrypt'),
+            'curl' => function_exists('curl_version'),
+            'openssl' => function_exists('openssl_encrypt'),
             'php_soap' => class_exists('SoapClient'),
         ]);
 
@@ -464,7 +511,8 @@ class Ajax extends Singleton {
     /**
      * @return void
      */
-    public function checkToken() {
+    public function checkToken()
+    {
         $data = $this->check([EnumHttpMethods::GET], false, false);
         if (is_array($data) && isset($data['error'])) {
             $this->error($data['message']);
@@ -496,7 +544,8 @@ class Ajax extends Singleton {
     /**
      * @return void
      */
-    public function deleteReportage() {
+    public function deleteReportage()
+    {
         $reportage = $this->check(['DELETE']);
         if (is_array($reportage) && isset($reportage['error'])) {
             $this->error(pubjet_isset_value($reportage['message']), pubjet_isset_value($reportage['status']));
@@ -522,15 +571,16 @@ class Ajax extends Singleton {
         }
 
         $this->success([
-                           'wpPostId'    => absint($reportage_post_id),
-                           'reportageId' => absint(pubjet_isset_value($reportage->id)),
-                       ]);
+            'wpPostId' => absint($reportage_post_id),
+            'reportageId' => absint(pubjet_isset_value($reportage->id)),
+        ]);
     }
 
     /**
      * @return void
      */
-    public function findReportage() {
+    public function findReportage()
+    {
         $request_data = $this->check(['GET'], false);
         if (is_array($request_data) && isset($request_data['error'])) {
             $this->error(pubjet_isset_value($request_data['message']), pubjet_isset_value($request_data['status']));
@@ -544,19 +594,20 @@ class Ajax extends Singleton {
         pubjet_log($_GET);
 
         $reportage_post_id = pubjet_find_post_id_by_reportage_id($this->get('id'));
-        $reportage_post    = get_post($reportage_post_id);
+        $reportage_post = get_post($reportage_post_id);
         if (!$reportage_post_id || empty($reportage_post)) {
             $this->error(pubjet__('post-not-found'), 404);
         }
 
         $this->success([
-                           'id'    => $reportage_post->ID,
-                           'title' => $reportage_post->post_title,
-                           'url'   => get_permalink($reportage_post->ID),
-                       ]);
+            'id' => $reportage_post->ID,
+            'title' => $reportage_post->post_title,
+            'url' => get_permalink($reportage_post->ID),
+        ]);
     }
 
-    public function finishRequest() {
+    public function finishRequest()
+    {
         ignore_user_abort(true);
 
         if (!headers_sent()) {
@@ -583,7 +634,8 @@ class Ajax extends Singleton {
     /**
      * @return bool
      */
-    public function isTokenValid() {
+    public function isTokenValid()
+    {
 
         if (pubjet_is_dev_mode()) {
             return true;
@@ -599,14 +651,16 @@ class Ajax extends Singleton {
 
     }
 
-    public function isValidHttpMethod($valid_methods = ['POST']) {
+    public function isValidHttpMethod($valid_methods = ['POST'])
+    {
         return in_array($_SERVER['REQUEST_METHOD'], $valid_methods);
     }
 
     /**
      * @return array|mixed
      */
-    public function getRequestData() {
+    public function getRequestData()
+    {
         $stream = fopen('php://input', 'r');
         if ($stream) {
             $rawData = '';
@@ -622,23 +676,24 @@ class Ajax extends Singleton {
     /**
      * @return array|bool|object
      */
-    private function check($method, $get_request_data = true, $check_token = true) {
+    private function check($method, $get_request_data = true, $check_token = true)
+    {
         if (!is_array($method)) {
             $method = [$method];
         }
 
         if (!$this->isValidHttpMethod($method)) {
             return [
-                'error'   => true,
-                'status'  => 401,
+                'error' => true,
+                'status' => 401,
                 'message' => pubjet__('invalid-http-method'),
             ];
         }
 
         if ($check_token && !$this->isTokenValid()) {
             return [
-                'error'   => true,
-                'status'  => 401,
+                'error' => true,
+                'status' => 401,
                 'message' => pubjet__('invalid-token'),
             ];
         }
