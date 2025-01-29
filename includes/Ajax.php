@@ -397,7 +397,8 @@ class Ajax extends Singleton {
     /**
      * @return void
      */
-    public function saveOptions() {
+    public function saveOptions()
+    {
         $this->checkNonce();
 
         flush_rewrite_rules();
