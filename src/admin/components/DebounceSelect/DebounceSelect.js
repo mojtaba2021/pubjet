@@ -26,14 +26,31 @@ function DebounceSelect({fetchOptions, debounceTimeout = 800, ...props}) {
         };
         return debounce(loadOptions, debounceTimeout);
     }, [fetchOptions, debounceTimeout]);
+
+
     useEffect(() => {
         fetchOptions('').then(options => setOptions(options));
-    }, []);
+    }, [fetchOptions]);
+
+    const handleSearch = (value) => {
+        if (!value) {
+            fetchOptions('').then(options => setOptions(options));
+        } else {
+            debounceFetcher(value);
+        }
+    };
+
+    const handleChange = (value) => {
+        fetchOptions('').then(options => setOptions(options));
+    };
+
+
     return (
         <Select
             loading={fetching}
             filterOption={false}
-            onSearch={debounceFetcher}
+            onSearch={handleSearch}
+            onChange={handleChange}
             notFoundContent={fetching ? <Spin size="default" className={styles.spin} /> : null}
             {...props}
             options={options}
