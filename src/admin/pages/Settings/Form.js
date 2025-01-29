@@ -8,11 +8,26 @@ import {pubjet__} from "../../../shared/scripts/utils";
 import {ReloadOutlined} from "@ant-design/icons";
 import PricingPlans from "./PricingPlans";
 import SelectTerms from "../../components/SelectTerms/SelectTerms";
+import {DownOutlined} from '@ant-design/icons';
 
 const {TextArea} = Input;
 
+const MAX_COUNT = 10;
 const Form = props => {
-    const {token, defaultCategory, pricingPlans,} = props.options;
+    const {token, defaultCategory, pricingPlans, categories} = props.options;
+
+    const normalizeCategories = (categories) => {
+        if (Array.isArray(categories)) {
+            return categories.map(item => Number(item));
+        }
+        if (typeof categories === 'string') {
+            return categories.split(',').map(item => Number(item.trim()));
+        }
+        return [];
+    };
+
+    const formattedCategories = normalizeCategories(categories);
+
 
     /**
      * @since 1.0
@@ -28,24 +43,54 @@ const Form = props => {
     return <AntForm layout={`vertical`} autoComplete="off">
         <AntForm.Item label={pubjet__('triboon-token')}>
             {renderInput({
-                name     : 'token',
-                value    : token,
+                name: 'token',
+                value: token,
                 className: styles.input,
                 autoFocus: true,
-                onChange : (e) => {
+                onChange: (e) => {
                     changeInput('token', e.target.value);
                 },
-                suffix   : token ? <Tooltip title={pubjet__('check-token')}>
+                suffix: token ? <Tooltip title={pubjet__('check-token')}>
                     <ReloadOutlined className={styles.spinner} onClick={doCheckToken}/>
                 </Tooltip> : null,
             })}
         </AntForm.Item>
         <CheckTokenResult/>
+        <AntForm.Item label={pubjet__('sync-categories')}>
+            <SelectTerms
+                mode="multiple"
+                placeholder=''
+                // allowClear={true}
+                taxonomy={'category'}
+                maxCount = {MAX_COUNT}
+                maxTagCount={'responsive'}
+                required={true}
+                onChange={selected => changeInput('categories', selected)}
+                value={formattedCategories}
+                // value={Array.isArray(categories) ? categories : (categories ? [categories] : [])}
+                optionRender={(option) => <span>{option.label}</span>}
+                selectProps={{
+                    suffixIcon: (
+                        <>
+                                <span>
+                                    {(Array.isArray(categories) ? categories.length : (categories ? 1 : 0))} / {MAX_COUNT}
+                                </span>
+                            <DownOutlined />
+                        </>
+                    )
+                }}
+            />
+        </AntForm.Item>
         <AntForm.Item label={pubjet__('default-category')}>
-            <SelectTerms taxonomy={'category'} placeholder=''
-                         value={defaultCategory} onChange={selected => {
-                changeInput('defaultCategory', selected);
-            }}/>
+            <SelectTerms
+                taxonomy={'category'}
+                // allowClear={true}
+                placeholder=''
+                required={true}
+                value={Array.isArray(defaultCategory) ? defaultCategory : (defaultCategory || '')}
+                onChange={selected => {
+                    changeInput('defaultCategory', selected);
+                }}/>
         </AntForm.Item>
         {/*<AntForm.Item label={pubjet__('align-center-images')} tooltip={pubjet__('align-center-images-help')}>*/}
         {/*    <Switch value={1} checked={alignCenterImages} onChange={checked => {*/}
