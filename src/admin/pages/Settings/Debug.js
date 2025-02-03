@@ -10,7 +10,7 @@ import {
 import {Button, Form, Space, Spin, Switch, Tooltip} from "antd";
 import styles from "./Debug.module.scss";
 import BaseComponent from "../../components/BaseComponent/BaseComponent";
-import {CopyOutlined, DeleteOutlined, ReloadOutlined} from "@ant-design/icons";
+import {CopyOutlined, DeleteOutlined, QuestionCircleOutlined, ReloadOutlined} from "@ant-design/icons";
 import ConfirmDelete from "../../components/ConfirmDelete/ConfirmDelete";
 import {changeInput, saveOptions} from "./Actions";
 import {connect} from "trim-redux";
@@ -143,7 +143,12 @@ class Debug extends BaseComponent {
                         changeInput('debug', checked);
                         saveOptions();
                     }} size={'default'}/>
-                    <span>{pubjet__('enable-debugging')}</span>
+                    <Space>
+                        <span>{pubjet__('enable-debugging')}</span>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('enable-debugging-hints')}}/>}>
+                            <QuestionCircleOutlined/>
+                        </Tooltip>
+                    </Space>
                 </Space>}
             />
         </Form>
