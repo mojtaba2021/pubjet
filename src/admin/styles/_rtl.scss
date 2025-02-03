@@ -4,9 +4,15 @@ body.rtl {
   }
 }
 
-.ant-select-multiple.ant-select-show-arrow .ant-select-selector{
+.ant-select-multiple .ant-select-selector{
     padding-inline-end: 40px !important;
 }
 .ant-select-multiple {
   min-height: 60px !important;
+}
+.ant-select-selector{
+  cursor: pointer !important;
+}
+.ant-empty-normal {
+  margin-block: 8px !important;
 }
