@@ -7,7 +7,7 @@ import DebounceSelect from "../DebounceSelect/DebounceSelect";
 const axios = getAxios();
 
 const SelectTerms = props => {
-    const {selectProps, taxonomy, placeholder, value, onChange, className , mode  ,maxCount,required} = props;
+    const {selectProps, taxonomy, placeholder, value, onChange, className , mode  ,maxCount, suffixIcon,required} = props;
     const [error, setError] = useState(false);
     const fetchPosts = (keyword = '') => {
         return axios.get(getAdminAjaxUrl(), {
@@ -42,8 +42,7 @@ const SelectTerms = props => {
             className={`${className} ${styles.select}`}
             fetchOptions={fetchPosts}
             allowClear={selectProps.allowClear || false}
-            suffixIcon={selectProps.suffixIcon}
-            // maxTagCount={'responsive'}
+            suffixIcon={suffixIcon}
             {...selectProps}
             status={ error && 'error'}
         />
