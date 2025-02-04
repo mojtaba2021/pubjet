@@ -29,6 +29,14 @@ const Form = props => {
     const formattedCategories = normalizeCategories(categories);
 
 
+    const suffixIcon = (
+    <>
+                                <span>
+                                    {(Array.isArray(categories) ? categories.length : (categories ? 1 : 0))} / {MAX_COUNT}
+                                </span>
+        <DownOutlined />
+    </>
+)
     /**
      * @since 1.0
      */
@@ -56,29 +64,18 @@ const Form = props => {
             })}
         </AntForm.Item>
         <CheckTokenResult/>
-        <AntForm.Item label={pubjet__('sync-categories')}>
+        <AntForm.Item label={pubjet__('sync-categories')} tooltip={ pubjet__('select-categories-hints')}>
             <SelectTerms
                 mode="multiple"
                 placeholder=''
-                // allowClear={true}
                 taxonomy={'category'}
                 maxCount = {MAX_COUNT}
                 maxTagCount={'responsive'}
                 required={true}
                 onChange={selected => changeInput('categories', selected)}
                 value={formattedCategories}
-                // value={Array.isArray(categories) ? categories : (categories ? [categories] : [])}
                 optionRender={(option) => <span>{option.label}</span>}
-                selectProps={{
-                    suffixIcon: (
-                        <>
-                                <span>
-                                    {(Array.isArray(categories) ? categories.length : (categories ? 1 : 0))} / {MAX_COUNT}
-                                </span>
-                            <DownOutlined />
-                        </>
-                    )
-                }}
+                suffixIcon={suffixIcon}
             />
         </AntForm.Item>
         <AntForm.Item label={pubjet__('default-category')}>
