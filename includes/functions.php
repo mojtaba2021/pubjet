@@ -1681,3 +1681,37 @@ function pubjet_publish_backlink_request($backlink_id) {
 
     return $result;
 }
+
+
+function pubjet_check_new_version() {
+
+    $plugin_updates = get_site_transient( 'update_plugins' );
+
+    if ( empty( $plugin_updates ) || !isset( $plugin_updates->response['pubjet/pubjet.php'] ) ) {
+
+        $pubjet_update_info = get_site_transient( 'pubjet_update_plugin_info' );
+
+        if ( false === $pubjet_update_info ) {
+            $api_url = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&slug=pubjet';
+            $response = wp_remote_get( $api_url );
+
+            if ( is_wp_error( $response ) ) {
+                pubjet_log('Pubjet update api check failed: ' . $response->get_error_message());
+                return new \WP_Error('insert-reportage', $response->get_error_message());
+            }
+
+            $data = json_decode( wp_remote_retrieve_body( $response ) );
+
+            set_site_transient( 'pubjet_update_plugin_info', $data, 12 * HOUR_IN_SECONDS );
+
+            $new_version = $data->version ?? 0;
+        } else {
+            $new_version = $pubjet_update_info->new_version ?? 0;
+        }
+    } else {
+        $plugin = $plugin_updates->response['pubjet/pubjet.php'];
+        $new_version = $plugin->new_version;
+    }
+
+    return $new_version;
+}
