@@ -141,35 +141,17 @@ class ModalReportageAuthor extends AntModal {
                                     key: author.ID,
                                 }))
                             }
-                            // onChange={(value) => this.handleAuthorCategoryChange(index, 'author', value)}
                         />
                     )
                 }
 
             }
-            // {
-            //     title : pubjet__('username'),
-            //     render: (value, record) => {
-            //         return record.user_login;
-            //     },
-            // },
-            // {
-            //     title : pubjet__('displayname'),
-            //     render: (value, record) => {
-            //         return record.display_name;
-            //     },
-            // },
         ];
     };
 
     /**
      * @since 1.0.0
      */
-    // handleAuthorCategoryChange = (index, key, value) => {
-    //     const updatedAuthorCategory = [...this.state.authorCategory];
-    //     updatedAuthorCategory[index][key] = value;
-    //     this.setState({ authorCategory: updatedAuthorCategory });
-    // };
     handleAuthorCategoryChange = (index, key, value) => {
         const currentAuthorCategory = this.state.authorCategory || [];
         const updatedAuthorCategory = [...currentAuthorCategory];
@@ -277,35 +259,6 @@ class ModalReportageAuthor extends AntModal {
     /**
      * @since 1.0.0
      */
-    // table = () => {
-    //     const {loading, authorId} = this.state;
-    //     return <Spin spinning={loading}>
-    //         <Table
-    //             rowKey={'ID'}
-    //             columns={this.columns()}
-    //             dataSource={this.source()}
-    //             pagination={this.getPaginationConfig()}
-    //             className={styles.table}
-    //             rowClassName={styles.cursorPointer}
-    //             // rowSelection={{
-    //             //     type           : "radio",
-    //             //     selectedRowKeys: authorId ? [Number(authorId)] : [],
-    //             //     onChange       : (selectedRowKeys, selectedRows) => {
-    //             //         this.setState({authorId: selectedRowKeys[0]});
-    //             //     },
-    //             // }}
-    //             onRow={(record) => ({
-    //                 onClick: () => {
-    //                     this.setState({authorId: record.ID});
-    //                 }
-    //             })}
-    //         />
-    //     </Spin>;
-    // };
-
-    /**
-     * @since 1.0.0
-     */
     categoryTable = () => {
         const {loading, authorId} = this.state;
         return <Spin spinning={loading}>
@@ -375,7 +328,7 @@ class ModalReportageAuthor extends AntModal {
     buttonAdd = () => {
         return <Button
             type={'default'}
-            size={'large'}
+            size={'middle'}
             icon={<PlusOutlined/>}
             onClick={this.handleAdd}
         >
@@ -424,7 +377,7 @@ class ModalReportageAuthor extends AntModal {
                 allowClear
                 style={{ width: '100%', height: '40px',margin: '8px 0 20px 0' }}
                 value={selectedAuthor ? { value: selectedAuthor.ID, label: selectedAuthor.display_name } : null}
-                placeholder="نویسنده پیش فرض را انتخاب کنید"
+                placeholder="نویسنده پیش‌فرض را انتخاب کنید"
                 optionFilterProp="label"
                 filterSort={(optionA, optionB) =>
                     (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
@@ -445,7 +398,7 @@ class ModalReportageAuthor extends AntModal {
      */
     alert = () => {
         return (<>
-            <Divider plain>انتخاب نویسنده پیش فرض</Divider>
+            <Divider plain>انتخاب نویسنده پیش‌فرض</Divider>
             <Alert
                 type={'info'}
                 message={pubjet__('select-rep-author-hints')}
@@ -458,7 +411,7 @@ class ModalReportageAuthor extends AntModal {
      * @since 1.0.0
      */
     authorCategoryAlert = () => {
-        return(<>            <Divider plain>انتخاب نویسنده به ازای هر دسته بندی </Divider>
+        return(<>            <Divider plain>انتخاب نویسنده به‌ازای هر دسته‌بندی</Divider>
          <Alert
             type={'info'}
             message={pubjet__('add-authorCategory-hints')}
