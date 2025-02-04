@@ -876,7 +876,7 @@ function pubjet_strings() {
         'horizontal'                 => esc_html__('Horizontal', 'pubjet'),
         'vertical'                   => esc_html__('Vertical', 'pubjet'),
         'pbqs'                       => esc_html__('Process Data By Query String', 'pubjet'),
-        'pbqs-hints'                 => esc_html__('By default, Pabjet uses the REST method to process information. If for any reason this method does not work and you want to use the old method of data processing, enable this option', 'pubjet'),
+        'pbqs-hints'                 => esc_html__('By default, the REST API method is used to transfer data from Tribune to Pubjet. If this method encounters problems for any reason, you can enable this option to use the Query String method to process the information.', 'pubjet'),
         'style'                      => esc_html__('Style', 'pubjet'),
         'backlinks'                  => esc_html__('Backlinks', 'pubjet'),
         'all-backlinks'              => esc_html__('All Backlinks', 'pubjet'),
@@ -979,10 +979,15 @@ function pubjet_strings() {
         'add-reportage-source'       => esc_html__('Add source domain at the bottom of the reportage', 'pubjet'),
         'add-authorCategory-hints'   => esc_html__('You can assign a specific author to each report category.', 'pubjet'),
         'pubjet-update-plugin-desc'  => esc_html__('Pubjet version %s has been released. This version includes performance improvements and fixes for previous issues. Please update to get the latest features.', 'pubjet'),
-        'pubjet-update-plugin-title' => esc_html__('A new version of Pubjet has been released.', 'pubjet'),
+        'pubjet-update-plugin-title' => esc_html__('A new version of Pubjet has been released!', 'pubjet'),
         'max-sync-categories'        => esc_html__('The number of categories that can be selected for synchronization exceeds the allowed limit (%s items).', 'pubjet'),
         'empty-sync-categories'      => esc_html__('Sync categories cannot be empty.', 'pubjet'),
-        'empty-default-category'      => esc_html__('Default category cannot be empty.', 'pubjet'),
+        'empty-default-category'     => esc_html__('Default category cannot be empty.', 'pubjet'),
+        'enable-debugging-hints'     => esc_html__("By enabling this option, Pubjet's performance history will be saved. In the event of an error, you can share this information with Triboon's technical team to make the troubleshooting process faster and more accurate.",'pubjet'),
+        'delete-first-image-hints'   => esc_html__('By activating this option, if the customer has not included a featured image, the first image of the report will be removed from the text and considered as the featured image.' , 'pubjet'),
+        'add-reportage-source-hints' => esc_html__('By activating this option, the link that is most frequently repeated in the report will be included as the root domain (main domain) as the news source at the end of the article.' , 'pubjet'),
+        'switch-rep-author-hints'    => esc_html__("By default, reportage articles are published on the site without the author's name. If you would like a specific author to be considered for these articles, you can specify the author's name in this field." , 'pubjet'),
+        'uninstall-hints'            => esc_html__('By enabling this option, all Pubjet settings will be completely erased after uninstalling Pubjet.' , 'pubjet'),
     ]);
 }
 
