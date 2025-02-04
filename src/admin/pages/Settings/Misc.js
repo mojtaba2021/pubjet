@@ -11,15 +11,15 @@ import {QuestionCircleOutlined, SettingOutlined} from "@ant-design/icons";
 const Misc = props => {
     const [showAlert, setShowAlert] = useState(false);
     const {
-              uninstallCleanup,
-              deleteFirstImage,
-              addReportageSource,
-              manualApprove,
-              useGoogleTranslate,
-              processDataByQueryString,
-              metakeys  = {},
-              repauthor = {}
-          } = props.options;
+        uninstallCleanup,
+        deleteFirstImage,
+        addReportageSource,
+        manualApprove,
+        useGoogleTranslate,
+        processDataByQueryString,
+        metakeys = {},
+        repauthor = {}
+    } = props.options;
 
     /**
      * @since 1.0.0
@@ -48,7 +48,7 @@ const Misc = props => {
                     <Space>
                         <span>{pubjet__('manual-approve')}</span>
                         <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('manual-approve-hints')}}/>}>
-                            <QuestionCircleOutlined/>
+                            <QuestionCircleOutlined  className={'ant-form-item-tooltip'}/>
                         </Tooltip>
                     </Space>
                 </Space>}
@@ -63,7 +63,12 @@ const Misc = props => {
                             toggleSavedAlert();
                         }}
                     />
-                    <span>{pubjet__('delete-first-image')}</span>
+                    <Space>
+                        <span>{pubjet__('delete-first-image')}</span>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('delete-first-image-hints')}}/>}>
+                            <QuestionCircleOutlined  className={'ant-form-item-tooltip'}/>
+                        </Tooltip>
+                    </Space>
                 </Space>}
                 />
                 <Form.Item className={styles.hideInput} label={<Space>
@@ -76,7 +81,12 @@ const Misc = props => {
                             toggleSavedAlert();
                         }}
                     />
-                    <span>{pubjet__('add-reportage-source')}</span>
+                    <Space>
+                        <span>{pubjet__('add-reportage-source')}</span>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('add-reportage-source-hints')}}/>}>
+                            <QuestionCircleOutlined  className={'ant-form-item-tooltip'}/>
+                        </Tooltip>
+                    </Space>
                 </Space>}
                 />
                 <Form.Item className={styles.hideInput} label={<Space>
@@ -89,7 +99,12 @@ const Misc = props => {
                             toggleSavedAlert();
                         }}
                     />
-                    <span>{pubjet__('use-google-translate')}</span>
+                    <Space>
+                        <span>{pubjet__('use-google-translate')}</span>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('use-google-translate-hints')}}/>}>
+                            <QuestionCircleOutlined  className={'ant-form-item-tooltip'}/>
+                        </Tooltip>
+                    </Space>
                 </Space>}
                 />
                 <Form.Item className={styles.hideInput} label={<Space>
@@ -105,10 +120,10 @@ const Misc = props => {
                     <Space>
                         <span>{pubjet__('pbqs')}</span>
                         <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('pbqs-hints')}}/>}>
-                            <QuestionCircleOutlined/>
+                            <QuestionCircleOutlined  className={'ant-form-item-tooltip'}/>
                         </Tooltip>
                     </Space>
-                    <span>{pubjet__('pdbq')}</span>
+
                 </Space>}
                 />
                 <Form.Item htmlFor={''} className={styles.hideInput} label={<Space>
@@ -118,13 +133,18 @@ const Misc = props => {
                         onChange={(checked) => {
                             changeInput('metakeys', {
                                 status: checked,
-                                items : metakeys.items ?? [],
+                                items: metakeys.items ?? [],
                             });
                             saveOptions();
                             toggleSavedAlert();
                         }}
                     />
-                    <span>{pubjet__('define-post-metakeys')}</span>
+                    <Space>
+                        <span>{pubjet__('define-post-metakeys')}</span>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('pmk-hints')}}/>}>
+                            <QuestionCircleOutlined  className={'ant-form-item-tooltip'} />
+                        </Tooltip>
+                    </Space>
                     {metakeys.status && <SettingOutlined
                         className={styles.showModalMetakeys}
                         onClick={() => {
@@ -139,14 +159,19 @@ const Misc = props => {
                         checked={repauthor.status}
                         onChange={(checked) => {
                             changeInput('repauthor', {
-                                status  : checked,
+                                status: checked,
                                 authorId: repauthor.authorId ?? false,
                             });
                             saveOptions();
                             toggleSavedAlert();
                         }}
                     />
-                    <span>{pubjet__('select-rep-author')}</span>
+                    <Space>
+                        <span>{pubjet__('select-rep-author')}</span>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('switch-rep-author-hints')}}/>}>
+                            <QuestionCircleOutlined  className={'ant-form-item-tooltip'}/>
+                        </Tooltip>
+                    </Space>
                     {repauthor.status && <SettingOutlined
                         className={`${styles.showModalMetakeys} ${styles.showModalReportageAuthor}`}
                         onClick={() => {
@@ -161,7 +186,12 @@ const Misc = props => {
                         saveOptions();
                         toggleSavedAlert();
                     }} size={'default'}/>
-                    <span>{pubjet__('uninstall')}</span>
+                    <Space>
+                        <span>{pubjet__('uninstall')}</span>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('uninstall-hints')}}/>}>
+                            <QuestionCircleOutlined  className={'ant-form-item-tooltip'}/>
+                        </Tooltip>
+                    </Space>
                 </Space>}
                 />
             </Form>
