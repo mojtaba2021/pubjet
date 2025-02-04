@@ -194,7 +194,7 @@ class ModalMetakeys extends AntModal {
     content = () => {
         const {saved} = this.state;
         return <div className={styles.wrapper}>
-            {this.alert()}
+            {/*{this.alert()}*/}
             {this.buttonAdd()}
             {this.table()}
             {saved && <SavedAlert className={styles.savedAlert}/>}
