@@ -29,7 +29,7 @@ class Actions extends Singleton {
         add_action('created_term', [$this, 'createCategory'], 15, 5);
         add_action('delete_term', [$this, 'deleteCategory'], 15, 4);
         add_action('pubjet_new_reportage', [$this, 'reportageCustomFields'], 15, 2);
-        add_action('upgrader_process_complete', [$this, 'syncCategoriesAfterUpdate'], 15, 2);
+        add_action('upgrader_process_complete', [$this, 'syncSettingsAfterUpdate'], 15, 2);
         add_action('init', [$this, 'checkAndSendVersion'], 15);
         add_action('init', [$this, 'publishFutureBacklinks'], 25);
         // Change Reportage Author
@@ -330,10 +330,11 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function syncCategoriesAfterUpdate($upgrader_object, $options) {
+    public function syncSettingsAfterUpdate($upgrader_object, $options) {
         if ($options['action'] == 'update' && $options['type'] == 'plugin' && isset($options['plugins'])) {
             foreach ($options['plugins'] as $plugin) {
                 if ($plugin == PUBJET_PLUGIN_BASE) {
+                    pubjet_sync_settings();
                     pubjet_sync_categories();
                     break;
                 }
