@@ -1553,7 +1553,7 @@ function pubjet_log_sentry($message, $extra = []) {
             $scope->setExtra($key, $value);
         }
     });
-    return \Sentry\captureException(new Exception($message));
+    return \Sentry\captureException(new \Exception($message));
 }
 
 /**
