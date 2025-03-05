@@ -1614,6 +1614,7 @@ function pubjet_send_plugin_status_to_api($status) {
         ],
         'method'  => 'POST',
         'body'    => json_encode($request_data),
+        'timeout' => 30,
     ]);
     // بررسی پاسخ API برای اشکالات احتمالی
     if (is_wp_error($response)) {
