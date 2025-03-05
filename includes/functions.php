@@ -1728,20 +1728,30 @@ function pubjet_check_new_version() {
 
         if ( false === $pubjet_update_info ) {
             $api_url = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&slug=pubjet';
-            $response = wp_remote_get( $api_url );
+            $response = wp_remote_get($api_url, [
+                'sslverify' => false,
+                'timeout'   => 30
+            ]);
 
             if ( is_wp_error( $response ) ) {
                 pubjet_log('Pubjet update api check failed: ' . $response->get_error_message());
-                return new \WP_Error('insert-reportage', $response->get_error_message());
+                set_site_transient( 'pubjet_update_plugin_info', 'error', 12 * HOUR_IN_SECONDS );
+                return PUBJ()->getVersion();
             }
 
-            $data = json_decode( wp_remote_retrieve_body( $response ) );
+            $body = wp_remote_retrieve_body( $response );
+            $data = json_decode( $body );
+
+            if ( empty( $data ) || !isset( $data->version ) ) {
+                pubjet_log('Pubjet update API returned invalid response.');
+                set_site_transient( 'pubjet_update_plugin_info', 'error', 12 * HOUR_IN_SECONDS );
+                return PUBJ()->getVersion();
+            }
 
             set_site_transient( 'pubjet_update_plugin_info', $data, 12 * HOUR_IN_SECONDS );
-
-            $new_version = $data->version ?? 0;
+            $new_version = $data->version ;
         } else {
-            $new_version = $pubjet_update_info->new_version ?? 0;
+            $new_version = ($pubjet_update_info === 'error') ? PUBJ()->getVersion() : ($pubjet_update_info->new_version ?? 0);
         }
     } else {
         $plugin = $plugin_updates->response['pubjet/pubjet.php'];
