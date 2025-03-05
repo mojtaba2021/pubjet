@@ -442,6 +442,9 @@ class Ajax extends Singleton
             if (is_wp_error($token_data)) {
                 $this->error($token_data->get_error_message());
             }
+            $publisherCategory = pubjet_isset_value($token_data['publisherCategory']);
+        }else{
+            $publisherCategory = 1;
         }
 
         if (is_string($categories)) {
@@ -461,8 +464,15 @@ class Ajax extends Singleton
 
 
         global $pubjet_settings;
-
+        $pubjet_settings['publisherCategory'] = $publisherCategory;
         $settings['categories'] = $categories ?? [];
+        $settings['publisherCategory'] = $publisherCategory;
+
+        pubjet_log(['settings' => $pubjet_settings]);
+
+        if ($publisherCategory !== 1) {
+            $settings['manualApprove'] = false;
+        }
         update_option(EnumOptions::Settings, $settings);
 
         if (count(array_diff($pubjet_settings['categories'], $settings['categories'])) > 0 ||
