@@ -155,6 +155,7 @@ class Actions extends Singleton {
 
     /**
      * @return void
+     * @throws \Exception
      * @since 4.0.0
      */
     public function processCreateReportage($reportage) {
