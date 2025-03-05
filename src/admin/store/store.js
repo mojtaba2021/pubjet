@@ -22,6 +22,7 @@ export const state = {
         addReportageSource      : false,
         useGoogleTranslate      : false,
         processDataByQueryString: false,
+        publisherCategory       : false,
         metakeys                : {
             status: false,
             items : [],
