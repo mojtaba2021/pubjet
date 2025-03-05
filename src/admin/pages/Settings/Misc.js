@@ -17,6 +17,7 @@ const Misc = props => {
         manualApprove,
         useGoogleTranslate,
         processDataByQueryString,
+        publisherCategory,
         metakeys = {},
         repauthor = {}
     } = props.options;
@@ -35,24 +36,28 @@ const Misc = props => {
         <React.Fragment>
             {showAlert && <SavedAlert/>}
             <Form className={styles.wrapper} layout={'vertical'} colon={false}>
-                <Form.Item className={styles.hideInput} label={<Space>
-                    <Switch
-                        size={'default'}
-                        checked={manualApprove}
-                        onChange={(checked) => {
-                            changeInput('manualApprove', checked);
-                            saveOptions();
-                            toggleSavedAlert();
-                        }}
-                    />
-                    <Space>
-                        <span>{pubjet__('manual-approve')}</span>
-                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('manual-approve-hints')}}/>}>
-                            <QuestionCircleOutlined  className={'ant-form-item-tooltip'}/>
-                        </Tooltip>
-                    </Space>
-                </Space>}
-                />
+                {publisherCategory === 1 && <Form.Item
+                    className={styles.hideInput}
+                    label={<Space>
+                        <Switch
+                            size={'default'}
+                            defaultValue={false}
+                            checked={publisherCategory === 1 ? manualApprove : false}
+                            onChange={(checked) => {
+                                if (publisherCategory === 1) {
+                                    changeInput('manualApprove', checked);
+                                    saveOptions();
+                                    toggleSavedAlert();
+                                }
+                            }}
+                        />
+                        <Space>
+                            <span>{pubjet__('manual-approve')}</span>
+                            <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('manual-approve-hints')}}/>}>
+                                <QuestionCircleOutlined className={'ant-form-item-tooltip'}/>
+                            </Tooltip>
+                        </Space>
+                    </Space>} />}
                 <Form.Item className={styles.hideInput} label={<Space>
                     <Switch
                         size={'default'}
