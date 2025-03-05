@@ -1420,6 +1420,32 @@ function pubjet_sync_categories() {
     return $response;
 }
 
+
+function pubjet_sync_settings() {
+    pubjet_log("===== synSettingsAfterUpdate ===== ");
+    $category = pubjet_is_dev_mode() ? 1 : null;
+    if ($category === null) {
+        $token = pubjet_token();
+        if (!empty($token)) {
+            $details = pubjet_find_token_details(trim($token));
+            if (!is_wp_error($details) && isset($details['publisherCategory'])) {
+                $category = $details['publisherCategory'];
+            }
+        }
+    }
+    if ($category !== null) {
+        global $pubjet_settings;
+        $pubjet_settings['publisherCategory'] = $category;
+        if ($category !== 1) {
+            $pubjet_settings['manualApprove'] = false;
+        }
+        pubjet_log(['publisher Category' => $category]);
+        update_option(EnumOptions::Settings, $pubjet_settings);
+    }
+    pubjet_log(["publisherCategory" => $category]);
+
+}
+
 /*
  * @return array
  */
