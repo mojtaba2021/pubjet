@@ -47,7 +47,7 @@ class Cron extends Singleton {
                 continue;
             }
             $result = pubjet_publish_reportage($post->ID, $reportage_id);
-            if (isset($result['code']) && ($result['code'] == 200 || $result['code'] == 429)) {
+            if (isset($result['code']) && in_array($result['code'], [200, 429])) {
                 delete_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl);
             }
         }

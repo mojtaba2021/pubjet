@@ -430,7 +430,7 @@ class ReportagePost extends Singleton {
             return;
         }
         $result = $this->publishReportageRequest($post->ID, $reportage_id);
-        if (isset($result['code']) && ( $result['code'] != 200 || $result['code'] != 429)) {
+        if (isset($result['code']) && !in_array($result['code'], [200, 429])) {
             update_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl, true);
         }
     }
