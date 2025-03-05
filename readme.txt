@@ -1,7 +1,7 @@
 === Pubjet | پاب‌جت ===
-Contributors: triboon
+Contributors: mojtabam2021
 Tags: seo,reportage
-Stable tag: 4.6.0
+Stable tag: 4.7.0
 Tested up to: 6.5.5
 Requires PHP: 7.2.5
 License: GPL v2 or later
@@ -49,6 +49,9 @@ After installing and activating the plugin, go to Pubjet settings menu and enter
 لطفا اگه از نسخه های قبل از 2.7.1 استفاده می کنید، پس از بروزرسانی به نسخه جدید یکبار تنظیمات توکن را مجددا انجام دهید.
 
 == Changelog ==
+
+= 4.7.0 =
+*مانیتورینگ و نمایش آپشن تایید و انتشار دستی فقط برای لیگ یکی ها
 
 = 4.6.0 =
 * تصحیح نگارشی و افزودن توضیحات به آپشن‌های پلاگین
