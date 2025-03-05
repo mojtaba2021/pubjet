@@ -5,6 +5,7 @@ namespace triboon\pubjet\includes;
 use DateTime;
 use DateTimeZone;
 use triboon\pubjet\includes\enums\EnumOptions;
+use triboon\pubjet\includes\enums\EnumPostStatus;
 use triboon\pubjet\includes\traits\Utils;
 
 defined('ABSPATH') || exit;
@@ -77,7 +78,12 @@ class RestApi extends Singleton {
             if (!pubjet_is_reportage($post->ID)) {
                 continue; // Just publish reportage post
             }
-            wp_publish_post($post->ID);
+            $post_status = pubjet_should_publish_reportage_manually() ?  EnumPostStatus::Pending :  EnumPostStatus::Publish;
+            pubjet_log(['missed_reportage' => $post->ID, 'new_post_status' => $post_status]);
+            wp_update_post([
+                'ID'          => $post->ID,
+                'post_status' => $post_status
+            ]);
         }
     }
 
