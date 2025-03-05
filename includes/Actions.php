@@ -158,36 +158,44 @@ class Actions extends Singleton {
      * @since 4.0.0
      */
     public function processCreateReportage($reportage) {
-        $wp_post_id = ReportagePost::insert($reportage);
+        $lock_key = 'pubjet_reportage_creation_lock_' . $reportage->id;
+        $lock_time = 30;
 
-        if (!$wp_post_id || is_wp_error($wp_post_id)) {
-            if (is_wp_error($wp_post_id)) {
-                pubjet_log('Error: ' . $wp_post_id->get_error_message());
+        $log_data = [
+            'reportage_id'    => pubjet_isset_value($reportage->id),
+            'reportage_title' => pubjet_isset_value($reportage->title),
+        ];
+
+        if (get_transient($lock_key)) {
+            $duplicate_error_message = 'در حال پردازش درخواست مشابه. لطفاً منتظر بمانید.';
+            pubjet_log(['Error' => ['message' => $duplicate_error_message] + $log_data]);
+            pubjet_log_sentry($duplicate_error_message,['message' => $duplicate_error_message] + $log_data);
+            $this->error($duplicate_error_message, 429);
+            return;
+        }
+
+        try {
+            set_transient($lock_key, time(), $lock_time);
+            $wp_post_id = ReportagePost::insert($reportage);
+
+            if (!$wp_post_id || is_wp_error($wp_post_id)) {
+                throw new \Exception(is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در ثبت نوشته رپورتاژ.');
             }
-            $sentry_error = is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در فرایند ثبت نوشته رپورتاژ رخ داده است.';
-            pubjet_log_sentry($sentry_error, [
-                'reportage_id'    => pubjet_isset_value($reportage->id),
-                'reportage_title' => pubjet_isset_value($reportage->title),
+
+            pubjet_log($reportage->wp_post_id ? 'Post updated: ' . $reportage->wp_post_id : 'Post created: ' . $wp_post_id);
+
+            $this->success([
+                'postId'      => $wp_post_id,
+                'postStatus'  => get_post_status($wp_post_id) ?: 'Unknown',
+                'reportageId' => $reportage->id,
             ]);
-            $this->error($sentry_error, 400);
+        } catch (\Exception $e) {
+            pubjet_log(['Error' => $e->getMessage()] + $log_data);
+            pubjet_log_sentry($e->getMessage(), ["message" =>  $e->getMessage()] + $log_data);
+            $this->error($e->getMessage(), 400);
+        } finally {
+            delete_transient($lock_key);
         }
-
-        if (!empty($reportage->wp_post_id)) {
-            // Update
-            pubjet_log('Post updated successfully. Post ID: ' . $reportage->wp_post_id);
-        } else {
-            // Insert
-            pubjet_log('Post created successfully. New Post ID: ' . $wp_post_id);
-        }
-
-        $reportage_post = get_post($wp_post_id);
-
-        // Success
-        $this->success([
-                           'postId'      => $wp_post_id,
-                           'postStatus'  => $reportage_post ? $reportage_post->post_status : 'Unknown',
-                           'reportageId' => $reportage->id,
-                       ]);
     }
 
     /**
