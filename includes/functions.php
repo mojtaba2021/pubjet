@@ -1162,14 +1162,15 @@ function pubjet_find_token_details($token) {
     }
 
     return [
-        'valid'         => true,
-        'first_name'    => pubjet_isset_value($result['body']->publisher->first_name),
-        'last_name'     => pubjet_isset_value($result['body']->publisher->last_name),
-        'phone'         => pubjet_isset_value($result['body']->publisher->phone),
-        'email'         => pubjet_isset_value($result['body']->publisher->email),
-        'pricing_plans' => $pricing_plans,
-        'website_id'    => pubjet_isset_value($result['body']->website_id),
-        'website_url'   => pubjet_isset_value($result['body']->website_url),
+        'valid'             => true,
+        'first_name'        => pubjet_isset_value($result['body']->publisher->first_name),
+        'last_name'         => pubjet_isset_value($result['body']->publisher->last_name),
+        'phone'             => pubjet_isset_value($result['body']->publisher->phone),
+        'email'             => pubjet_isset_value($result['body']->publisher->email),
+        'pricing_plans'     => $pricing_plans,
+        'website_id'        => pubjet_isset_value($result['body']->website_id),
+        'website_url'       => pubjet_isset_value($result['body']->website_url),
+        'publisherCategory' =>  pubjet_isset_value($result['body']->website_shop_quality_division,false)
     ];
 }
 
