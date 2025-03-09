@@ -1445,7 +1445,7 @@ function pubjet_sync_categories() {
 	$url = apply_filters( 'pubjet_sync_category_sync', pubjet_api_root() . '/external/wp/relative-category/',
 		pubjet_token() );
 
-	if ( pubjet_is_dev_mode() ) {
+	if ( pubjet_is_dev_mode() || empty( pubjet_token() ) ) {
 		return;
 	}
 
