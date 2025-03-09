@@ -604,7 +604,7 @@ function pubjet_swiper( $args, $echo = true ) {
 	if ( isset ( $args['id'] ) && $args['id'] ) {
 		$args['id'] = str_replace( "-", "_", $args['id'] );
 	} else {
-		$args['id'] = 'carousel_' . uniqid( rand() );
+		$args['id'] = 'carousel_' . uniqid( mt_rand(), false );
 	}
 	// Check if data is an array and is not empty
 	if ( ! isset( $args['data'] ) || empty( $args['data'] ) || ! is_array( $args['data'] ) ) {
