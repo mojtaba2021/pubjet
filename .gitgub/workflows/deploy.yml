@@ -1,0 +1,49 @@
+name: Deploy Plugin to Dev Site
+
+on:
+  push:
+    branches:
+      - dev
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install PHP Dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Install Node.js Dependencies
+        run: npm install
+
+      - name: Build Assets with Webpack
+        run: npm run build
+
+      - name: Deploy to gishehcinema.ir
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DEV_SERVER: ${{ secrets.DEV_SERVER }}
+          DEV_PATH: ${{ secrets.DEV_PATH }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
+          rsync  -avz --dry-run \
+            --exclude ".git" --exclude "node_modules" --exclude "src" \
+            --exclude "version" --exclude "debug.txt" --exclude ".idea" \
+            --exclude ".editorconfig" --exclude "composer.json" --exclude "composer.lock" \
+            --exclude ".gitignore" --exclude "package.json" --exclude "package-lock.json" \
+            --exclude ".babelrc" --exclude "webpack.dev.js" --exclude "webpack.prod.js" \
+            -e "ssh -i private_key -o StrictHostKeyChecking=no" \
+            ./ user@$DEV_SERVER:$DEV_PATH
+          rm -f private_key
