@@ -23,6 +23,8 @@ class Filters extends Singleton {
         add_filter('plugin_action_links_' . PUBJET_PLUGIN_BASE, [$this, 'pluginActionLinks'], 15);
         add_filter('https_ssl_verify', [$this, 'noSslVerify'], 15, 2);
         add_filter('query_vars', [$this, 'allowActionQueryVar'], 15);
+        add_filter("pubjet_new_reportage_post_args", [$this, "addReportageTags"], 15, 2);
+
     }
 
     /**
@@ -180,7 +182,23 @@ class Filters extends Singleton {
         return $content;
     }
 
+    /**
+     * @param $content
+     * @return string
+     */
 
+    public function addReportageTags($args, $reportage)
+    {
+        global $pubjet_settings;
+        $status = pubjet_isset_value($pubjet_settings['addReportageTags'],false);
+        if (!$status) {
+            return $args;
+        }
+        if (isset($args['tags_input'])) {
+            $args['tags_input'] = [];
+        }
+        return $args;
+    }
 
     /**
      * @param $content
