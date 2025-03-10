@@ -31,7 +31,7 @@ class Actions extends Singleton {
 		add_action( 'pubjet_new_reportage', [ $this, 'reportageCustomFields' ], 15, 2 );
 		add_action( 'upgrader_process_complete', [ $this, 'syncSettingsAfterUpdate' ], 15, 2 );
 		add_action( 'init', [ $this, 'checkAndSendVersion' ], 15 );
-		add_action( 'init', [ $this, 'publishFutureBacklinks' ], 25 );
+		//add_action( 'init', [ $this, 'publishFutureBacklinks' ], 25 );
 		// Change Reportage Author
 		add_action( 'pubjet_new_reportage', [ $this, 'changeReportageAuthor' ], 15, 2 );
 		// Create database tables

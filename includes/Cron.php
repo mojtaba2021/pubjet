@@ -2,6 +2,7 @@
 
 namespace triboon\pubjet\includes;
 
+use triboon\pubjet\includes\enums\EnumBacklinkStatus;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 use triboon\pubjet\includes\enums\EnumPostStatus;
 use triboon\pubjet\includes\enums\EnumPostTypes;
@@ -18,6 +19,22 @@ class Cron extends Singleton {
 		add_action( 'wp', [ $this, 'registerCron' ], 15 );
 		add_action( 'pubjet_sync_reportage_url', [ $this, 'runSyncReportageUrl' ], 15 );
 		add_action( 'pubjet_publish_missed_schedule_posts', [ $this, 'publishMissedSchedulePosts' ] );
+		add_action( 'pubjet_publish_future_backlinks', [ $this, 'publishFutureBacklinks' ] );
+	}
+
+	public function publishFutureBacklinks(): void {
+		$futuresBacklinks = pubjet_db()->backlinks->findFutures();
+		pubjet_log( $futuresBacklinks );
+		if ( $futuresBacklinks && is_array( $futuresBacklinks ) ) {
+			foreach ( $futuresBacklinks as $item ) {
+				// Notify Triboon
+				pubjet_publish_backlink_request( $item->backlink_id );
+				// Update Database
+				pubjet_db()->backlinks->update( $item->id, [
+					'status' => EnumBacklinkStatus::Publish,
+				] );
+			}
+		}
 	}
 
 	public function publishMissedSchedulePosts(): void {
@@ -95,6 +112,9 @@ class Cron extends Singleton {
 		if ( ! wp_next_scheduled( 'pubjet_publish_missed_schedule_posts' ) ) {
 			wp_schedule_event( time(), 'every_10_minutes', 'pubjet_publish_missed_schedule_posts' );
 		}
-	}
 
+		if ( ! wp_next_scheduled( 'pubjet_publish_future_backlinks' ) ) {
+			wp_schedule_event( time(), 'every_5_minutes', 'pubjet_publish_future_backlinks' );
+		}
+	}
 }
