@@ -6,6 +6,7 @@ use triboon\pubjet\includes\enums\EnumBacklinkStatus;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 use triboon\pubjet\includes\enums\EnumPostStatus;
 use triboon\pubjet\includes\enums\EnumPostTypes;
+use triboon\pubjet\includes\helper\Cache;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,6 +18,7 @@ class Cron extends Singleton {
 	public function init() {
 		add_filter( 'cron_schedules', [ $this, 'registerInterval' ], 15 );
 		add_action( 'wp', [ $this, 'registerCron' ], 15 );
+		add_action( 'init', [ $this, 'runMissedScheduleEvents' ] );
 		add_action( 'pubjet_sync_reportage_url', [ $this, 'runSyncReportageUrl' ], 15 );
 		add_action( 'pubjet_publish_missed_schedule_posts', [ $this, 'publishMissedSchedulePosts' ] );
 		add_action( 'pubjet_publish_future_backlinks', [ $this, 'publishFutureBacklinks' ] );
@@ -61,23 +63,6 @@ class Cron extends Singleton {
 	}
 
 	/**
-	 * @param $schedules
-	 *
-	 * @return array
-	 */
-	public function registerInterval( $schedules ): array {
-		$title = __( 'Every %d Minutes' );
-		for ( $i = 1; $i <= 60; $i ++ ) {
-			$schedules[ 'every_' . $i . '_minutes' ] = array(
-				'interval' => $i * 60,
-				'display'  => sprintf( $title, $i )
-			);
-		}
-
-		return $schedules;
-	}
-
-	/**
 	 * @return void
 	 */
 	public function runSyncReportageUrl(): void {
@@ -99,6 +84,102 @@ class Cron extends Singleton {
 				delete_post_meta( $post->ID, EnumPostMetakeys::FailedSyncUrl );
 			}
 		}
+	}
+
+	public function runMissedScheduleEvents(): void {
+		$doingCron = Cache::get( 'doing_cron' );
+
+		if ( $doingCron === false ) {
+			$dryRun  = false;
+			$crons   = _get_cron_array();
+			$egoTime = strtotime( '-2 minutes' );
+			foreach ( $crons as $timestamp => $list ) {
+				if ( $egoTime < $timestamp ) {
+					continue;
+				}
+
+				foreach ( $list as $action => $cron ) {
+					if ( strpos( $action, 'pubjet' ) !== 0 ) {
+						continue;
+					}
+					$dryRun = true;
+
+					foreach ( $cron as $sig => $event ) {
+						//do_action( $action, $info['args'] );
+						$this->forceScheduleSingleEvent( $action, $event['args'] );
+					}
+				}
+			}
+
+			if ( $dryRun ) {
+				delete_transient( 'doing_cron' );
+				spawn_cron();
+			}
+
+			Cache::set( 'doing_cron', true, MINUTE_IN_SECONDS );
+		}
+	}
+
+	/**
+	 * Forcibly schedules a single event for the purpose of manually running it.
+	 *
+	 * This is used instead of `wp_schedule_single_event()` to avoid the duplicate check that's otherwise performed.
+	 *
+	 * @param  string  $hook  Action hook to execute when the event is run.
+	 * @param  mixed[]  $args  Optional. Array containing each separate argument to pass to the hook's callback function.
+	 *
+	 * @return true|\WP_Error True if event successfully scheduled. WP_Error on failure.
+	 * @copyright This method copied from wp-crontrol plugin force_schedule_single_event function
+	 *
+	 */
+	public function forceScheduleSingleEvent( $hook, $args = array() ) {
+		$event = (object) array(
+			'hook'      => $hook,
+			'timestamp' => 1,
+			'schedule'  => false,
+			'args'      => $args,
+		);
+		$crons = _get_cron_array();
+		$key   = md5( serialize( $event->args ) );
+
+		$crons[ $event->timestamp ][ $event->hook ][ $key ] = array(
+			'schedule' => $event->schedule,
+			'args'     => $event->args,
+		);
+		ksort( $crons );
+
+		$result = _set_cron_array( $crons );
+
+		// Not using the WP_Error from `_set_cron_array()` here so we can provide a more specific error message.
+		if ( false === $result ) {
+			return new \WP_Error(
+				'could_not_add',
+				sprintf(
+				/* translators: %s: The name of the cron event. */
+					__( 'Failed to schedule the cron event %s.', 'wp-crontrol' ),
+					$hook
+				)
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * @param $schedules
+	 *
+	 * @return array
+	 */
+	public function registerInterval( $schedules ): array {
+		$title = __( 'Every %d Minutes' );
+		for ( $i = 1; $i <= 60; $i ++ ) {
+			$schedules[ 'every_' . $i . '_minutes' ] = array(
+				'interval' => $i * 60,
+				'display'  => sprintf( $title, $i )
+			);
+		}
+
+		return $schedules;
 	}
 
 	/**
