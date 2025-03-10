@@ -18,6 +18,7 @@ const Misc = props => {
         useGoogleTranslate,
         processDataByQueryString,
         publisherCategory,
+        addReportageTags,
         metakeys = {},
         repauthor = {}
     } = props.options;
@@ -89,6 +90,24 @@ const Misc = props => {
                     <Space>
                         <span>{pubjet__('add-reportage-source')}</span>
                         <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('add-reportage-source-hints')}}/>}>
+                            <QuestionCircleOutlined  className={'ant-form-item-tooltip'}/>
+                        </Tooltip>
+                    </Space>
+                </Space>}
+                />
+                <Form.Item className={styles.hideInput} label={<Space>
+                    <Switch
+                        size={'default'}
+                        checked={addReportageTags}
+                        onChange={(checked) => {
+                            changeInput('addReportageTags', checked);
+                            saveOptions();
+                            toggleSavedAlert();
+                        }}
+                    />
+                    <Space>
+                        <span>{pubjet__('add-reportage-tags')}</span>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('add-reportage-tags-hints')}}/>}>
                             <QuestionCircleOutlined  className={'ant-form-item-tooltip'}/>
                         </Tooltip>
                     </Space>
