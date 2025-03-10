@@ -988,6 +988,8 @@ function pubjet_strings() {
         'add-reportage-source-hints' => esc_html__('By activating this option, the link that is most frequently repeated in the report will be included as the root domain (main domain) as the news source at the end of the article.' , 'pubjet'),
         'switch-rep-author-hints'    => esc_html__("By default, reportage articles are published on the site without the author's name. If you would like a specific author to be considered for these articles, you can specify the author's name in this field." , 'pubjet'),
         'uninstall-hints'            => esc_html__('By enabling this option, all Pubjet settings will be completely erased after uninstalling Pubjet.' , 'pubjet'),
+        'add-reportage-tags'         => esc_html__('Publish advertorials without tags' , 'pubjet'),
+        'add-reportage-tags-hints'   => esc_html__('By default, advertorials are published with customer-suggested tags. By enabling this option, advertorials will be published without tags.' , 'pubjet'),
     ]);
 }
 
