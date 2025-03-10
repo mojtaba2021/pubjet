@@ -44,12 +44,13 @@ class Cron extends Singleton {
 	}
 
 	/**
-	 * @return void
+	 * @param $schedules
+	 *
+	 * @return array
 	 */
-	public function registerInterval( $schedules ) {
+	public function registerInterval( $schedules ): array {
+		$title = __( 'Every %d Minutes' );
 		for ( $i = 1; $i <= 60; $i ++ ) {
-			$title                                   = str_replace( "%", "%d",
-				__( 'Every % Minutes' ) );
 			$schedules[ 'every_' . $i . '_minutes' ] = array(
 				'interval' => $i * 60,
 				'display'  => sprintf( $title, $i )
@@ -62,7 +63,7 @@ class Cron extends Singleton {
 	/**
 	 * @return void
 	 */
-	public function runSyncReportageUrl() {
+	public function runSyncReportageUrl(): void {
 		$args = [
 			'post_type'      => EnumPostTypes::Post,
 			'meta_key'       => EnumPostMetakeys::FailedSyncUrl,
@@ -86,7 +87,7 @@ class Cron extends Singleton {
 	/**
 	 * @return void
 	 */
-	public function registerCron() {
+	public function registerCron(): void {
 		if ( ! wp_next_scheduled( 'pubjet_sync_reportage_url' ) ) {
 			wp_schedule_event( time(), 'every_1_minutes', 'pubjet_sync_reportage_url' );
 		}
