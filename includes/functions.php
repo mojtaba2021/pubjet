@@ -1473,6 +1473,7 @@ function pubjet_default_settings() {
         'addReportageSource'       => false,
         'manualApprove'            => false,
         'publisherCategory'        => false,
+        'addReportageTags'         => false,
         'useGoogleTranslate'       => false,
         'processDataByQueryString' => false,
     ]);

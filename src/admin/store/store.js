@@ -20,6 +20,7 @@ export const state = {
         alignCenterImages       : false,
         deleteFirstImage        : false,
         addReportageSource      : false,
+        addReportageTags        : false,
         useGoogleTranslate      : false,
         processDataByQueryString: false,
         publisherCategory       : false,
