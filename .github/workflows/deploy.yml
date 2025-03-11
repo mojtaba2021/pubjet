@@ -42,6 +42,7 @@ jobs:
           rsync -avz --exclude-from='.github/exclude-list.txt' \
             -e "ssh -i private_key -o StrictHostKeyChecking=no" \
             ./ root@$DEV_SERVER:$DEV_PATH/
+          ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER "if [ -f $DEV_PATH/private_key ]; then rm -f $DEV_PATH/private_key; echo '✅ Remote private_key deleted'; fi"
 
 
 
