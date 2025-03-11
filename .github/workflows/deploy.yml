@@ -37,11 +37,10 @@ jobs:
           DEV_SERVER: ${{ secrets.DEV_SERVER }}
           DEV_PATH: ${{ secrets.DEV_PATH }}
         run: |
-          echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
-          echo "Test File" > test.txt
-          rsync -av -e "ssh -i private_key -o StrictHostKeyChecking=no" \
-            test.txt root@$DEV_SERVER:$DEV_PATH/test.txt
-          rm -f private_key test.txt
+            echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
+            rsync -av -e "ssh -i private_key -o StrictHostKeyChecking=no" \
+              .github/exclude-list.txt root@$DEV_SERVER:/var/lib/docker/volumes/gishehcinema2_app/_data/exclude-list.txt
+            rm -f private_key
 
 
               
