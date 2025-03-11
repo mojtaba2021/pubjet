@@ -1,0 +1,15 @@
+.git
+node_modules
+src
+version
+debug.txt
+.idea
+.editorconfig
+composer.json
+composer.lock
+.gitignore
+package.json
+package-lock.json
+.babelrc
+webpack.dev.js
+webpack.prod.js
