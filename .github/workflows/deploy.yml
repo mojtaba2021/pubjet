@@ -9,20 +9,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check file structure
-        run: |
-          ls -la
-          find . -name "exclude-list.txt"
-      - name: Deploy to gishehcinema.ir
+      - name: Create Test File
+        run: echo "Hello, this is a test file!" > test-file.txt
+
+      - name: Deploy Test File to gishehcinema.ir
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           DEV_SERVER: ${{ secrets.DEV_SERVER }}
           DEV_PATH: ${{ secrets.DEV_PATH }}
         run: |
-            echo $DEV_PATH
-            echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
-            ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER "echo 'Test content' > /var/lib/docker/volumes/gishehcinema2_app/_data/test.txt"
-            rm -f private_key
+          echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
+          scp -i private_key -o StrictHostKeyChecking=no test-file.txt root@$DEV_SERVER:$DEV_PATH/test-file.txt
+          rm -f private_key
 
 
               
