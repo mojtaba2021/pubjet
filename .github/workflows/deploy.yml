@@ -37,13 +37,9 @@ jobs:
           DEV_SERVER: ${{ secrets.DEV_SERVER }}
           DEV_PATH: ${{ secrets.DEV_PATH }}
         run: |
-          echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
-          rsync  -avz --dry-run \
-            --exclude ".git" --exclude "node_modules" --exclude "src" \
-            --exclude "version" --exclude "debug.txt" --exclude ".idea" \
-            --exclude ".editorconfig" --exclude "composer.json" --exclude "composer.lock" \
-            --exclude ".gitignore" --exclude "package.json" --exclude "package-lock.json" \
-            --exclude ".babelrc" --exclude "webpack.dev.js" --exclude "webpack.prod.js" \
-            -e "ssh -i private_key -o StrictHostKeyChecking=no" \
-            ./ root@$DEV_SERVER:$DEV_PATH
-          rm -f private_key
+              echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
+              rsync -avz --dry-run \
+                -e "ssh -i private_key -o StrictHostKeyChecking=no" \
+                readme.txt root@$DEV_SERVER:$DEV_PATH
+              rm -f private_key
+
