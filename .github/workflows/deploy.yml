@@ -25,7 +25,7 @@ jobs:
               rsync -avz --exclude-from='.github/exclude-list.txt' \
                 -e "ssh -i private_key -o StrictHostKeyChecking=no" \
                 ./ root@$DEV_SERVER:$DEV_PATH/
-              rm -f private_ke
+              rm -f private_key
 
               
 
