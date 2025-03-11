@@ -50,8 +50,7 @@ jobs:
         if: always()  # این مرحله همیشه اجرا می‌شود، حتی اگر rsync خطا دهد
         run: |
           if [ -f private_key ]; then
-            chmod 600 private_key
-            rm -f private_key
+            chmod 600 private_key && rm -f $DEV_PATH/private_key
             echo "✅ private_key deleted successfully"
           else
             echo "✅ private_key already deleted"
