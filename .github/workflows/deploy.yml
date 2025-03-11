@@ -19,6 +19,7 @@ jobs:
           DEV_SERVER: ${{ secrets.DEV_SERVER }}
           DEV_PATH: ${{ secrets.DEV_PATH }}
         run: |
+            echo $DEV_PATH
             echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
             ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER "echo 'Test content' > /var/lib/docker/volumes/gishehcinema2_app/_data/test.txt"
             rm -f private_key
