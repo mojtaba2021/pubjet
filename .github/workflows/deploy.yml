@@ -31,7 +31,7 @@ jobs:
       - name: Build Assets with Webpack
         run: npm run build
         
-      - name: Deploy Test File to gishehcinema.ir
+      - name: Deploy Dev to to gishehcinema.ir
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           DEV_SERVER: ${{ secrets.DEV_SERVER }}
