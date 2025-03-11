@@ -37,6 +37,9 @@ jobs:
           DEV_SERVER: ${{ secrets.DEV_SERVER }}
           DEV_PATH: ${{ secrets.DEV_PATH }}
         run: |
-              rsync --version
+              echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
+              echo "Test file" > test_file.txt
+              rsync -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" test_file.txt root@$DEV_SERVER:$DEV_PATH
+              rm -f private_key
               
 
