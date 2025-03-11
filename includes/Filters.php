@@ -34,7 +34,7 @@ class Filters extends Singleton {
 		$count = Cache::get( 'reportage_posts_count' );
 
 		if ( $count === false ) {
-			$posts = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft') AND meta.meta_key = 'pubjet_reportage_id' ";
+			$posts = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish', 'future', 'draft', 'pending') AND meta.meta_key = 'pubjet_reportage_id' ";
 			$count = (int) $wpdb->get_var( $posts );
 			Cache::set( 'reportage_posts_count', $count, DAY_IN_SECONDS );
 		}
