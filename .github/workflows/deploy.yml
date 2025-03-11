@@ -9,6 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check file structure
+        run: |
+          ls -la
+          find . -name "exclude-list.txt"
       - name: Deploy to gishehcinema.ir
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
