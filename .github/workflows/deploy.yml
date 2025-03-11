@@ -38,10 +38,10 @@ jobs:
           DEV_PATH: ${{ secrets.DEV_PATH }}
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
+             trap 'rm -f private_key' EXIT
               rsync -avz --exclude-from='.github/exclude-list.txt' \
                 -e "ssh -i private_key -o StrictHostKeyChecking=no" \
                 ./ root@$DEV_SERVER:$DEV_PATH/
-                  rm -f private_key || (echo "⚠️ Failed to delete private_key" && ls -lah private_key)
 
               
 
