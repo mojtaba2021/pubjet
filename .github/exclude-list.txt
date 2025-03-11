@@ -13,3 +13,4 @@ package-lock.json
 .babelrc
 webpack.dev.js
 webpack.prod.js
+private_key
