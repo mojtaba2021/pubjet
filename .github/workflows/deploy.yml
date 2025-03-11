@@ -37,8 +37,11 @@ jobs:
           DEV_SERVER: ${{ secrets.DEV_SERVER }}
           DEV_PATH: ${{ secrets.DEV_PATH }}
         run: |
-              echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
-              ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER "echo SSH is working!"
+            echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
+            rsync -avz -e "ssh -i private_key -o StrictHostKeyChecking=no" \
+              .github/exclude-list.txt root@$DEV_SERVER:$DEV_PATH/exclude-list.txt
+            rm -f private_key
+  
 
               
 
