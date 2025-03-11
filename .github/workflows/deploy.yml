@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Create Test File
         run: echo "Hello, this is a test file!" > test-file.txt
+      - name: Debug File Existence
+        run: ls -lah .github/
 
       - name: Deploy Test File to gishehcinema.ir
         env:
