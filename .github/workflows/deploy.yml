@@ -37,24 +37,12 @@ jobs:
           DEV_SERVER: ${{ secrets.DEV_SERVER }}
           DEV_PATH: ${{ secrets.DEV_PATH }}
         run: |
+          trap 'rm -f private_key; echo "✅ private_key deleted by trap"' EXIT
           echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
-          set +e  # اجازه می‌دهد در صورت خطا ادامه دهد
           rsync -avz --exclude-from='.github/exclude-list.txt' \
             -e "ssh -i private_key -o StrictHostKeyChecking=no" \
             ./ root@$DEV_SERVER:$DEV_PATH/
-          EXIT_CODE=$?  # ذخیره وضعیت اجرای rsync
-          rm -f private_key
-          exit $EXIT_CODE  # بازگرداندن کد خروجی rsync
 
-      - name: Ensure private_key is Deleted
-        if: always()  # این مرحله همیشه اجرا می‌شود، حتی اگر rsync خطا دهد
-        run: |
-          if [ -f private_key ]; then
-            chmod 600 private_key && rm -f private_key
-            echo "✅ private_key deleted successfully"
-          else
-            echo "✅ private_key already deleted"
-          fi
 
 
 
