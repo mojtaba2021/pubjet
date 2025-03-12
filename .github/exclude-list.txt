@@ -1,12 +1,12 @@
 .git
 node_modules
-src
+/composer.json
+/src/
 version
 debug.txt
 .idea
 .editorconfig
-composer.json
-composer.lock
+/composer.lock
 .gitignore
 package.json
 package-lock.json
