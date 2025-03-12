@@ -17,8 +17,9 @@ class Cron extends Singleton {
 	 */
 	public function init() {
 		add_filter( 'cron_schedules', [ $this, 'registerInterval' ], 15 );
-		add_action( 'wp', [ $this, 'registerCron' ], 15 );
+		add_action( 'init', [ $this, 'registerCron' ], 15 );
 		add_action( 'init', [ $this, 'runMissedScheduleEvents' ] );
+		add_action( 'init', [ $this, 'runMissedScheduleHooks' ] );
 		add_action( 'pubjet_sync_reportage_url', [ $this, 'runSyncReportageUrl' ], 15 );
 		add_action( 'pubjet_publish_missed_schedule_posts', [ $this, 'publishMissedSchedulePosts' ] );
 		add_action( 'pubjet_publish_future_backlinks', [ $this, 'publishFutureBacklinks' ] );
@@ -83,6 +84,45 @@ class Cron extends Singleton {
 			if ( isset( $result['code'] ) && ( $result['code'] == 200 || $result['code'] == 429 ) ) {
 				delete_post_meta( $post->ID, EnumPostMetakeys::FailedSyncUrl );
 			}
+		}
+	}
+
+	public function runMissedScheduleHooks(): void {
+		$doingCron = Cache::get( 'doing_hooks_cron' );
+		if ( $doingCron === false || isset( $_GET['cron'] ) ) {
+			$hooks   = [];
+			$crons   = _get_cron_array();
+			$egoTime = strtotime( '-5 minutes' );
+
+			foreach ( $crons as $timestamp => $list ) {
+				if ( $egoTime < $timestamp ) {
+					continue;
+				}
+
+				foreach ( $list as $action => $cron ) {
+					if ( strpos( $action, 'pubjet' ) !== 0 ) {
+						continue;
+					}
+
+					if ( $timestamp === 1 ) {
+						break;
+					}
+
+					foreach ( $cron as $sig => $event ) {
+						$hooks[ $action ] = $event;
+
+						wp_clear_scheduled_hook( $action );
+						wp_reschedule_event( time(), $event['schedule'], $action, $event['args'] );
+					}
+				}
+			}
+
+			foreach ( $hooks as $action => $cron ) {
+				pubjet_log( 'Run manually pubjet cron: ' . $action, __METHOD__, __LINE__ );
+				do_action( $action, $cron['args'] );
+			}
+
+			Cache::set( 'doing_hooks_cron', true, MINUTE_IN_SECONDS * 5 );
 		}
 	}
 
