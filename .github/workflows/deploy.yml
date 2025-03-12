@@ -24,7 +24,9 @@ jobs:
           node-version: '20'
 
       - name: Install PHP Dependencies
-        run: composer install --no-dev --optimize-autoloader
+        run: |
+            composer clear-cache
+            composer install --no-dev --optimize-autoloader
 
       - name: Install Node.js Dependencies
         run: npm install
