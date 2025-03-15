@@ -41,12 +41,13 @@ class Filters extends Singleton {
      *
      * @return false
      */
-    public function noSslVerify($verify, $url) {
-        if (strpos($url, 'triboon') !== false) {
+    public function noSslVerify($verify, $url = '') {
+        if (!empty($url) && strpos($url, 'triboon') !== false) {
             return false;
         }
         return $verify;
     }
+
 
     /**
      * @return void
