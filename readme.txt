@@ -1,7 +1,7 @@
 === Pubjet | پاب‌جت ===
 Contributors: mojtabam2021
 Tags: seo,reportage
-Stable tag: 4.8.0
+Stable tag: 4.9.0
 Tested up to: 6.5.5
 Requires PHP: 7.2.5
 License: GPL v2 or later
