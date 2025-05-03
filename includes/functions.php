@@ -1480,6 +1480,7 @@ function pubjet_default_settings() {
         'addReportageTags'         => false,
         'useGoogleTranslate'       => false,
         'processDataByQueryString' => false,
+        'pricingPlansChanged'      => false
     ]);
 }
 
