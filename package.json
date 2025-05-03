@@ -6,7 +6,7 @@
   "scripts": {
     "build": "webpack --config webpack.prod.js",
     "start": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js --config webpack.dev.js",
-    "bundle": "dir-archiver --includebasedir true --src . --dest ../pubjet.zip --exclude .git node_modules src version debug.txt .idea .editorconfig composer.json composer.lock .gitignore package.json package-lock.json .babelrc webpack.dev.js webpack.prod.js",
+    "bundle": "dir-archiver --includebasedir true --src . --dest ../pubjet.zip --exclude .git .github node_modules src version debug.txt .idea .editorconfig composer.json composer.lock .gitignore package.json package-lock.json .babelrc webpack.dev.js webpack.prod.js",
     "release": "npm run build && npm run bundle"
   },
   "author": "",
