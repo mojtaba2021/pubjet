@@ -1,51 +1,35 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styles from "./Form.module.scss";
-import {changeInput, doCheckToken} from "./Actions";
-import {Form as AntForm, Input, Tooltip} from "antd";
-import {connect} from "trim-redux";
+import { changeInput, doCheckToken } from "./Actions";
+import { Alert, Button, Form as AntForm, Input, Space, Tooltip } from "antd";
+import { connect } from "trim-redux";
 import CheckTokenResult from "./CheckTokenResult";
-import {pubjet__} from "../../../shared/scripts/utils";
-import {ReloadOutlined} from "@ant-design/icons";
+import { pubjet__ } from "../../../shared/scripts/utils";
+import { CheckCircleFilled, CloseCircleFilled, ReloadOutlined, SaveOutlined } from "@ant-design/icons";
 import PricingPlans from "./PricingPlans";
-import SelectTerms from "../../components/SelectTerms/SelectTerms";
-import {DownOutlined} from '@ant-design/icons';
 
-const {TextArea} = Input;
+
+const { TextArea } = Input;
 
 const MAX_COUNT = 10;
 const Form = props => {
-    const {token, defaultCategory, pricingPlans, categories} = props.options;
+    const { token, pricingPlans, checkToken } = props.options;
 
-    const normalizeCategories = (categories) => {
-        if (Array.isArray(categories)) {
-            return categories.map(item => Number(item));
+    useEffect(() => {
+        if (token) {
+            doCheckToken();
         }
-        if (typeof categories === 'string') {
-            return categories.split(',').map(item => Number(item.trim()));
-        }
-        return [];
-    };
-
-    const formattedCategories = normalizeCategories(categories);
-
-
-    const suffixIcon = (
-    <>
-                                <span>
-                                    {(Array.isArray(categories) ? categories.length : (categories ? 1 : 0))} / {MAX_COUNT}
-                                </span>
-        <DownOutlined />
-    </>
-)
+    }, [token]);
+    
     /**
      * @since 1.0
      */
     const renderInput = (args) => {
-        const {textarea = false} = args;
+        const { textarea = false } = args;
         if (textarea) {
-            return <TextArea {...args}/>;
+            return <TextArea {...args} />;
         }
-        return <Input size={'large'}{...args}/>;
+        return <Input size={'large'}{...args} />;
     };
 
     return <AntForm layout={`vertical`} autoComplete="off">
@@ -53,50 +37,52 @@ const Form = props => {
             {renderInput({
                 name: 'token',
                 value: token,
-                className: styles.input,
-                autoFocus: true,
+                className: `${styles.input} ${token ? (checkToken.valid ? (styles.borderSuccess) : (styles.borderError)) : ''}`,
                 onChange: (e) => {
                     changeInput('token', e.target.value);
                 },
-                suffix: token ? <Tooltip title={pubjet__('check-token')}>
-                    <ReloadOutlined className={styles.spinner} onClick={doCheckToken}/>
-                </Tooltip> : null,
+                suffix: token ? (
+                    checkToken.valid ? (
+                        <CheckCircleFilled style={{ color: '#52c41a', fontSize: '24px' }} />
+                    ) : (
+                        <CloseCircleFilled style={{ color: '#ff4d4f', fontSize: '24px' }} />
+                    )
+                ) : null,
             })}
         </AntForm.Item>
-        <CheckTokenResult/>
-        <AntForm.Item label={pubjet__('sync-categories')} tooltip={ pubjet__('select-categories-hints')}>
-            <SelectTerms
-                mode="multiple"
-                placeholder=''
-                taxonomy={'category'}
-                maxCount = {MAX_COUNT}
-                maxTagCount={'responsive'}
-                required={true}
-                onChange={selected => changeInput('categories', selected)}
-                value={formattedCategories}
-                optionRender={(option) => <span>{option.label}</span>}
-                suffixIcon={suffixIcon}
-            />
-        </AntForm.Item>
-        <AntForm.Item label={pubjet__('default-category')}>
-            <SelectTerms
-                taxonomy={'category'}
-                // allowClear={true}
-                placeholder=''
-                required={true}
-                value={Array.isArray(defaultCategory) ? defaultCategory : (defaultCategory || '')}
-                onChange={selected => {
-                    changeInput('defaultCategory', selected);
-                }}/>
-        </AntForm.Item>
-        {/*<AntForm.Item label={pubjet__('align-center-images')} tooltip={pubjet__('align-center-images-help')}>*/}
-        {/*    <Switch value={1} checked={alignCenterImages} onChange={checked => {*/}
-        {/*        changeInput('alignCenterImages', checked);*/}
-        {/*    }}/>*/}
-        {/*</AntForm.Item>*/}
-        {(pricingPlans && pricingPlans.length > 0) && <AntForm.Item label={pubjet__('plans-categories')}>
-            <PricingPlans/>
-        </AntForm.Item>}
+        <CheckTokenResult />
+        {
+            token && checkToken.valid ? (
+                pricingPlans && pricingPlans.length > 0 ? (
+                    <AntForm.Item label={pubjet__('plans-categories')}>
+                        <PricingPlans />
+                    </AntForm.Item>
+                ) : (
+                    <div className={styles.alertWrapper}>
+                        <Alert
+                            type="error"
+                            showIcon={true}
+                            description={pubjet__('no-pricing-plans-available')}
+                        />
+                    </div>
+
+                )
+            ) : null
+        }
+        {(!checkToken.valid || (pricingPlans?.length == 0)) && (
+            <AntForm.Item>
+                <Button
+                    type={'primary'}
+                    block={true}
+                    size={'large'}
+                    onClick={doCheckToken}
+                    icon={<ReloadOutlined />}
+                    shape={'square'}
+                >
+                    {pubjet__('check-token')}
+                </Button>
+            </AntForm.Item>)}
+
     </AntForm>;
 };
 
