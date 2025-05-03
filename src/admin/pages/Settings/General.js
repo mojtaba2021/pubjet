@@ -21,12 +21,23 @@ class General extends BaseComponent {
     };
 
     /**
+     * Temporarily show the "saved" alert, then hide it after a short delay.
+     * @since 1.0.0
+     */
+    toggleSavedAlert = () => {
+        this.setState({saved: true});
+        setTimeout(() => {
+            this.setState({saved: false});
+        }, 4000);
+    };
+
+    /**
      * @since 1.0.0
      */
     save = () => {
         this.setState({error: false, saving: true,}, () => {
             saveOptions().then(response => {
-                this.setState({saved: true,});
+                this.toggleSavedAlert();
             }).catch(error => {
                 this.setState({error: error, saved: false,});
             }).finally(() => {
@@ -41,14 +52,16 @@ class General extends BaseComponent {
      */
     render() {
         const {loading, error} = this.state;
+        const {pricingPlans,checkToken , pricingPlansChanged = false} = this.props.options;
         return (
             <div className={styles.container}>
                 <Spin spinning={loading}>
                     <div className={styles.formWrapper}>
                         <Form/>
                         {!error && <SaveAlert saved={this.state.saved}/>}
-                        <Button
-                            className={styles.button}
+                        { (checkToken.valid && pricingPlans && pricingPlans.length > 0) &&
+                            <Button
+                            className={`${styles.button} ${pricingPlansChanged ? styles.changed : ''}`}
                             type={'primary'}
                             block={true}
                             size={'large'}
@@ -58,7 +71,7 @@ class General extends BaseComponent {
                             shape={'square'}
                         >
                             {pubjet__('update-settings')}
-                        </Button>
+                        </Button>}
                     </div>
                 </Spin>
             </div>
