@@ -40,11 +40,12 @@ export const doCheckToken = () => {
             ...curstate,
             checkToken: {
                 checking: false,
-                checked : false,
-                valid   : false,
-                error   : false,
-                payload : {},
+                checked: false,
+                valid: false,
+                error: false,
+                payload: {},
             },
+            pricingPlans: [],
         });
         return;
     }
@@ -54,16 +55,16 @@ export const doCheckToken = () => {
             ...curstate,
             checkToken: {
                 checking: true,
-                checked : false,
-                valid   : false,
-                error   : false,
-                payload : {},
+                checked: false,
+                valid: false,
+                error: false,
+                payload: {},
             },
         });
         axios.get(getAdminAjaxUrl(), {
-            params   : {
-                action  : 'pubjet-check-token',
-                token   : curstate.token,
+            params: {
+                action: 'pubjet-check-token',
+                token: curstate.token,
                 security: getSecurityNonce(),
             },
             hideError: true,
@@ -74,15 +75,16 @@ export const doCheckToken = () => {
                     ...curstate,
                     pricingPlans: pricing_plans.map(item => {
                         const old = getStore(getStoreKey()).pricingPlans.find(item2 => item2.id == item.id);
+                        
                         if (old) {
                             return {...old, ...item};
                         }
                         return item;
                     }),
-                    checkToken  : {
+                    checkToken: {
                         checked: true,
-                        valid  : true,
-                        error  : false,
+                        valid: true,
+                        error: false,
                         payload: response.payload,
                     },
                 });
@@ -92,10 +94,11 @@ export const doCheckToken = () => {
                     ...curstate,
                     checkToken: {
                         checked: true,
-                        valid  : false,
-                        error  : response.error,
+                        valid: false,
+                        error: response.error,
                         payload: {},
                     },
+                    pricingPlans: [],
                 });
                 reject(response);
             }
