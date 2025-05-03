@@ -1335,7 +1335,6 @@ function pubjet_find_wp_categories($parent_id = 0, $hierarchy = true) {
     // Flat
     $result     = [];
     $categories = get_categories(['hide_empty' => false,]);
-    pubjet_log($categories);
     foreach ($categories as $category) {
         $result[] = [
             'id'   => $category->term_id,
