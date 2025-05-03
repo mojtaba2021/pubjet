@@ -430,8 +430,7 @@ class Ajax extends Singleton
 
         $settings = pubjet_get_json($this->post('settings'));
         $token = pubjet_isset_value($settings['token']);
-        $categories = pubjet_isset_value($settings['categories']);
-        $defaultCategory = pubjet_isset_value($settings['defaultCategory']);
+        $pricingPlans = pubjet_isset_value($settings['pricingPlans']);
 
         if (!pubjet_is_dev_mode()) {
             if (!$token) {
@@ -446,26 +445,30 @@ class Ajax extends Singleton
         }else{
             $publisherCategory = 1;
         }
+        pubjet_log(['pricingPlans' => $pricingPlans]);
 
-        if (is_string($categories)) {
-            $categories = array_map('trim', explode(',', $categories));
+        // pricingPlans validation errors
+        if(!empty($pricingPlans)){
+            foreach ($pricingPlans as $plan) {
+                if (empty($plan['categories'])) {
+                    $this->error(sprintf(
+                        pubjet__('empty-pricingPlans-categories'),
+                        $plan['title']
+                    ));
+                }
+                if(is_array($plan['categories']) && count($plan['categories']) > 10 ){
+                    $this->error(sprintf(
+                        pubjet__('max-pricingPlans-categories'),
+                        10
+                    ));
+                }
+            }
+        }
 
-        }
-        $max_sync_cat = 10;
-        if (!$categories) {
-            $this->error(pubjet__('empty-sync-categories'));
-        }
-        if (count($categories) > $max_sync_cat) {
-            $this->error(sprintf(pubjet__('max-sync-categories'), $max_sync_cat));
-        }
-        if (!$defaultCategory) {
-            $this->error(pubjet__('empty-default-category'));
-        }
-
+       
 
         global $pubjet_settings;
         $pubjet_settings['publisherCategory'] = $publisherCategory;
-        $settings['categories'] = $categories ?? [];
         $settings['publisherCategory'] = $publisherCategory;
 
         pubjet_log(['settings' => $pubjet_settings]);
@@ -473,17 +476,25 @@ class Ajax extends Singleton
         if ($publisherCategory !== 1) {
             $settings['manualApprove'] = false;
         }
-        update_option(EnumOptions::Settings, $settings);
 
-        if (count(array_diff($pubjet_settings['categories'], $settings['categories'])) > 0 ||
-            count(array_diff($settings['categories'], $pubjet_settings['categories'])) > 0) {
-            pubjet_log('===== pubjet sync categories =====');
-            $pubjet_settings['categories'] = $settings['categories'];
-            pubjet_sync_categories();
+        // First try to send pricing plans to API
+        pubjet_log('before pubjet_send_pricing_plans_to_api');
+        $result = pubjet_send_pricing_plans_to_api($pricingPlans,$token);
+        pubjet_log('after pubjet_send_pricing_plans_to_api');
+
+        if (is_wp_error($result)) {
+            pubjet_log("Error in pubjet_send_pricing_plans_to_api");
+
+            $this->error($result->get_error_message());
+            return;
         }
 
-        pubjet_send_plugin_status_to_api('active');
+        // Only update options if API call was successful
+        update_option(EnumOptions::Settings, $settings);
 
+        pubjet_log('before pubjet_send_plugin_status_to_api');
+        pubjet_send_plugin_status_to_api('active');
+        pubjet_log('after pubjet_send_plugin_status_to_api');
         /**
          * The pubjet_after_save_options filter.
          *
