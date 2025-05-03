@@ -8,21 +8,24 @@ const axios = getAxios();
  * @since 1.0.0
  */
 export const saveOptions = () => {
-    return new Promise((resolve, reject) => {
-        const options = getStore(getStoreKey());
-        axios.post(getAdminAjaxUrl(), {
-            action  : 'pubjet-save-options',
-            settings: JSON.stringify({...options, modal: false}),
-            security: getSecurityNonce(),
-        }).then(response => {
-            if (response.success) {
-                resolve(response);
-            } else {
-                reject(response.error);
-            }
-        }).catch(err => {
-            reject(err);
-        });
+    const options = getStore(getStoreKey());
+
+    return axios.post(getAdminAjaxUrl(), {
+        action: 'pubjet-save-options',
+        settings: JSON.stringify({...options, modal: false}),
+        security: getSecurityNonce(),
+    }).then(response => {
+        if (response.success) {
+            setStore(getStoreKey(), {
+                ...options,
+                pricingPlansChanged: false,
+            });
+            return response;
+        } else {
+            return Promise.reject(response.error);
+        }
+    }).catch(err => {
+        return Promise.reject(err);
     });
 };
 
