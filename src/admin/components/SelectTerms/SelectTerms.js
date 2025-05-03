@@ -19,7 +19,7 @@ const SelectTerms = props => {
         }).then(response => {
             return response.payload.map(option => ({
                 ...option,
-                disabled: value && value.length >= maxCount && !value.includes(option.value), // disable extra options
+                disabled: value && Array.isArray(value) && value.length >= maxCount && !value.includes(option.value), // disable extra options
             }));
         });
     };
