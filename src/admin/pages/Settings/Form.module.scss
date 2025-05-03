@@ -33,3 +33,19 @@
 .spinner {
   cursor: pointer;
 }
+
+.alertWrapper {
+  margin-bottom: 30px;
+  :global {
+    .ant-alert-description {
+      text-align: center;
+      font-weight: bold;
+    }
+  }
+}
+.borderSuccess{
+  border: 1px solid #52c41a !important;
+}
+.borderError{
+  border: 1px solid #ff4d4f !important;
+}
