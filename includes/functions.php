@@ -1766,3 +1766,131 @@ function pubjet_check_new_version() {
 
     return $new_version;
 }
+
+/**
+ * Send pricingPlans related categories to the API.
+ *
+ * @param array $pricingPlans Array of pricing plans with categories
+ * @return bool|WP_Error True on success, WP_Error on failure
+ */
+function pubjet_send_pricing_plans_to_api($pricingPlans,$token)
+{
+    if (empty($pricingPlans)) {
+        return new WP_Error('invalid_input', 'Pricing plans cannot be empty');
+    }
+
+    // Helper function to ensure categories are in array format
+    $normalize_categories = function($categories) {
+        if (empty($categories)) {
+            return [];
+        }
+        return is_array($categories) ? $categories : [$categories];
+    };
+
+    // Step 1: Collect all category IDs from all pricing plans
+    $all_category_ids = [];
+    foreach ($pricingPlans as $plan) {
+        if (!isset($plan['categories'])) {
+            continue;
+        }
+        $categories = $normalize_categories($plan['categories']);
+        $all_category_ids = array_merge($all_category_ids, $categories);
+    }
+
+    if (empty($all_category_ids)) {
+        return new WP_Error('no_categories', 'No categories found in pricing plans');
+    }
+
+    $all_category_ids = array_unique($all_category_ids);
+
+    // Step 2: Bulk fetch all categories
+    $terms = get_terms([
+        'taxonomy'   => 'category',
+        'include'    => $all_category_ids,
+        'hide_empty' => false,
+    ]);
+
+    if (is_wp_error($terms) || empty($terms)) {
+        pubjet_log('Failed to fetch terms or no terms returned.');
+        return new WP_Error('terms_error', 'Failed to fetch categories');
+    }
+    
+    // Step 3: Build a lookup map for category data
+    $categoryLookup = [];
+    foreach ($terms as $term) {
+        $categoryLookup[urldecode($term->slug)] = [
+            "id"          => $term->term_id,
+            'title'       => $term->name,
+            'unique_name' => urldecode($term->slug),
+        ];
+    }
+
+    pubjet_log(["categoryLookup" => $categoryLookup]);
+
+    // Step 4: Build final payload with all plans
+    $pricingPlansData = [];
+    foreach ($pricingPlans as $plan) {
+        if (!isset($plan['categories']) || !isset($plan['id'])) {
+            continue;
+        }
+        
+        $categories = $normalize_categories($plan['categories']);
+        $related_categories = [];
+
+        foreach ($categories as $cat_slug) {
+            if (isset($categoryLookup[$cat_slug])) {
+                $related_categories[] = $categoryLookup[$cat_slug];
+            }
+        }
+
+        if (!empty($related_categories)) {
+            $pricingPlansData[] = [
+                'id' => $plan['id'],
+                'relative_categories' => $related_categories,
+            ];
+        }
+    }
+
+    if (empty($pricingPlansData)) {
+        return new WP_Error('no_valid_plans', 'No valid pricing plans with categories found');
+    }
+
+    pubjet_log(['Pricing Plans Data' => $pricingPlansData]);
+
+    // Step 5: Send POST request to the API
+    $url = pubjet_api_root() . '/external/wp/pricing-plan-relative-category/';
+    $response = wp_remote_post($url, [
+        'method'    => 'POST',
+        'body'      => json_encode($pricingPlansData),
+        'headers'   => [
+            'Authorization' => 'Token ' . trim($token),
+            'Content-Type'  => 'application/json',
+        ],
+    ]);
+
+    // Step 6: Handle response
+    if (is_wp_error($response)) {
+        $error_message = 'Pricing Plans API Error: ' . $response->get_error_message();
+        pubjet_log_sentry($error_message);
+        pubjet_log(['Pricing Plans API Error' => $response->get_error_message()]);
+        return $response;
+    }
+
+    $status_code = wp_remote_retrieve_response_code($response);
+    $result = wp_remote_retrieve_body($response);
+
+    if ($status_code !== 200) {
+        pubjet_log(['Pricing Plans API Status Code' => $status_code, 'Response' => $result]);
+        return new WP_Error('api_error', 'API request failed with status: ' . $status_code);
+    }
+
+    // Validate the response
+    $decoded_result = json_decode($result, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        pubjet_log(['Pricing Plans API Invalid JSON Response' => $result]);
+        return new WP_Error('invalid_response', 'Invalid JSON response from API');
+    }
+
+    pubjet_log(['Pricing Plans API Response' => $decoded_result]);
+    return true;
+}
