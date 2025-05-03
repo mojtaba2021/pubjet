@@ -1,39 +1,74 @@
 import React from 'react';
 import AdminTable from "../../components/AdminTable/AdminTable";
-import {getStoreKey, handleChangePlanCategory} from "./Actions";
-import {pubjet__} from "../../../shared/scripts/utils";
-import {connect} from 'trim-redux';
+import { getStoreKey, handleChangePlanCategory, changeInput } from "./Actions";
+import { pubjet__ } from "../../../shared/scripts/utils";
+import { connect } from 'trim-redux';
 import SelectTerms from "../../components/SelectTerms/SelectTerms";
+import { DownOutlined } from '@ant-design/icons';
 
 class PricingPlans extends AdminTable {
 
     state = {
-        error  : false,
+        error: false,
         loading: false,
     };
+    MAX_COUNT = 10;
 
     /**
      * @since 1.0.0
      */
     columns = () => {
+
         return [
             {
-                title : pubjet__('title'),
+                title: pubjet__('title'),
                 render: (value, record, index) => {
-                    return record.title;
+                    return (
+                        <div>
+                            <div style={{ fontWeight: 'bold' }}>{record.title}</div>
+                            <div style={{ color: 'gray', fontSize: '12px' }}>{record.archive_position_fa}</div>
+                        </div>
+                    );
                 },
             },
             {
-                title : pubjet__('category'),
-                align : 'center',
+                title: pubjet__('category'),
+                align: 'center',
                 render: (value, record, rowIndex) => {
-                    return <SelectTerms taxonomy={'category'} value={record.category} onChange={selected => {
-                        handleChangePlanCategory(record.id, selected);
-                    }}/>;
+                    // Determine selection mode based on archive_position
+                    const selectionMode = record.archive_position === 'relative' ? 'multiple' : 'single';
+                    const currentCategories = record.categories ?? (record.relative_categories || []).map(cat => cat.unique_name);
+
+                    return (
+                        <SelectTerms
+                            mode={selectionMode}
+                            placeholder=''
+                            allowClear={true}
+                            taxonomy='category'
+                            maxCount={selectionMode === 'multiple' ? 10 : undefined}
+                            maxTagCount={selectionMode === 'multiple' ? 'responsive' : undefined}
+                            required={true}
+                            onChange={selected => {
+                                handleChangePlanCategory(record.id, selected);
+                            }}
+                            value={currentCategories}
+                            optionRender={selectionMode === 'multiple' ? (option) => <span>{option.label}</span> : undefined}
+                            suffixIcon={selectionMode === 'multiple' ? this.suffixIcon(currentCategories) : undefined}
+                        />
+                    );
                 },
             },
         ];
     };
+
+    suffixIcon = (categories) => (
+        <>
+            <span>
+                {(Array.isArray(categories) ? categories.length : (categories ? 1 : 0))} / {this.MAX_COUNT}
+            </span>
+            <DownOutlined />
+        </>
+    )
 
     /**
      * @since 1.0.0
@@ -46,6 +81,7 @@ class PricingPlans extends AdminTable {
 
 const mstp = (state) => ({
     data: state[getStoreKey()].pricingPlans,
+    options: state[getStoreKey()], // This gives access to the entire options object including categories
 });
 
 export default connect(mstp)(PricingPlans);
