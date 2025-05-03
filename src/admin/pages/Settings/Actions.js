@@ -151,21 +151,24 @@ export const toggleModal = (modalKey) => {
 /**
  * @since 1.0.0
  */
-export const handleChangePlanCategory = (planId, category) => {
+export const handleChangePlanCategory = (planId, categories) => {
     const state = getStore(getStoreKey());
+
+
     setStore(getStoreKey(), {
         ...state,
         pricingPlans: state.pricingPlans.map(item => {
             if (item.id == planId) {
                 return {
                     ...item,
-                    category,
+                    categories,
                 };
             }
             return item;
-        })
+        }),
+        pricingPlansChanged: true,
     });
-}
+};
 
 /**
  * @since 1.0.0
