@@ -1604,7 +1604,9 @@ function pubjet_send_plugin_status_to_api($status) {
         return;
     }
     $settings     = pubjet_settings();
-    $url          = 'https://api.triboon.net/external/wp/pubjet-info/';
+
+    $url = apply_filters('pubjet_send_plugin_status_url', pubjet_api_root() . '/external/wp/pubjet-info/', pubjet_token());
+
     $request_data = [
         'status'                   => $status,
         'pubjet_version'           => PUBJ()->getVersion(),
@@ -1613,9 +1615,9 @@ function pubjet_send_plugin_status_to_api($status) {
         'status_recipient_path'    => pubjet_isset_value($settings['processDataByQueryString']) ? '?action=' . EnumActions::PubjetStatus        : rest_get_url_prefix()     . '/pubjet/v1/status',
         'category_recipient_path'  => pubjet_isset_value($settings['processDataByQueryString']) ? '?action=' . EnumActions::PubjetCategories    : rest_get_url_prefix()     . '/pubjet/v1/site/categories',
         'pubjet_data'              => [
-                'manualApprove'             => pubjet_isset_value($settings['manualApprove'],0),
-                'reportage_without_tags'    => pubjet_isset_value($settings['addReportageTags'],0),
-            ]
+            'manualApprove'             => pubjet_isset_value($settings['manualApprove'], 0),
+            'reportage_without_tags'    => pubjet_isset_value($settings['addReportageTags'], 0),
+        ]
     ];
     pubjet_log($request_data);
     $response = wp_remote_post($url, [
