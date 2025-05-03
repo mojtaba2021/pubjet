@@ -24,6 +24,7 @@ export const state = {
         useGoogleTranslate      : false,
         processDataByQueryString: false,
         publisherCategory       : false,
+        pricingPlansChanged     : false,
         metakeys                : {
             status: false,
             items : [],
