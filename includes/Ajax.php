@@ -152,7 +152,8 @@ class Ajax extends Singleton
 
         $terms = array_map(function ($term) {
             return [
-                'value' => $term->term_id,
+                'id'    => $term->term_id,
+                'value' => urldecode($term->slug),
                 'label' => $term->name,
             ];
         }, $terms);
