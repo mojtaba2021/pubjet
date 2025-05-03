@@ -544,8 +544,8 @@ class Ajax extends Singleton
             $this->error($response->get_error_message());
         }
 
-        // Sync
-        pubjet_sync_categories();
+        pubjet_update_setting('token',$token);
+        pubjet_send_plugin_status_to_api('active');
 
         $this->success($response);
     }
