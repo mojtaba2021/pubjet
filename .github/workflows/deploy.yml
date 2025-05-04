@@ -40,10 +40,14 @@ jobs:
           DEV_SERVER: ${{ secrets.DEV_SERVER }}
           DEV_PATH: ${{ secrets.DEV_PATH }}
         run: |
+          echo "Will deploy to: root@$DEV_SERVER:$DEV_PATH"
           echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
           rsync -avz -vv --exclude 'private_key' --exclude-from='.github/exclude-list.txt' \
             -e "ssh -i private_key -o StrictHostKeyChecking=no" \
             ./ root@$DEV_SERVER:$DEV_PATH/
+          ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER \
+            "chown -R gishehcinema2:gishehcinema2 $DEV_PATH"
+
 
 
 
