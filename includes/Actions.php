@@ -509,7 +509,7 @@ class Actions extends Singleton {
         if (get_current_screen()->id != 'edit-post') {
             return;
         }
-        $posts      = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft') AND meta.meta_key = 'pubjet_reportage_id' ";
+        $posts      = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft' , 'pending') AND meta.meta_key = 'pubjet_reportage_id' ";
         $count_post = $wpdb->get_var($posts);
         ?>
         <script>
