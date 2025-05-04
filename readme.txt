@@ -1,7 +1,7 @@
 === Pubjet | پاب‌جت ===
 Contributors: mojtabam2021
 Tags: seo,reportage
-Stable tag: 4.9.0
+Stable tag: 4.9.2
 Tested up to: 6.5.5
 Requires PHP: 7.2.5
 License: GPL v2 or later
@@ -50,12 +50,15 @@ After installing and activating the plugin, go to Pubjet settings menu and enter
 
 == Changelog ==
 
+= 4.9.2 =
+* رفع خطای عدم نمایش صفحه تنظیمات پابجت در برخی سایت ها
+* افزودن رپورتاژهای با وضعیت در انتظار بررسی به لیست رپورتاژ ها در لیست پست ها
+
 = 4.9.0 =
 * افزودن امکان تعیین دسته‌بندی برای هر پلن در پابجت
 * تغییر UI صفحه عمومی تنظیمات پابجت
 * تغییر ساختار عملیات های اعتبارسنجی توکن و ذخیره تنظیمات
 * بررسی توکن با تعویض توکن به صورت خودکار
-
 
 = 4.8.0 =
 * رفع خطای "429 Too Many Requests" و جلوگیری از درخواست‌های تکراری API در ثبت وضعیت رپورتاژ منتشر شده.
