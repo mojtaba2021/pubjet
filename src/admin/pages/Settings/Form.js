@@ -37,12 +37,12 @@ const Form = props => {
             {renderInput({
                 name: 'token',
                 value: token,
-                className: `${styles.input} ${token ? (checkToken.valid ? (styles.borderSuccess) : (styles.borderError)) : ''}`,
+                className: `${styles.input} ${token ? (checkToken?.valid ? (styles.borderSuccess) : (styles.borderError)) : ''}`,
                 onChange: (e) => {
                     changeInput('token', e.target.value);
                 },
                 suffix: token ? (
-                    checkToken.valid ? (
+                    checkToken?.valid ? (
                         <CheckCircleFilled style={{ color: '#52c41a', fontSize: '24px' }} />
                     ) : (
                         <CloseCircleFilled style={{ color: '#ff4d4f', fontSize: '24px' }} />
@@ -52,8 +52,8 @@ const Form = props => {
         </AntForm.Item>
         <CheckTokenResult />
         {
-            token && checkToken.valid ? (
-                pricingPlans && pricingPlans.length > 0 ? (
+            token && checkToken?.valid ? (
+                pricingPlans?.length > 0 ? (
                     <AntForm.Item label={pubjet__('plans-categories')}>
                         <PricingPlans />
                     </AntForm.Item>
@@ -69,7 +69,7 @@ const Form = props => {
                 )
             ) : null
         }
-        {(!checkToken.valid || (pricingPlans?.length == 0)) && (
+        {(!checkToken?.valid || (pricingPlans?.length == 0)) && (
             <AntForm.Item>
                 <Button
                     type={'primary'}

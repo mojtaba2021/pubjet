@@ -59,7 +59,7 @@ class General extends BaseComponent {
                     <div className={styles.formWrapper}>
                         <Form/>
                         {!error && <SaveAlert saved={this.state.saved}/>}
-                        { (checkToken.valid && pricingPlans && pricingPlans.length > 0) &&
+                        { (checkToken?.valid && pricingPlans?.length > 0) &&
                             <Button
                             className={`${styles.button} ${pricingPlansChanged ? styles.changed : ''}`}
                             type={'primary'}
