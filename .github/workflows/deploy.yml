@@ -45,4 +45,12 @@ jobs:
             ./ root@$DEV_SERVER:$DEV_PATH/
 
             
+      - name: Fix File Ownership
+        env:
+          DEV_SERVER: ${{ secrets.DEV_SERVER }}
+          DEV_PATH: ${{ secrets.DEV_PATH }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER "chown -R www-data:www-data $DEV_PATH"
           rm -f private_key
