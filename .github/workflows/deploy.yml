@@ -42,8 +42,18 @@ jobs:
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
           
+          # Debug: Check environment variables
+          echo "DEV_SERVER: $DEV_SERVER"
+          echo "DEV_PATH: $DEV_PATH"
+          
+          # Validate DEV_PATH
+          if [ -z "$DEV_PATH" ]; then
+            echo "Error: DEV_PATH is empty or not set"
+            exit 1
+          fi
+          
           # Test SSH connection
-          echo "Testing SSH connection..."
+          echo "Testing SSH connection to root@$DEV_SERVER..."
           ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER whoami || { echo "SSH connection failed"; exit 1; }
           
           # Deploy with rsync
@@ -57,6 +67,8 @@ jobs:
           ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER << 'EOF'
             chown -R www-data:www-data $DEV_PATH
             chmod -R 755 $DEV_PATH
+            echo "Ownership and permissions updated for $DEV_PATH"
+            ls -ld $DEV_PATH
           EOF
           
           rm -f private_key
