@@ -1,4 +1,3 @@
-
 name: Deploy Plugin to Dev Site
 
 on:
@@ -44,3 +43,5 @@ jobs:
           rsync -avz -vv --exclude 'private_key' --exclude-from='.github/exclude-list.txt' \
             -e "ssh -i private_key -o StrictHostKeyChecking=no" \
             ./ root@$DEV_SERVER:$DEV_PATH/
+          ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER \
+              "chown -R gishehcinema2:gishehcinema2 $DEV_PATH"
