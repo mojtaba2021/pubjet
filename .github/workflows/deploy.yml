@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -33,7 +34,7 @@ jobs:
 
       - name: Build Assets with Webpack
         run: npm run build
-        
+
       - name: Deploy Dev to gishehcinema.ir
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -53,22 +54,20 @@ jobs:
           fi
           
           # Test SSH connection
-          echo "Testing SSH connection to root@$DEV_SERVER..."
           ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER whoami || { echo "SSH connection failed"; exit 1; }
           
           # Deploy with rsync
-          echo "Running rsync..."
           rsync -avz -vv --exclude 'private_key' --exclude-from='.github/exclude-list.txt' \
             -e "ssh -i private_key -o StrictHostKeyChecking=no" \
             ./ root@$DEV_SERVER:$DEV_PATH/
           
           # Fix ownership and permissions
-          echo "Fixing ownership and permissions..."
-          ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER << 'EOF'
-            chown -R www-data:www-data $DEV_PATH
-            chmod -R 755 $DEV_PATH
+          ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER << EOF
+            echo "Updating ownership to gishehcinema2..."
+            chown -R gishehcinema2:gishehcinema2 "$DEV_PATH"
+            chmod -R 755 "$DEV_PATH"
             echo "Ownership and permissions updated for $DEV_PATH"
-            ls -ld $DEV_PATH
-          EOF
+            ls -ld "$DEV_PATH"
+              EOF
           
           rm -f private_key
