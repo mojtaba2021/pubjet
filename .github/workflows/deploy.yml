@@ -4,35 +4,44 @@ on:
   push:
     branches:
       - dev
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout repository code
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # Set up PHP environment
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
           tools: composer:v2
 
+      # Set up Node.js environment
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
 
+      # Install PHP dependencies
       - name: Install PHP Dependencies
         run: |
-            composer clear-cache
-            composer install --no-dev --optimize-autoloader
+          composer clear-cache
+          composer install --no-dev --optimize-autoloader
+
+      # Install Node.js dependencies
       - name: Install Node.js Dependencies
         run: npm install
 
+      # Build assets using Webpack
       - name: Build Assets with Webpack
         run: npm run build
-        
+
+      # Deploy Dev to remote server
       - name: Deploy Dev to gishehcinema.ir
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -40,11 +49,12 @@ jobs:
           DEV_PATH: ${{ secrets.DEV_PATH }}
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
-          rsync -avz -vv --exclude 'private_key' --exclude-from='.github/exclude-list.txt' \
+          rsync -avz -vv --delete --exclude 'private_key' --exclude-from='.github/exclude-list.txt' \
             -e "ssh -i private_key -o StrictHostKeyChecking=no" \
             ./ root@$DEV_SERVER:$DEV_PATH/
+          rm -f private_key
 
-            
+      # Fix file ownership after deployment to allow plugin deletion
       - name: Fix File Ownership
         env:
           DEV_SERVER: ${{ secrets.DEV_SERVER }}
