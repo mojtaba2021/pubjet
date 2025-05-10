@@ -41,11 +41,19 @@ jobs:
           DEV_PATH: ${{ secrets.DEV_PATH }}
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
+          
+          # Test SSH connection
+          echo "Testing SSH connection..."
+          ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER whoami || { echo "SSH connection failed"; exit 1; }
+          
+          # Deploy with rsync
+          echo "Running rsync..."
           rsync -avz -vv --exclude 'private_key' --exclude-from='.github/exclude-list.txt' \
             -e "ssh -i private_key -o StrictHostKeyChecking=no" \
             ./ root@$DEV_SERVER:$DEV_PATH/
           
           # Fix ownership and permissions
+          echo "Fixing ownership and permissions..."
           ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER << 'EOF'
             chown -R www-data:www-data $DEV_PATH
             chmod -R 755 $DEV_PATH
