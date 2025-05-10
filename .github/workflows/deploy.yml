@@ -34,13 +34,21 @@ jobs:
         run: npm run build
         
       - name: Deploy Dev to gishehcinema.ir
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          DEV_SERVER: ${{ secrets.DEV_SERVER }}
-          DEV_PATH: ${{ secrets.DEV_PATH }}
-        run: |
-          echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
-          rsync -avz -vv --delete --chown=www-data:www-data --exclude 'private_key' --exclude-from='.github/exclude-list.txt' \
-            -e "ssh -i private_key -o StrictHostKeyChecking=no" \
-            ./ root@$DEV_SERVER:$DEV_PATH/
-          rm -f private_key
+          env:
+            SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            DEV_SERVER: ${{ secrets.DEV_SERVER }}
+            DEV_PATH: ${{ secrets.DEV_PATH }}
+          run: |
+            echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
+            rsync -avz -vv --exclude 'private_key' --exclude-from='.github/exclude-list.txt' \
+              -e "ssh -i private_key -o StrictHostKeyChecking=no" \
+              ./ root@$DEV_SERVER:$DEV_PATH/
+            
+            # Fix ownership using SSH (requires unrestricted key or separate key)
+            ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER << 'EOF'
+              chown -R gishehcinema2:gishehcinema2 $DEV_PATH
+              chmod -R 755 $DEV_PATH
+            EOF
+            
+            rm -f private_key
+                  
