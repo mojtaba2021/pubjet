@@ -453,21 +453,25 @@ class ReportagePost extends Singleton {
     public static function findReportageCategory($reportage) {
         global $pubjet_settings;
         $result = false;
-        if (isset($reportage->relative_category) && !empty($reportage->relative_category)) {
+        if (!empty($reportage->relative_category)) {
             $found  = get_term_by('slug', $reportage->relative_category['unique_name'], 'category');
             $result = $found ? $found->term_id : false;
         } else {
             // Find category id based on pricing plans
-            if (isset($pubjet_settings['pricingPlans']) && !empty($pubjet_settings['pricingPlans'])) {
+            if (!empty($pubjet_settings['pricingPlans'])) {
                 foreach ($pubjet_settings['pricingPlans'] as $pricingPlan) {
                     if ($pricingPlan['title'] == $reportage->pricing_plan_title) {
-                        $result = pubjet_isset_value($pricingPlan['category']);
+                        $result = pubjet_isset_value($pricingPlan['categories']);
                         break;
                     }
                 }
             }
         }
-        return $result ? $result : pubjet_isset_value($pubjet_settings['defaultCategory']);
+        // publish reportage in random category
+        $categories = pubjet_find_wp_categories();
+        $random_category = !empty($categories) ? $categories[array_rand($categories)]['id'] : 1;
+
+        return $result ? $result : $random_category;
     }
 
 }
