@@ -26,6 +26,8 @@ class Filters extends Singleton {
         add_filter('pubjet_reportage_metabox', [$this, 'addMetaDataMetabox'], 15, 3);
 
         add_filter("pubjet_new_reportage_post_args", [$this, "addReportageTags"], 15, 2);
+        // add this if its necessary
+        // add_filter('admin_post_thumbnail_html',[$this,'regenerateFeaturedImage'], 15, 3);
 
     }
 
@@ -102,6 +104,13 @@ class Filters extends Singleton {
         return $actions;
     }
 
+    public function regenerateFeaturedImage($content, $post_id, $thumbnail_id )
+    {
+        if(pubjet_is_reportage($post_id)){
+            $content  .= sprintf('<button type="button" class="button-link pubjet-regthumb" data-post-id="%s">تولید مجدد تصویر شاخص</button>', $post_id);
+        }
+        return $content ;
+    }
     /**
      * @param $post_states
      * @param $post
