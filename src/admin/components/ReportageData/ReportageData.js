@@ -54,7 +54,7 @@ class ReportageData extends BaseComponent {
     input = () => {
         return this.renderInput({
             name     : 'panelData',
-            textarea : true,
+            textarea : 'true',
             readOnly : true,
             rows     : 10,
             className: styles.input,
