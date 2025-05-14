@@ -117,12 +117,14 @@ class ReportagePost extends Singleton {
         $post_content = self::get_post_content($post_content, $reportage->title);
         $post_date    = self::get_post_date($reportage->preferred_publish_date);
         $post_status  = self::get_post_status($post_date);
+        $post_excerpt = self::normalize_html($reportage->lead_content ?? '');
 
         $args = [
             'post_type'     => sanitize_text_field(pubjet_post_type()),
             'post_title'    => isset($post_content['title']) ? sanitize_text_field($post_content['title']) : '',
             'post_status'   => 'future' === $post_status ? $post_status : (pubjet_should_publish_reportage_manually() ? EnumPostStatus::Pending : EnumPostStatus::Publish),
             'post_content'  => $post_content['content'] ?? '',
+            'post_excerpt'  => $post_excerpt ?? '',
             'post_name'     => sanitize_text_field(self::get_post_name($reportage)),
             'tags_input'    => isset($reportage->tags) && is_array($reportage->tags) ? map_deep($reportage->tags, 'sanitize_text_field') : [],
             'post_category' => (int)$def_category > 0 ? [intval($def_category)] : '',
@@ -131,6 +133,8 @@ class ReportagePost extends Singleton {
                 EnumPostMetakeys::ReportageContentUrl => sanitize_url($reportage->content_file),
                 EnumPostMetakeys::PanelData           => $reportage,
                 EnumPostMetakeys::Source              => 'triboon',
+                EnumPostMetakeys::MetaTitle           => sanitize_text_field($reportage->meta_title) ?? '',
+                EnumPostMetakeys::MetaDescription     => sanitize_text_field($reportage->meta_description) ?? ''
             ],
         ];
 
@@ -220,7 +224,7 @@ class ReportagePost extends Singleton {
     public static function get_post_content($content, $title) {
         $content = self::handle_images($content);
         pubjet_log($content);
-        $post_content                    = self::nomalize_html($content['html_file']);
+        $post_content                    = self::normalize_html($content['html_file']);
         $post_content                    = self::remove_repeate_headeing_title_in_content($post_content, $title);
         $post_content['featured_img_id'] = $content['featured_img_id'];
         return $post_content;
@@ -244,7 +248,7 @@ class ReportagePost extends Singleton {
         return false;
     }
 
-    public static function nomalize_html($post_content) {
+    public static function normalize_html($post_content) {
         $post_content = preg_replace('/\s*<a/', '<a', $post_content);
         $post_content = preg_replace('/<\/a>\s*/', '</a>', $post_content);
         $post_content = str_replace("\n\r", "", $post_content);
