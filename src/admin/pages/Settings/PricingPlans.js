@@ -13,7 +13,18 @@ class PricingPlans extends AdminTable {
         loading: false,
     };
     MAX_COUNT = 10;
+    componentDidMount() {
+        const updatedPricingPlans = this.props.data.map(plan => {
+            if (!plan.categories || plan.categories.length === 0) {
+                plan.categories = plan.relative_categories.map(cat => cat.unique_name);
+            }
+            return plan;
+        });
 
+        this.setState({
+            pricingPlans: updatedPricingPlans,
+        });
+    }
     /**
      * @since 1.0.0
      */
@@ -37,7 +48,9 @@ class PricingPlans extends AdminTable {
                 render: (value, record, rowIndex) => {
                     // Determine selection mode based on archive_position
                     const selectionMode = record.archive_position === 'relative' ? 'multiple' : 'single';
-                    const currentCategories = record.categories ?? (record.relative_categories || []).map(cat => cat.unique_name);
+                    const currentCategories = (record.categories?.length > 0)
+                        ? record.categories
+                        : (record.relative_categories || []).map(cat => cat.unique_name);
 
                     return (
                         <SelectTerms
