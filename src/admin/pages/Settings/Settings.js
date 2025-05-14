@@ -10,8 +10,9 @@ import {pubjet__} from "../../../shared/scripts/utils";
 import Misc from "./Misc";
 import RequiredPhpModules from "./RequiredPhpModules";
 import ModalMetakeys from "./ModalMetakeys";
-import SyncCategories from "./SyncCategories";
+// import SyncCategories from "./SyncCategories";
 import ModalReportageAuthor from "./ModalReportageAuthor";
+
 
 const Settings = props => {
     const allHaveRelativeCategories =  props.options?.pricingPlans?.every(plan =>
@@ -28,23 +29,18 @@ const Settings = props => {
             rootClassName={styles.tabs}
             items={[
                 {
-                    key     : 'general',
-                    label   : pubjet__('general'),
+                    key: 'general',
+                    label: pubjet__('general'),
                     children: <General/>,
                 },
-                // {
-                //     key     : 'categories',
-                //     label   : pubjet__('sync'),
-                //     children: <SyncCategories/>,
-                // },
                 {
-                    key     : 'debug',
-                    label   : pubjet__('debug'),
+                    key: 'debug',
+                    label: pubjet__('debug'),
                     children: <Debug/>,
                 },
                 {
-                    key     : 'required-php-modules',
-                    label   : pubjet__('modules'),
+                    key: 'required-php-modules',
+                    label: pubjet__('modules'),
                     children: <RequiredPhpModules/>,
                 },
                 {
