@@ -23,6 +23,8 @@ class Filters extends Singleton {
         add_filter('plugin_action_links_' . PUBJET_PLUGIN_BASE, [$this, 'pluginActionLinks'], 15);
         add_filter('https_ssl_verify', [$this, 'noSslVerify'], 15, 2);
         add_filter('query_vars', [$this, 'allowActionQueryVar'], 15);
+        add_filter('pubjet_reportage_metabox', [$this, 'addMetaDataMetabox'], 15, 3);
+
         add_filter("pubjet_new_reportage_post_args", [$this, "addReportageTags"], 15, 2);
 
     }
@@ -246,4 +248,35 @@ class Filters extends Singleton {
         }
     }
 
+    /**
+     * @param $metaboxes
+     * @param $instance
+     * @return array
+     */
+    public function addMetaDataMetabox($metaboxes, $instance , $post)
+    {
+        $metaboxes[] = [
+            'id'       => 'pubjet-metadata-metabox',
+            'title'    => 'Pubjet Meta Data Metabox',
+            'context'  => 'normal',
+            'callback' => function () use($post){
+                wp_nonce_field('pubjet_reportage_nonce_action', 'pubjet_reportage_nonce');
+
+                ?>
+                <div id="pubjet-custom-panel-data">
+                    <label for="meta_title">Meta Title:</label>
+                    <input type="text" id="meta_title" name="pubjet_meta_title" value="<?php echo esc_attr($post->pubjet_meta_title ?? ''); ?>" style="width: 100%;" />
+
+                    <label for="pubjet_meta_description" style="margin-top: 10px;">Meta Description:</label>
+                    <textarea id="meta_description" name="pubjet_meta_description" style="width: 100%;"><?php echo esc_textarea($post->pubjet_meta_description ?? ''); ?></textarea>
+                </div>
+                <?php
+            },
+            'register' => function ($metabox) use($post) {
+                return $post && pubjet_is_reportage($post->ID);
+            },
+        ];
+
+        return $metaboxes;
+    }
 }
