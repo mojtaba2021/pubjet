@@ -1900,3 +1900,22 @@ function pubjet_send_pricing_plans_to_api($pricingPlans,$token)
     pubjet_log(['Pricing Plans API Response' => $decoded_result]);
     return true;
 }
+
+/**
+ * @param array $settings
+ * @param int $publisherCategory
+ * @return array
+ */
+function pubjet_prepare_settings_to_save(array $settings, int $publisherCategory):array
+{
+    global $pubjet_settings;
+
+    $pubjet_settings['publisherCategory'] = $publisherCategory;
+    $settings['publisherCategory'] = $publisherCategory;
+
+    if ($publisherCategory !== 1) {
+        $settings['manualApprove'] = 0;
+    }
+
+    return $settings;
+}

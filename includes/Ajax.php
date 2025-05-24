@@ -468,15 +468,7 @@ class Ajax extends Singleton
 
        
 
-        global $pubjet_settings;
-        $pubjet_settings['publisherCategory'] = $publisherCategory;
-        $settings['publisherCategory'] = $publisherCategory;
-
-        pubjet_log(['settings' => $pubjet_settings]);
-
-        if ($publisherCategory !== 1) {
-            $settings['manualApprove'] = false;
-        }
+        $newSettings = pubjet_prepare_settings_to_save($settings, $publisherCategory);
 
         // First try to send pricing plans to API
         pubjet_log('before pubjet_send_pricing_plans_to_api');
