@@ -152,7 +152,7 @@ class Ajax extends Singleton
 
         $terms = array_map(function ($term) {
             return [
-                'id'    => $term->term_id,
+                'id' => $term->term_id,
                 'value' => urldecode($term->slug),
                 'label' => $term->name,
             ];
@@ -420,7 +420,7 @@ class Ajax extends Singleton
     {
         $this->checkNonce();
 
-        flush_rewrite_rules();
+        // flush_rewrite_rules();
 
         /**
          * The pubjet_before_save_options action.
@@ -456,18 +456,17 @@ class Ajax extends Singleton
 
         // First try to send pricing plans to API
         pubjet_log('before pubjet_send_pricing_plans_to_api');
-        $result = pubjet_send_pricing_plans_to_api($pricingPlans,$token);
+        $result = pubjet_send_pricing_plans_to_api($pricingPlans, $token);
         pubjet_log('after pubjet_send_pricing_plans_to_api');
 
         if (is_wp_error($result)) {
             pubjet_log("Error in pubjet_send_pricing_plans_to_api");
-
             $this->error($result->get_error_message());
             return;
         }
 
         // Only update options if API call was successful
-        update_option(EnumOptions::Settings, $settings);
+        update_option(EnumOptions::Settings, $newSettings);
 
         pubjet_log('before pubjet_send_plugin_status_to_api');
         pubjet_send_plugin_status_to_api('active');
