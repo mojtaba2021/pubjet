@@ -12,7 +12,7 @@ class ReportageData extends BaseComponent {
 
     state = {
         payload: {},
-        error  : false,
+        error: false,
         loading: false,
     };
 
@@ -53,12 +53,12 @@ class ReportageData extends BaseComponent {
      */
     input = () => {
         return this.renderInput({
-            name     : 'panelData',
-            textarea : 'true',
-            readOnly : true,
-            rows     : 10,
+            name: 'panelData',
+            textarea: 'true',
+            readOnly: true,
+            rows: 10,
             className: styles.input,
-            value    : this.state.payload.data,
+            value: this.state.payload.data,
         });
     };
 
@@ -66,21 +66,29 @@ class ReportageData extends BaseComponent {
      * @since 1.0.0
      */
     handleCopy = () => {
-        copyText('siavsah ebrahimi');
-        showSuccessMessage(pubjet__('copied'));
+        const {payload} = this.state;
+        const textToCopy = payload?.data;
+
+        if (textToCopy) {
+            copyText(textToCopy);
+            showSuccessMessage(pubjet__('copied'));
+        }
     };
 
     /**
      * @since 1.0.0
      */
     button = () => {
+        const isDisabled = !this.state.payload?.data;
+
         return <Button shape={'round'}
                        size={'small'}
                        onClick={this.handleCopy}
                        block={true}
+                       disabled={isDisabled}
                        className={styles.copyButton}
                        icon={<CopyOutlined/>}
-        >
+                >
             {pubjet__('copy')}
         </Button>;
     };
