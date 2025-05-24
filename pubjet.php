@@ -6,7 +6,7 @@
     Author URI:  https://triboon.net
     License: GPL v2 or later
     License URI: http://www.gnu.org/licenses/gpl-2.0.txt
-    Version: 5.0.0
+    Version: 5.0.1
 */
 
 use triboon\pubjet\includes\enums\EnumOldOptions;
@@ -106,7 +106,7 @@ if (!class_exists('Pubjet')) {
             $this->defineConstant('PUBJET_JS_URL', PUBJET_ASSETS_URL . "js/");
             $this->defineConstant('PUBJET_VERSION', $this->getScriptsVersion());
             $this->defineConstant('PUBJET_DB_VERSION', '1.0.0');
-            $this->defineConstant('PUBJET_API_ROOT', 'https://api-staging.triboon.net');
+            $this->defineConstant('PUBJET_API_ROOT', 'https://api.triboon.net');
             $this->defineConstant('PUBJET_TBL_NAME', 'pubjet_reportages');
             $this->defineConstant('PUBJET_POST_TYPE', 'post');
             $this->defineConstant('PUBJET_DIR_PATH', plugin_dir_path(__FILE__));
