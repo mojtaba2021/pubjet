@@ -14,9 +14,10 @@ class PricingPlans extends AdminTable {
     };
     MAX_COUNT = 10;
     componentDidMount() {
-        const updatedPricingPlans = this.props.data.map(plan => {
+        const plans = this.props.data || [];
+        const updatedPricingPlans = plans.map(plan => {
             if (!plan.categories || plan.categories.length === 0) {
-                plan.categories = plan.relative_categories.map(cat => cat.unique_name);
+                plan.categories = (plan.relative_categories || []).map(cat => cat.unique_name);
             }
             return plan;
         });
