@@ -208,6 +208,7 @@ if (!class_exists('Pubjet')) {
             // Migrate from 1.0.0 to 2,0,0
             $last_category   = get_option('triboon_default_category');
             $last_debug_mode = get_option('triboon_debug_mode');
+            $last_token      = get_option('triboon_token');
 
             update_option(\triboon\pubjet\includes\enums\EnumOldOptions::Token, sanitize_text_field($last_token));
             update_option(\triboon\pubjet\includes\enums\EnumOldOptions::DefaultCategory, sanitize_text_field($last_category));
