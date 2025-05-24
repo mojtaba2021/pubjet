@@ -1919,3 +1919,33 @@ function pubjet_prepare_settings_to_save(array $settings, int $publisherCategory
 
     return $settings;
 }
+
+
+/**
+ * @param array $pricingPlans
+ * @return void
+ */
+function pubjet_validate_pricing_plans(array $pricingPlans): void
+{
+    if (empty($pricingPlans)) {
+        return;
+    }
+
+    foreach ($pricingPlans as $plan) {
+        $title = pubjet_isset_value($plan['title'], pubjet__('unnamed-plan'));
+
+        if (empty($plan['categories'])) {
+            pubjet_ajax_error(sprintf(
+                pubjet__('empty-pricingPlans-categories'),
+                $title
+            ));
+        }
+
+        if (is_array($plan['categories']) && count($plan['categories']) > 10) {
+            pubjet_ajax_error(sprintf(
+                pubjet__('max-pricingPlans-categories'),
+                10
+            ));
+        }
+    }
+}

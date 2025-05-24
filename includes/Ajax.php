@@ -449,24 +449,8 @@ class Ajax extends Singleton
         pubjet_log(['pricingPlans' => $pricingPlans]);
 
         // pricingPlans validation errors
-        if(!empty($pricingPlans)){
-            foreach ($pricingPlans as $plan) {
-                if (empty($plan['categories'])) {
-                    $this->error(sprintf(
-                        pubjet__('empty-pricingPlans-categories'),
-                        $plan['title']
-                    ));
-                }
-                if(is_array($plan['categories']) && count($plan['categories']) > 10 ){
-                    $this->error(sprintf(
-                        pubjet__('max-pricingPlans-categories'),
-                        10
-                    ));
-                }
-            }
-        }
+        pubjet_validate_pricing_plans($pricingPlans);
 
-       
 
         $newSettings = pubjet_prepare_settings_to_save($settings, $publisherCategory);
 
