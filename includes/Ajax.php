@@ -525,21 +525,19 @@ class Ajax extends Singleton
          * @since 1.0.0
          */
         do_action('pubjet_check_token');
-        pubjet_update_setting('token',$token);
+        pubjet_update_setting('token', $token);
 
         $response = pubjet_find_token_details($token);
         if (is_wp_error($response)) {
             $this->error($response->get_error_message());
         }
 
-//        $response['pricing_plans'] = array_map(function ($plan) {
-//            if (empty($plan->categories)) {
-//                $plan->categories = array_map(function ($cat) {
-//                    return $cat->unique_name;
-//                }, $plan->relative_categories ?? []);
-//            }
-//            return $plan;
-//        }, $response['pricing_plans']);
+        global $pubjet_settings;
+        $publisherCategory = pubjet_isset_value($response['publisherCategory']);
+
+        $newSettings = pubjet_prepare_settings_to_save($pubjet_settings, $publisherCategory);
+
+        update_option(EnumOptions::Settings, $newSettings);
 
         pubjet_send_plugin_status_to_api('active');
 
