@@ -46,7 +46,7 @@ const Settings = props => {
                 {
                     key: 'misc',
                     label: shouldDisableMiscTab ? (
-                        <Tooltip placement="top" title={'لطفا بروزرسانی تنظیمات را انجام دهید'} color='#ff4d4f'>
+                        <Tooltip placement="top" title={pubjet__('misc-disable-tooltip')} color='#ff4d4f'>
                             <span>{pubjet__('advanced')}</span>
                         </Tooltip>
                     ) : pubjet__('advanced'),
