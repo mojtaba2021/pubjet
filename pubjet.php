@@ -6,7 +6,7 @@
     Author URI:  https://triboon.net
     License: GPL v2 or later
     License URI: http://www.gnu.org/licenses/gpl-2.0.txt
-    Version: 5.0.1
+    Version: 5.1.0
 */
 
 use triboon\pubjet\includes\enums\EnumOldOptions;
