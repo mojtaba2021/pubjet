@@ -1131,8 +1131,10 @@ function pubjet_find_token_details($token) {
         'Content-Type'  => 'application/json',
         'Authorization' => 'Token ' . trim($token),
     ];
-
-    $result = pubjet_request($url, EnumHttpMethods::GET, $headers);
+    $args = [
+        'timeout' => 30
+    ];
+    $result = pubjet_request($url, EnumHttpMethods::GET, $headers, [], $args);
     pubjet_log('====== Check Token ======');
     pubjet_log($headers);
     pubjet_log($result);
