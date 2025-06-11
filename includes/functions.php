@@ -992,8 +992,9 @@ function pubjet_strings() {
         'add-reportage-tags-hints'   => esc_html__('By default, advertorials are published with customer-suggested tags. By enabling this option, advertorials will be published without tags.', 'pubjet'),
         'empty-pricingPlans-categories' => esc_html__("%s pricing plan category cannot be empty.", 'pubjet'),
         'max-pricingPlans-categories' => esc_html__('The number of categories that can be selected for pricing plans exceeds the allowed limit (%s items).', 'pubjet'),
-        'no-pricing-plans-available' => esc_html__('No pricing plans available!','pubjet'),
-        'pubjet-triboon-connection-desc' => esc_html__('To connect Pubjet to the platform, enter pricing plan categories.','pubjet'),
+        'no-pricing-plans-available' => esc_html__('No pricing plans available!', 'pubjet'),
+        'pubjet-triboon-connection-desc' => esc_html__('To connect Pubjet to the platform, enter pricing plan categories.', 'pubjet'),
+        'misc-disable-tooltip'          => esc_html__('Please specify the category for each plan in the General tab.', 'pubjet'),
     ]);
 }
 
