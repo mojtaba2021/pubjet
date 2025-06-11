@@ -525,14 +525,16 @@ class Ajax extends Singleton
          * @since 1.0.0
          */
         do_action('pubjet_check_token');
+        global $pubjet_settings;
         pubjet_update_setting('token', $token);
+        $pubjet_settings['token'] = $token;
 
         $response = pubjet_find_token_details($token);
         if (is_wp_error($response)) {
             $this->error($response->get_error_message());
         }
 
-        global $pubjet_settings;
+
         $publisherCategory = pubjet_isset_value($response['publisherCategory']);
 
         $newSettings = pubjet_prepare_settings_to_save($pubjet_settings, $publisherCategory);

@@ -1625,7 +1625,7 @@ function pubjet_send_plugin_status_to_api($status) {
     $response = wp_remote_post($url, [
         'headers' => [
             'Content-Type'  => 'application/json',
-            'Authorization' => 'Bearer ' . pubjet_token(),
+            'Authorization' => 'Token ' . pubjet_token(),
         ],
         'method'  => 'POST',
         'body'    => json_encode($request_data),
