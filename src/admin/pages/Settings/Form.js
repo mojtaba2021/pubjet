@@ -5,7 +5,7 @@ import { Alert, Button, Form as AntForm, Input, Space, Tooltip } from "antd";
 import { connect } from "trim-redux";
 import CheckTokenResult from "./CheckTokenResult";
 import { pubjet__ } from "../../../shared/scripts/utils";
-import { CheckCircleFilled, CloseCircleFilled, ReloadOutlined, SaveOutlined } from "@ant-design/icons";
+import {CheckCircleFilled, CloseCircleFilled, LoadingOutlined, ReloadOutlined, SaveOutlined} from "@ant-design/icons";
 import PricingPlans from "./PricingPlans";
 
 
@@ -37,17 +37,23 @@ const Form = props => {
             {renderInput({
                 name: 'token',
                 value: token,
-                className: `${styles.input} ${token ? (checkToken?.valid ? (styles.borderSuccess) : (styles.borderError)) : ''}`,
-                onChange: (e) => {
-                    changeInput('token', e.target.value);
-                },
-                suffix: token ? (
-                    checkToken?.valid ? (
-                        <CheckCircleFilled style={{ color: '#52c41a', fontSize: '24px' }} />
+                className: `${styles.input} ${
+                    token &&
+                    (checkToken?.checking
+                        ? styles.borderNeutral
+                        : checkToken?.valid
+                            ? styles.borderSuccess
+                            : styles.borderError)
+                }`,
+                onChange: (e) => changeInput('token', e.target.value),
+                suffix: token &&
+                    (checkToken?.checking ? (
+                        <LoadingOutlined style={{ color: '#d9d9d9', fontSize: 24 }} />
+                    ) : checkToken?.valid ? (
+                        <CheckCircleFilled style={{ color: '#52c41a', fontSize: 24 }} />
                     ) : (
-                        <CloseCircleFilled style={{ color: '#ff4d4f', fontSize: '24px' }} />
-                    )
-                ) : null,
+                        <CloseCircleFilled style={{ color: '#ff4d4f', fontSize: 24 }} />
+                    )),
             })}
         </AntForm.Item>
         <CheckTokenResult />
