@@ -49,9 +49,14 @@ class PricingPlans extends AdminTable {
                 render: (value, record, rowIndex) => {
                     // Determine selection mode based on archive_position
                     const selectionMode = record.archive_position === 'relative' ? 'multiple' : 'single';
-                    const currentCategories = (record.categories?.length > 0)
-                        ? record.categories
-                        : (record.relative_categories || []).map(cat => cat.unique_name);
+
+                    let currentCategories;
+
+                    if (record.categories !== undefined && record.categories !== null) {
+                        currentCategories = record.categories;
+                    } else {
+                        currentCategories = (record.relative_categories || []).map(cat => cat.unique_name);
+                    }
 
                     return (
                         <SelectTerms
