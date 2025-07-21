@@ -160,7 +160,12 @@ class ReportagePost extends Singleton {
         pubjet_log('======= New Post Args =======');
         pubjet_log($args);
 
-        $post_id = wp_insert_post($args);
+        add_filter('wp_kses_allowed_html', [Filters::class,"allowReportageIframe"], 10, 2);
+        try {
+            $post_id = wp_insert_post($args);
+        } finally {
+            remove_filter('wp_kses_allowed_html', [Filters::class,"allowReportageIframe"], 10);
+        }
 
         pubjet_log('======= New Post Result =======');
         pubjet_log($post_id);
