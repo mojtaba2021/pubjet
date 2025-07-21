@@ -288,4 +288,32 @@ class Filters extends Singleton {
 
         return $metaboxes;
     }
+
+    /**
+     * @param $tags
+     * @param $context
+     * @return mixed
+     */
+    public static function allowReportageIframe($tags, $context ) {
+        if ( 'post' === $context ) {
+                $tags['iframe'] = [
+                    'id'                    => true,
+                    'src'                   => true,
+                    'width'                 => true,
+                    'height'                => true,
+                    'title'                 => true,
+                    'class'                 => true,
+                    'style'                 => true,
+                    "allow"                 => true,
+                    'loading'               => true,
+                    'frameborder'           => true,
+                    "referrerpolicy"        => true,
+                    'allowfullscreen'       => true,
+                    "mozallowfullscreen"    => true,
+                    "webkitallowfullscreen" => true,
+                ];
+            }
+        return $tags;
+    }
+
 }
