@@ -114,10 +114,11 @@ class ReportagePost extends Singleton {
             return new \WP_Error('gateway-error', pubjet__('gateway-error'));
         }
 
-        $post_content = self::get_post_content($post_content, $reportage->title);
-        $post_date    = self::get_post_date($reportage->preferred_publish_date);
-        $post_status  = self::get_post_status($post_date);
-        $post_excerpt = self::normalize_html($reportage->lead_content ?? '');
+        $post_content   = self::get_post_content($post_content, $reportage->title);
+        $post_date      = self::get_post_date($reportage->preferred_publish_date);
+        $post_status    = self::get_post_status($post_date);
+        $post_excerpt   = self::normalize_html($reportage->lead_content ?? '');
+        $post_thumbnail = self::upload_from_url($reportage->lead_image);
 
         $args = [
             'post_type'     => sanitize_text_field(pubjet_post_type()),
@@ -173,7 +174,11 @@ class ReportagePost extends Singleton {
         }
 
         // =================== Success ===================
-        if (isset($post_content['featured_img_id'])) {
+
+        // Set Post Thumbnail
+        if ($post_thumbnail) {
+            set_post_thumbnail($post_id, $post_thumbnail);
+        } elseif (!empty($post_content['featured_img_id'])) {
             set_post_thumbnail($post_id, intval($post_content['featured_img_id']));
         }
 
@@ -295,11 +300,11 @@ class ReportagePost extends Singleton {
     }
 
     public static function upload_from_url($url, $title = null) {
-        require_once(ABSPATH . "/wp-load.php");
-        require_once(ABSPATH . "/wp-admin/includes/image.php");
-        require_once(ABSPATH . "/wp-admin/includes/file.php");
-        require_once(ABSPATH . "/wp-admin/includes/media.php");
-
+        if (!function_exists('media_handle_sideload')) {
+            require_once(ABSPATH . 'wp-admin/includes/image.php');
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            require_once(ABSPATH . 'wp-admin/includes/media.php');
+        }
         // Download url to a temp file
         $tmp = download_url($url);
         if (is_wp_error($tmp)) return false;
@@ -325,6 +330,7 @@ class ReportagePost extends Singleton {
                 'image/gif'          => 'gif',
                 'image/png'          => 'png',
                 'video/mp4'          => 'mp4',
+                'image/webp'         => 'webp',
             ];
 
             if (isset($mime_extensions[$mime])) {
