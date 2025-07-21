@@ -465,8 +465,11 @@ class ReportagePost extends Singleton {
             if (!empty($pubjet_settings['pricingPlans'])) {
                 foreach ($pubjet_settings['pricingPlans'] as $pricingPlan) {
                     if ($pricingPlan['title'] == $reportage->pricing_plan_title) {
-                        $result = pubjet_isset_value($pricingPlan['categories']);
-                        break;
+                        if(!empty($pricingPlan->relative_categories)){
+                             $found = get_term_by('slug', $pricingPlan->relative_categories[0]->unique_name, 'category');
+                             $result = $found ? $found->term_id : false;
+                             break;
+                        }
                     }
                 }
             }
