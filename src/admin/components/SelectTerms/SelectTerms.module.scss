@@ -3,7 +3,6 @@
 
 .select {
   width: 100% !important;
-  height: 45px !important;
   cursor: pointer !important;
   @include mq-max('md') {
     height: 50px !important;
