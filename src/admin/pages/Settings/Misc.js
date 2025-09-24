@@ -12,7 +12,6 @@ const Misc = props => {
     const [showAlert, setShowAlert] = useState(false);
     const {
         uninstallCleanup,
-        deleteFirstImage,
         addReportageSource,
         manualApprove,
         useGoogleTranslate,
@@ -59,24 +58,6 @@ const Misc = props => {
                             </Tooltip>
                         </Space>
                     </Space>} />}
-                <Form.Item className={styles.hideInput} label={<Space>
-                    <Switch
-                        size={'default'}
-                        checked={deleteFirstImage}
-                        onChange={(checked) => {
-                            changeInput('deleteFirstImage', checked);
-                            saveOptions();
-                            toggleSavedAlert();
-                        }}
-                    />
-                    <Space>
-                        <span>{pubjet__('delete-first-image')}</span>
-                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__('delete-first-image-hints')}}/>}>
-                            <QuestionCircleOutlined  className={'ant-form-item-tooltip'}/>
-                        </Tooltip>
-                    </Space>
-                </Space>}
-                />
                 <Form.Item className={styles.hideInput} label={<Space>
                     <Switch
                         size={'default'}
