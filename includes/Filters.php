@@ -31,6 +31,9 @@ class Filters extends Singleton {
         // add this if its necessary
         // add_filter('admin_post_thumbnail_html',[$this,'regenerateFeaturedImage'], 15, 3);
         add_filter('admin_post_thumbnail_html',[$this,'regenerateFeaturedImage'], 15, 3);
+        add_filter('the_content', [$this, 'useCdnForReportageImages'], 10);
+        add_filter('post_thumbnail_html', [$this, 'useCdnForFeaturedImage'], 10, 5);
+
 
     }
 
@@ -396,5 +399,75 @@ class Filters extends Singleton {
         );
 
         return $views;
+    }
+
+    /**
+     * @param $content
+     * @return array|mixed|string|string[]|null
+     */
+    public function useCdnForReportageImages($content) {
+
+        global $post;
+        if (!$post || !pubjet_is_reportage($post->ID)) return $content;
+
+        $use_cdn = get_post_meta($post->ID, 'pubjet_use_cdn', true);
+        if ($use_cdn !== '1') return $content;
+
+        $cache_key = 'pubjet_cdn_content_' . $post->ID;
+
+        $cached = get_transient($cache_key);
+        if ($cached) {
+            return $cached;
+        }
+
+        $processed = preg_replace_callback(
+            '/<img([^>]*data-attach="([^"]+)"[^>]*)>/i',
+            function($matches) {
+                $img_tag = $matches[0];
+                $original_url = PUBJET_CDN_ROOT . '/' . $matches[2];
+                return preg_replace(
+                    '/src="[^"]*"/',
+                    'src="' . esc_attr($original_url) . '"',
+                    $img_tag
+                );
+            },
+            $content
+        );
+
+        set_transient($cache_key, $processed, DAY_IN_SECONDS);
+
+        return $processed;
+    }
+
+
+    /**
+     * @param $html
+     * @param $post_id
+     * @param $post_thumbnail_id
+     * @param $size
+     * @param $attr
+     * @return array|string|string[]|null
+     */
+    public function useCdnForFeaturedImage($html, $post_id, $post_thumbnail_id, $size, $attr) {
+        if (!pubjet_is_reportage($post_id)) return $html;
+
+        $use_cdn = get_post_meta($post_id, 'pubjet_use_cdn', true);
+        if ($use_cdn !== '1') return $html;
+
+
+        $data_attach = get_post_meta($post_id, 'pubjet_thumbnail_data_attach', true);
+        if (empty($data_attach)) {
+            $file_path = get_attached_file($post_thumbnail_id);
+            if (!$file_path) return $html;
+            $data_attach = basename($file_path);
+        }
+
+        $cdn_url = PUBJET_CDN_ROOT . '/' . $data_attach;
+
+        return preg_replace(
+            '/src="[^"]*"/',
+            'src="' . esc_attr($cdn_url) . '"',
+            $html
+        );
     }
 }
