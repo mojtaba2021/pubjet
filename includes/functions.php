@@ -2005,6 +2005,33 @@ function send_permalink_change_to_api($post_id, $reportage_id, $new_url) {
 }
 
 /**
+ * @return int
+ */
+function pubjet_get_reportage_count(): int
+{
+    $count = get_transient('pubjet_reportage_count');
+
+    if ($count === false) {
+        global $wpdb;
+
+        $count = $wpdb->get_var($wpdb->prepare("
+            SELECT COUNT(p.ID) 
+            FROM {$wpdb->posts} p 
+            JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id 
+            WHERE p.post_type = 'post' 
+            AND p.post_status IN ('publish', 'future', 'draft', 'pending') 
+            AND pm.meta_key = %s
+        ", 'pubjet_reportage_id'));
+
+        // کش برای 30 دقیقه
+        set_transient('pubjet_reportage_count', $count, 30 * MINUTE_IN_SECONDS);
+    }
+
+    return (int) $count;
+}
+
+
+/**
  * @return mixed|string
  */
 function get_current_subdomain()

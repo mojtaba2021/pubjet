@@ -14,6 +14,8 @@ class Filters extends Singleton {
     public function init() {
         add_filter("display_post_states", [$this, "displayPostStates"], 15, 2);
         add_filter('parse_query', [$this, "adminFilterPosts"], 15);
+        add_filter('views_edit-post', [$this,'pubjet_reportage_count'] , 15);
+
         // add_filter("the_content", [$this, "filterTheContent"], 0, 2);
         add_filter("the_content", [$this, "deleteFirstImage"], 15, 2);
         add_filter("the_content", [$this, "addReportageSource"], 15, 2);
@@ -316,4 +318,22 @@ class Filters extends Singleton {
         return $tags;
     }
 
+    /**
+     * @param $views
+     * @return mixed
+     */
+    public function pubjet_reportage_count($views) {
+        $count = pubjet_get_reportage_count();
+        $current_class = (isset($_GET['reportage']) && $_GET['reportage'] == 'true') ? 'current' : '';
+
+        $views['reportages'] = sprintf(
+            '<a href="%s" class="%s">%s <span class="count">(%d)</span></a>',
+            admin_url('edit.php?post_type=post&reportage=true'),
+            $current_class,
+            pubjet__('reportage'),
+            $count
+        );
+
+        return $views;
+    }
 }
