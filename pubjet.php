@@ -79,6 +79,7 @@ if (!class_exists('Pubjet')) {
          */
         public function onPluginLoaded() {
             Initializer::getInstance();
+            $this->maybeUpgrade();
         }
 
         /**
@@ -176,18 +177,6 @@ if (!class_exists('Pubjet')) {
             return $plugin_data['Version'];
         }
 
-        /**
-         * @return void
-         */
-        private function trackActivationVersion() {
-            global $pubjet_settings;
-            $activation_version = pubjet_isset_value($pubjet_settings[EnumOptions::ActivationVersion]);
-            $current_version = $this->getVersion();
-            if ($activation_version !== $current_version) {
-                $pubjet_settings[EnumOptions::ActivationVersion] = $current_version;
-                update_option(EnumOptions::Settings, $pubjet_settings);
-            }
-        }
 
         /**
          * @return void
@@ -274,16 +263,37 @@ if (!class_exists('Pubjet')) {
             $GLOBALS['pubjet_options']  = $GLOBALS['pubjet_settings'];
         }
 
+
+        /**
+         * @return void
+         * @since  5.3.0
+         * @author Triboon
+         */
+        private function maybeUpgrade() {
+            global $pubjet_settings;
+
+            $stored_version = $pubjet_settings[EnumOptions::ActivationVersion] ?? null;
+            $current_version = $this->getVersion();
+
+            if ($stored_version !== $current_version) {
+
+                pubjet_sync_settings();
+                pubjet_sync_categories();
+                pubjet_delete_first_image_option();
+
+                $pubjet_settings[EnumOptions::ActivationVersion] = $current_version;
+                update_option(EnumOptions::Settings, $pubjet_settings);
+            }
+        }
+
         /**
          * @return void
          * @since  1.0
          * @author Triboon
          */
         public function onActivation() {
-            pubjet_sync_settings();
             pubjet_send_plugin_status_to_api('active');
             $this->migrate();
-            $this->trackActivationVersion();
             flush_rewrite_rules();
         }
 
