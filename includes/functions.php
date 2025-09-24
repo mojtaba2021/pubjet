@@ -1106,9 +1106,6 @@ function pubjet_is_request_token_valid() {
         return new \WP_Error('missing-token', pubjet__('missing-token'));
     }
     $request_token = pubjet_get_server_var('authorization');
-    pubjet_log('request token : ' . $request_token);
-    pubjet_log('pubjet token : ' . pubjet_token());
-
     if ($request_token === pubjet_token()) {
         return true;
     }
@@ -1429,6 +1426,9 @@ function pubjet_sync_categories() {
 }
 
 
+/**
+ * @return void
+ */
 function pubjet_sync_settings() {
     pubjet_log("===== synSettingsAfterUpdate ===== ");
     $category = pubjet_is_dev_mode() ? 1 : null;
@@ -1447,15 +1447,16 @@ function pubjet_sync_settings() {
         if ($category !== 1) {
             $pubjet_settings['manualApprove'] = false;
         }
-        pubjet_log(['publisher Category' => $category]);
         update_option(EnumOptions::Settings, $pubjet_settings);
     }
-    pubjet_log(["publisherCategory" => $category]);
 
 }
 
 /*
  * @return array
+ */
+/**
+ * @return mixed|null
  */
 function pubjet_default_settings() {
     /**
@@ -1733,6 +1734,9 @@ function pubjet_publish_backlink_request($backlink_id) {
 }
 
 
+/**
+ * @return int|mixed
+ */
 function pubjet_check_new_version() {
 
     $plugin_updates = get_site_transient( 'update_plugins' );
