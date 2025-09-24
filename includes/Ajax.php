@@ -25,7 +25,9 @@ class Ajax extends Singleton
         $this->ajax('delete-debug', [$this, 'deleteDebug'], EnumAjaxPrivType::LoggedIn, 15);
         $this->ajax('check-token', [$this, 'checkToken'], EnumAjaxPrivType::LoggedIn, 15);
         $this->ajax('check-required-php-modules', [$this, 'checkRequiredPhpModules'], EnumAjaxPrivType::LoggedIn, 15);
-        $this->ajax('reg-thumb', [$this, 'regThumbnail'], EnumAjaxPrivType::LoggedIn);
+//        $this->ajax('reg-thumb', [$this, 'regThumbnail'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('reg-images', [$this, 'regImages'], EnumAjaxPrivType::LoggedIn);
+
         $this->ajax('permanent-hide-admin-notice', [$this, 'permanentHideAdminNotice'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('find-terms', [$this, 'findTerms'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('categories', [$this, 'findWpCategories'], EnumAjaxPrivType::LoggedIn);
@@ -323,6 +325,130 @@ class Ajax extends Singleton
         set_post_thumbnail($post->ID, intval($post_thumbnail['featured_img_id']));
 
         $this->success($post_thumbnail);
+    }
+
+
+    public function regImages()
+    {
+        $this->checkNonce();
+
+        if (empty($this->post('postId'))) {
+            $this->error(pubjet__('missing-params'));
+        }
+
+        // Get regeneration type: 'thumbnail', 'content', or 'both' (default)
+        $type = $this->post('type', 'both');
+
+        $post = get_post($this->post('postId'));
+        if (!$post) {
+            $this->error(pubjet__('post-not-found'));
+        }
+
+        // Check if this post is reportage
+        if (!pubjet_is_reportage($post->ID)) {
+            $this->error(pubjet__('post-not-reportage'));
+        }
+
+        /**
+         * The pubjet_regenerate_images action.
+         */
+        do_action('pubjet_regenerate_images', $post->ID, $post, $type);
+
+        $triboon_panel_reportage_data = get_post_meta($post->ID, EnumPostMetakeys::PanelData, true) ;
+        if (empty($triboon_panel_reportage_data) || !is_object($triboon_panel_reportage_data)) {
+            $this->error(pubjet__('empty-reportage-content'));
+        }
+
+        $triboon_panel_reportage_content = pubjet_isset_value($triboon_panel_reportage_data->content_file);
+        if (empty($triboon_panel_reportage_content)) {
+            $this->error(pubjet__('empty-reportage-content'));
+        }
+
+        $reportage = [
+            'content_file' => $triboon_panel_reportage_content,
+        ];
+        $post_content = ReportagePost::get_content_file((object)$reportage);
+
+        $lead_image = pubjet_isset_value($triboon_panel_reportage_data->lead_image);
+
+        $response = [];
+
+        // Process images based on type
+        if ($type === 'thumbnail' || $type === 'both') {
+            $thumbnail_result = $this->processThumbnail($post, $post_content, $lead_image);
+            $response['thumbnail'] = $thumbnail_result;
+        }
+
+        if ($type === 'content' || $type === 'both') {
+            $content_result = $this->processContentImages($post, $post_content);
+            $response['content'] = $content_result;
+        }
+
+        $this->success($response);
+    }
+
+    private function processThumbnail($post, $post_content, $lead_image)
+    {
+        $post_thumbnail = ReportagePost::upload_from_url($lead_image);
+
+        $content = ReportagePost::handle_images($post_content, true);
+
+        $final_thumbnail_id = $post_thumbnail ?: intval($content['featured_img_id'] ?? 0);
+
+        if (empty($final_thumbnail_id)) {
+            pubjet_log('Error creating post thumbnail for post ID: ' . $post->ID);
+            return [
+                'success' => false,
+                'error'   => 'Error creating post thumbnail.'
+            ];
+        }
+
+        $post_attach_id = get_post_thumbnail_id($post->ID);
+        if ($post_attach_id) {
+            wp_delete_attachment($post_attach_id, true);
+        }
+
+        set_post_thumbnail($post->ID, $final_thumbnail_id);
+
+        return [
+            'success'       => true,
+            'attachment_id' => $final_thumbnail_id,
+            'url'           => wp_get_attachment_url($final_thumbnail_id)
+        ];
+    }
+
+
+    private function processContentImages($post, $post_content)
+    {
+        $result = ReportagePost::handle_images($post_content, false);
+
+        if (empty($result['html_file'])) {
+            pubjet_log('Error processing content images for post ID: ' . $post->ID);
+            return ['success' => false, 'error' => 'Error processing content images.'];
+        }
+
+        // Update post content with new image URLs
+        $updated_post = [
+            'ID' => $post->ID,
+            'post_content' => $result['html_file']
+        ];
+
+        $update_result = wp_update_post($updated_post);
+
+        if (is_wp_error($update_result)) {
+            return [
+                'success' => false,
+                'error' => 'Error updating post content: ' . $update_result->get_error_message()
+            ];
+        }
+
+        return [
+            'success' => true,
+            'images_processed' => $result['images_processed'],
+            'processed_urls' => $result['processed_urls'],
+            'failed_images' => $result['failed_images'] ?? []
+        ];
+
     }
 
     /**

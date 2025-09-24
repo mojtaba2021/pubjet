@@ -30,6 +30,7 @@ class Filters extends Singleton {
         add_filter("pubjet_new_reportage_post_args", [$this, "addReportageTags"], 15, 2);
         // add this if its necessary
         // add_filter('admin_post_thumbnail_html',[$this,'regenerateFeaturedImage'], 15, 3);
+        add_filter('admin_post_thumbnail_html',[$this,'regenerateFeaturedImage'], 15, 3);
 
     }
 
@@ -106,6 +107,12 @@ class Filters extends Singleton {
         return $actions;
     }
 
+    /**
+     * @param $content
+     * @param $post_id
+     * @param $thumbnail_id
+     * @return mixed|string
+     */
     public function regenerateFeaturedImage($content, $post_id, $thumbnail_id )
     {
         if(pubjet_is_reportage($post_id)){
