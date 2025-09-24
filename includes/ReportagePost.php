@@ -177,10 +177,13 @@ class ReportagePost extends Singleton {
         // =================== Success ===================
 
         // Set Post Thumbnail
-        if ($post_thumbnail) {
-            set_post_thumbnail($post_id, $post_thumbnail);
-        } elseif (!empty($post_content['featured_img_id'])) {
-            set_post_thumbnail($post_id, intval($post_content['featured_img_id']));
+        $final_thumbnail_id = $post_thumbnail ?: intval($post_content['featured_img_id'] ?? 0);
+        if ($final_thumbnail_id) {
+            set_post_thumbnail($post_id, $final_thumbnail_id);
+
+            $file_path = get_attached_file($final_thumbnail_id);
+            $data_attach = basename($file_path);
+            update_post_meta($post_id, 'pubjet_thumbnail_data_attach', $data_attach);
         }
 
         // Publish without Triboon tag
