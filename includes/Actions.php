@@ -51,6 +51,7 @@ class Actions extends Singleton {
         add_action('pubjet_create_reportage', [$this, 'processCreateReportage'], 15);
         add_action('save_post',[$this,'savePubjetMetaData']);
         add_action('wp_head', [$this,'addMetaDataToFrontPages'] , 15);
+        add_action('wp_after_insert_post', [$this, 'sendPermalinkUpdateToApi'], 15, 4);
     }
 
     /**
@@ -575,6 +576,30 @@ class Actions extends Singleton {
             if(!empty($post->pubjet_meta_description)){
                 echo '<meta name="description" content="' . esc_attr($post->pubjet_meta_description) . '" />' . "\n";
             }
+        }
+    }
+
+
+    /**
+     * @param $post_id
+     * @param $post
+     * @param $update
+     * @param $post_before
+     * @return void
+     */
+    public function sendPermalinkUpdateToApi($post_id, $post, $update, $post_before)
+    {
+        if (!$update || $post->post_type !== 'post' || $post->post_status !== 'publish') return;
+
+        $reportage_id = pubjet_find_reportage_id($post_id);
+        if (empty($reportage_id)) return;
+
+        $old_slug = $post_before->post_name;
+        $new_slug = $post->post_name;
+
+        if ($old_slug !== $new_slug) {
+            $new_url = get_permalink($post_id);
+            send_permalink_change_to_api($post_id, $reportage_id, $new_url);
         }
     }
 

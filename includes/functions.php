@@ -1952,6 +1952,58 @@ function pubjet_validate_pricing_plans(array $pricingPlans): void
         }
     }
 }
+
+/**
+ * @param $post_id
+ * @param $reportage_id
+ * @param $new_url
+ * @return array|void|WP_Error
+ */
+function send_permalink_change_to_api($post_id, $reportage_id, $new_url) {
+    if (empty(trim(pubjet_token()))) return;
+
+    pubjet_log('====== START Update Permalink ======');
+    pubjet_log('Post ID: ' . $post_id);
+    pubjet_log('Reportage ID: ' . $reportage_id);
+    pubjet_log('New URL: ' . $new_url);
+
+    $url = apply_filters('pubjet_update_permalink_endpoint', pubjet_api_root() . '/external/wp/reportages/' . $reportage_id . '/update-url/', $post_id , $reportage_id);
+
+    $headers = [
+        'Content-Type'  => 'application/json',
+        'Authorization' => 'Token ' . trim(pubjet_token()),
+    ];
+
+    $body = ['url' => $new_url];
+
+    $args = [
+        'timeout' => 30,
+        'body' => json_encode($body),
+        'headers' => $headers,
+        'method' => 'POST'
+    ];
+
+    $result = pubjet_request($url, EnumHttpMethods::POST, $headers, $body, $args);
+
+    pubjet_log('====== END Update Permalink ======');
+
+    if (is_wp_error($result)) {
+        pubjet_log('Error: ' . $result->get_error_message());
+        return new \WP_Error('error', $result->get_error_message());
+    }
+
+    if (isset($result['code']) && 403 == $result['code']) {
+        return new \WP_Error('error', pubjet__('invalid-token'));
+    }
+
+    if (isset($result['code']) && 404 == $result['code']) {
+        return new \WP_Error('error', pubjet__('invalid-reportageId'));
+    }
+
+    pubjet_log('Success: Permalink updated successfully');
+    return $result;
+}
+
 /**
  * @return mixed|string
  */
