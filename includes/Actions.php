@@ -469,7 +469,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function publishMissedSchedulePosts() {
+    public function publishMissedSchedulePosts()
+    {
         global $pubjet_settings;
 
         $last_check = pubjet_isset_value($pubjet_settings[EnumOptions::LastCheckingMissedPosts]);
@@ -479,15 +480,14 @@ class Actions extends Singleton {
         }
 
         pubjet_update_setting(EnumOptions::LastCheckingMissedPosts, pubjet_now_ts());
-
-        wp_remote_post(home_url('/wp-json/pubjet/v1/check-missed-reportage'), [
-            'headers'     => [
+        wp_remote_post(home_url(rest_get_url_prefix() . '/pubjet/v1/check-missed-reportage'), [
+            'headers' => [
                 'Authorization' => pubjet_token(),
-                'Content-Type'  => 'application/json',
+                'Content-Type' => 'application/json',
             ],
             'data_format' => 'body',
-            'method'      => 'POST',
-            'body'        => json_encode([]),
+            'method' => 'POST',
+            'body' => json_encode([]),
         ]);
     }
 
