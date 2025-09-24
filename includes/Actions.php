@@ -21,9 +21,9 @@ class Actions extends Singleton {
      */
     public function init() {
         add_action("admin_menu", [$this, "registerMenu"], 15);
-        add_action("admin_footer", [$this, "adminFooterScripts"], 15);
+//        add_action("admin_footer", [$this, "adminFooterScripts"], 15);
         add_action("wp_head", [$this, "publishMissedSchedulePosts"], 15);
-        add_action("wp_footer", [$this, "addScriptToReportage"], 15);
+//        add_action("wp_footer", [$this, "addScriptToReportage"], 15);
         add_action("admin_head", [$this, "pluginFont"], 15);
         add_action("wp_head", [$this, "alignReportageImagesCenter"], 15);
         add_action('created_term', [$this, 'createCategory'], 15, 5);
@@ -52,6 +52,8 @@ class Actions extends Singleton {
         add_action('save_post',[$this,'savePubjetMetaData']);
         add_action('wp_head', [$this,'addMetaDataToFrontPages'] , 15);
         add_action('wp_after_insert_post', [$this, 'sendPermalinkUpdateToApi'], 15, 4);
+        add_action('save_post', [$this, 'pubjet_reportage_count_clear_cache']);
+        add_action('delete_post', [$this, 'pubjet_reportage_count_clear_cache']);
     }
 
     /**
@@ -600,6 +602,29 @@ class Actions extends Singleton {
         if ($old_slug !== $new_slug) {
             $new_url = get_permalink($post_id);
             send_permalink_change_to_api($post_id, $reportage_id, $new_url);
+        }
+    }
+
+    public function pubjet_reportage_count_clear_cache()
+    {
+        delete_transient('pubjet_reportage_count');
+    }
+
+    public function pubjet_clear_cache_on_meta_update($meta_id, $post_id, $meta_key)
+    {
+        if ($meta_key === 'pubjet_reportage_id') {
+            $this->pubjet_reportage_count_clear_cache();
+        }
+    }
+
+    public function pubjet_clear_cache_on_meta_delete($meta_ids) {
+        if (is_array($meta_ids)) {
+            foreach ($meta_ids as $meta_data) {
+                if (isset($meta_data['key']) && $meta_data['key'] === 'pubjet_reportage_id') {
+                    $this->pubjet_reportage_count_clear_cache();
+                    break;
+                }
+            }
         }
     }
 
