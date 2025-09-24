@@ -58,59 +58,50 @@ class RestApi extends Singleton {
     /**
      * @return void
      */
-    public function checkMissedReportage(\WP_REST_Request $request) {
+    public function checkMissedReportage(\WP_REST_Request $request)
+    {
         $this->finishRequest();
 
         global $wpdb;
 
-        $dt = new DateTime(date('Y-m-d H:i:s e'));
-        $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
+        $dt = new DateTime('now', new DateTimeZone(wp_timezone_string()));
         $now = $dt->format('Y-m-d H:i:s');
 
-        $sql = $wpdb->prepare(
+        $posts = $wpdb->get_results($wpdb->prepare(
             "SELECT `ID`, `post_status`, `post_title`, `post_type` FROM $wpdb->posts 
-                    WHERE `post_type` = %s AND post_status='future' AND post_date_gmt < %s",
+                   WHERE `post_type` = %s AND post_status='future' AND post_date_gmt < %s",
             PUBJET_POST_TYPE,
-                    $now
-        );
-        $result = $wpdb->get_results($sql);
+            $now
+        ));
 
-        if (!$result) {
+        if (empty($posts)) {
             return;
         }
 
-        foreach ($result as $post) {
+        foreach ($posts as $post) {
             if (!pubjet_is_reportage($post->ID)) {
                 continue;
             }
             $reportageId = pubjet_find_reportage_id($post->ID);
-            $post_status = pubjet_should_publish_reportage_manually() ?  EnumPostStatus::Pending :  EnumPostStatus::Publish;
-            $before_status = $post->post_status;
+            $beforeStatus = $post->post_status;
 
-            if ($post_status === 'publish') {
-                wp_publish_post($post->ID);
-            } else {
-                $update_result = wp_update_post([
-                    'ID'          => $post->ID,
-                    'post_status' => $post_status
-                ], true);
+            $result = wp_publish_post($post->ID);
 
-                if (is_wp_error($update_result)) {
-                    pubjet_log([
-                        'error_message' => $update_result->get_error_message(),
-                        'post_ID'       => $post->ID,
-                        'reportage_id'  => $reportageId
-                    ]);
-                }
+            if (is_wp_error($result)) {
+                pubjet_log([
+                    'error_message' => $result->get_error_message(),
+                    'post_ID'       => $post->ID,
+                    'reportage_id'  => $reportageId
+                ]);
             }
+
             $after_status = get_post_status($post->ID);
             pubjet_log([
                 'function'       => 'checkMissedReportage',
                 'post_ID'        => $post->ID,
                 'post_title'     => $post->post_title,
                 'post_type'      => $post->post_type,
-                'before_status'  => $before_status,
-                'attempt_status' => $post_status,
+                'before_status'  => $beforeStatus,
                 'after_status'   => $after_status,
                 'reportage_id'   => $reportageId,
             ]);
