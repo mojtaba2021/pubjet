@@ -138,18 +138,43 @@ class Filters extends Singleton {
      * @return string
      */
     public function deleteFirstImage($content) {
-        global $pubjet_settings;
-        if (!pubjet_is_reportage(get_the_ID())) {
+        global $wpdb;
+
+        $post_id = get_the_ID();
+        if(!pubjet_is_reportage($post_id)) return $content;
+
+        $cache_key = "pubjet_meta_$post_id";
+        $meta_cache = wp_cache_get($cache_key, 'pubjet');
+
+        if ($meta_cache === false) {
+            $meta_data = $wpdb->get_results($wpdb->prepare("
+                SELECT meta_key, meta_value 
+                FROM {$wpdb->postmeta} 
+                WHERE post_id = %d 
+                AND meta_key IN ('pubjet_reportage_id', 'pubjet_delete_first_image')
+            ", $post_id), OBJECT_K);
+
+            $meta_cache = [
+                'has_reportage'      => isset($meta_data[EnumPostMetakeys::ReportageId]),
+                'delete_first_image' => isset($meta_data[EnumPostMetakeys::deleteFirstImage])
+                    ? 1
+                    : false
+            ];
+
+            wp_cache_set($cache_key, $meta_cache, 'pubjet', HOUR_IN_SECONDS);
+        }
+
+        if (!$meta_cache['has_reportage'] || !$meta_cache['delete_first_image']) {
             return $content;
         }
-        $status = pubjet_isset_value($pubjet_settings['deleteFirstImage']);
-        if (!$status) {
-            return $content;
+
+        $pattern_p = '/<p[^>]*>\s*(?:<strong[^>]*>\s*)?<img[^>]*>(?:\s*<\/strong>)?\s*<\/p>/i';
+        if (preg_match($pattern_p, $content)) {
+            return preg_replace($pattern_p, '', $content, 1);
         }
-        // الگوی جستجو برای اولین عکس در محتوا
-        $pattern = '/<p>\s*(<strong>\s*)?<img[^>]+>(\s*<\/strong>)?\s*<\/p>|<img[^>]+>/i';
-        // جایگزینی اولین مطابقت با رشته خالی
-        return preg_replace($pattern, '', $content, 1);
+
+        $pattern_img = '/<img[^>]*>/i';
+        return preg_replace($pattern_img, '', $content, 1);
     }
 
 

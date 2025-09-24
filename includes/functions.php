@@ -2091,3 +2091,66 @@ function pubjet_delete_first_image_option() {
         }
     }
 }
+
+/**
+ * @return void
+ */
+function migrate_delete_first_image_option() {
+    pubjet_log("migrate delete first image");
+
+    global $pubjet_settings, $wpdb;
+
+    $post_ids = $wpdb->get_col($wpdb->prepare("
+                                SELECT DISTINCT p.ID 
+                                FROM {$wpdb->posts} p
+                                INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+                                WHERE p.post_type = %s
+                                AND p.post_status IN ('publish', 'draft', 'private', 'pending')
+                                AND pm.meta_key = %s
+                            ", PUBJET_POST_TYPE, 'pubjet_reportage_id'));
+
+    if (!empty($post_ids)) {
+        $insert_values = array();
+        $delete_first_image_value = !empty($pubjet_settings['deleteFirstImage']) ? '1' : '0';
+
+        foreach ($post_ids as $post_id) {
+            $insert_values[] = $wpdb->prepare(
+                "(%d, %s, %s)",
+                (int)$post_id,
+                'pubjet_delete_first_image',
+                $delete_first_image_value
+            );
+        }
+
+        if (!empty($insert_values)) {
+            $values_string = implode(',', $insert_values);
+            $post_ids_string = implode(',', array_map('intval', $post_ids));
+
+            try {
+                $wpdb->query("
+                            DELETE FROM {$wpdb->postmeta} 
+                            WHERE post_id IN ({$post_ids_string}) 
+                            AND meta_key = 'pubjet_delete_first_image'
+                    ");
+
+                $wpdb->query("
+                            INSERT INTO {$wpdb->postmeta} (post_id, meta_key, meta_value) 
+                            VALUES {$values_string}
+                        ");
+
+                if (PUBJET_DEBUG_MODE) {
+                    pubjet_log("Pubjet Migration v5.3.0: حذف اولین عکس - " . count($post_ids) . " پست پردازش شد");
+                }
+
+            } catch (Exception $e) {
+                if (PUBJET_DEBUG_MODE) {
+                    pubjet_log('Pubjet Migration Error: ' . $e->getMessage());
+                }
+            }
+        }
+    }
+
+    update_option('pubjet_migration_delete_first_image_v530', 'completed');
+    unset($pubjet_settings['deleteFirstImage']);
+    update_option(EnumOptions::Settings,$pubjet_settings);
+}
