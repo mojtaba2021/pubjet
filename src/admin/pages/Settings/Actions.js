@@ -47,7 +47,7 @@ export const doCheckToken = () => {
             },
             pricingPlans: [],
         });
-        return;
+        return Promise.resolve({ success: false, error: 'No token' });
     }
 
     return new Promise((resolve, reject) => {
