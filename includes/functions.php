@@ -1013,7 +1013,7 @@ function pubjet_find_authors() {
     $result = [];
 
     foreach ($users as $user) {
-        $result[] = [
+        $result[$user->ID] = [
             'ID'           => $user->ID,
             'user_login'   => $user->user_login,
             'display_name' => $user->display_name,
@@ -1024,7 +1024,7 @@ function pubjet_find_authors() {
      *
      * @since 1.0.0
      */
-    return apply_filters('pubjet_authors', $result);
+    return apply_filters('pubjet_authors', array_values($result));
 }
 
 /**
