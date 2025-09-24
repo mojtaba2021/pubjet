@@ -139,12 +139,8 @@ class ReportagePost extends Singleton {
             ],
         ];
 
-        if (EnumPostStatus::Pending === $args['post_status']) {
-            $args['meta_input'][EnumPostMetakeys::ManualApprove] = 1;
-        }
-
-        if (!in_array($post_status, [EnumPostStatus::Publish, EnumPostStatus::Pending])) {
-            $args['post_date']     = sanitize_text_field($post_date);
+        if ($post_status != EnumPostStatus::Publish) {
+            $args['post_date'] = sanitize_text_field($post_date);
             $args['post_date_gmt'] = sanitize_text_field($post_date);
         }
 
