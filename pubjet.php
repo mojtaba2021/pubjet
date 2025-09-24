@@ -108,6 +108,7 @@ if (!class_exists('Pubjet')) {
             $this->defineConstant('PUBJET_VERSION', $this->getScriptsVersion());
             $this->defineConstant('PUBJET_DB_VERSION', '1.0.0');
             $this->defineConstant('PUBJET_API_ROOT', 'https://api.triboon.net');
+            $this->defineConstant('PUBJET_CDN_ROOT', 'https://cdn.triboon.net/media/reportage_images');
             $this->defineConstant('PUBJET_TBL_NAME', 'pubjet_reportages');
             $this->defineConstant('PUBJET_POST_TYPE', 'post');
             $this->defineConstant('PUBJET_DIR_PATH', plugin_dir_path(__FILE__));

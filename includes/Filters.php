@@ -159,46 +159,75 @@ class Filters extends Singleton {
      */
     public function addReportageSource($content) {
         global $pubjet_settings;
+
         if (!pubjet_is_reportage(get_the_ID())) {
             return $content;
         }
+
         $status = pubjet_isset_value($pubjet_settings['addReportageSource']);
         if (!$status) {
             return $content;
         }
 
+        if (empty(trim($content))) {
+            return $content;
+        }
+
         libxml_use_internal_errors(true);
         $dom = new \DOMDocument();
+        $dom->encoding = 'UTF-8';
         libxml_clear_errors();
-        if (!$dom->loadHTML($content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD)) {
+
+        $html_content = mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8');
+
+        if (!$dom->loadHTML('<?xml encoding="UTF-8">' . $html_content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD)) {
             return $content;
         }
 
         $links = $dom->getElementsByTagName('a');
-        $follow_links = [];
+        $valid_links = [];
+
         foreach ($links as $link) {
             $rel = $link->getAttribute('rel');
             $href = $link->getAttribute('href');
-            if (!empty($href) && filter_var($href, FILTER_VALIDATE_URL) && (empty($rel) || strpos($rel, 'nofollow') === false)) {
-                $follow_links[] = $href;
+
+            if (!empty($href) &&
+                filter_var($href, FILTER_VALIDATE_URL) &&
+                (empty($rel) || strpos($rel, 'nofollow') === false)) {
+
+                $valid_links[] = $href;
             }
         }
 
-        if (empty($follow_links)) {
+        if (empty($valid_links)) {
             return $content;
         }
 
-        $link_counts = array_count_values($follow_links);
-        arsort($link_counts);
-        $most_repeated_link = array_key_first($link_counts);
+        $domain_counts = [];
 
-        if (!$most_repeated_link) {
-            return $content;
+        foreach ($valid_links as $link) {
+            $parsed_url = parse_url($link);
+
+            if (isset($parsed_url['host'])) {
+                $base_domain = strtolower(preg_replace('/^www\./', '', $parsed_url['host']));
+                if (isset($domain_counts[$base_domain])) {
+                    $domain_counts[$base_domain]++;
+                } else {
+                    $domain_counts[$base_domain] = 1;
+                }
+            }
         }
 
-        $parsed_url = parse_url($most_repeated_link);
-        $base_domain = preg_replace('#^(www\.)#', '', $parsed_url['host']);
-        $content .= '<p> منبع خبر : ' . esc_html($base_domain) . '</p>';
+        if (empty($domain_counts)) {
+            return $content;
+        }
+        arsort($domain_counts);
+
+        $most_frequent_domain = array_key_first($domain_counts);
+
+        $source_text = '<p class="news-source">منبع خبر: <strong>' . esc_html($most_frequent_domain) . '</strong></p>';
+
+        $content .= $source_text;
 
         return $content;
     }
