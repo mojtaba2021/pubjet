@@ -10,16 +10,19 @@ use Statickidz\GoogleTranslate;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 use triboon\pubjet\includes\enums\EnumPostStatus;
 
-class ReportagePost extends Singleton {
+class ReportagePost extends Singleton
+{
 
     /**
      * @since 1.0.0
      */
-    public function __construct() {
+    public function __construct()
+    {
         add_action("transition_post_status", [$this, "afterPublishReportage"], 15, 3);
     }
 
-    public static function get_post_date($prefrred_date) {
+    public static function get_post_date($prefrred_date)
+    {
         $dt = new DateTime($prefrred_date);
         $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
         return $dt->format('Y-m-d H:i:s');
@@ -31,7 +34,8 @@ class ReportagePost extends Singleton {
      * @return string
      * @throws \Exception
      */
-    public static function get_post_status($post_date) {
+    public static function get_post_status($post_date)
+    {
         $dt = new DateTime(date('Y-m-d H:i:s e'));
         $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
         $current_time = $dt->format('Y-m-d H:i:s');
@@ -43,31 +47,32 @@ class ReportagePost extends Singleton {
      *
      * @return bool
      */
-    public static function update($thereportage) {
+    public static function update($thereportage)
+    {
 
         if (!isset($thereportage->wp_post_id) || !$thereportage->wp_post_id) {
             return false;
         }
 
-        $post_id      = intval($thereportage->wp_post_id);
+        $post_id = intval($thereportage->wp_post_id);
         $reportage_id = get_post_meta($post_id, EnumPostMetakeys::ReportageId, true);
 
         if (!get_post($thereportage->wp_post_id) || $reportage_id != $thereportage->id) {
             return false;
         }
 
-        $post_date   = self::get_post_date($thereportage->preferred_publish_date);
+        $post_date = self::get_post_date($thereportage->preferred_publish_date);
         $post_status = self::get_post_status($post_date);
 
         $args = [
-            'ID'          => $post_id,
-            'post_type'   => pubjet_post_type(),
+            'ID' => $post_id,
+            'post_type' => pubjet_post_type(),
             'post_status' => $post_status,
-            'tags_input'  => isset($thereportage->tags) && is_array($thereportage->tags) ? map_deep($thereportage->tags, 'sanitize_text_field') : [],
+            'tags_input' => isset($thereportage->tags) && is_array($thereportage->tags) ? map_deep($thereportage->tags, 'sanitize_text_field') : [],
         ];
 
         if ($post_status !== 'publish') {
-            $args['post_date']     = $post_date;
+            $args['post_date'] = $post_date;
             $args['post_date_gmt'] = $post_date;
         }
 
@@ -77,11 +82,11 @@ class ReportagePost extends Singleton {
             $post_content = !empty($thereportage->content_file_html) ? $thereportage->content_file_html : self::get_content_file($thereportage);
             $post_content = self::get_post_content($post_content, $thereportage->title);
 
-            $args['post_title']   = $post_content['title'] ?? '';
+            $args['post_title'] = $post_content['title'] ?? '';
             $args['post_content'] = $post_content['content'] ?? '';
 
             $args['meta_input'] = [
-                EnumPostMetakeys::PanelData           => $thereportage,
+                EnumPostMetakeys::PanelData => $thereportage,
                 EnumPostMetakeys::ReportageContentUrl => $thereportage->content_file,
             ];
 
@@ -97,7 +102,8 @@ class ReportagePost extends Singleton {
      *
      * @return bool|int|\WP_Error
      */
-    public static function insert($reportage) {
+    public static function insert($reportage)
+    {
 
         pubjet_log('================== Insert ===================');
         if ($reportage->wp_post_id = self::reportage_exists($reportage->id)) {
@@ -114,28 +120,28 @@ class ReportagePost extends Singleton {
             return new \WP_Error('gateway-error', pubjet__('gateway-error'));
         }
 
-        $post_content   = self::get_post_content($post_content, $reportage->title);
-        $post_date      = self::get_post_date($reportage->preferred_publish_date);
-        $post_status    = self::get_post_status($post_date);
-        $post_excerpt   = self::normalize_html($reportage->lead_content ?? '');
+        $post_content = self::get_post_content($post_content, $reportage->title);
+        $post_date = self::get_post_date($reportage->preferred_publish_date);
+        $post_status = self::get_post_status($post_date);
+        $post_excerpt = self::normalize_html($reportage->lead_content ?? '');
         $post_thumbnail = self::upload_from_url($reportage->lead_image);
 
         $args = [
-            'post_type'     => sanitize_text_field(pubjet_post_type()),
-            'post_title'    => isset($post_content['title']) ? sanitize_text_field($post_content['title']) : '',
-            'post_status'   => 'future' === $post_status ? $post_status : (pubjet_should_publish_reportage_manually() ? EnumPostStatus::Pending : EnumPostStatus::Publish),
-            'post_content'  => $post_content['content'] ?? '',
-            'post_excerpt'  => $post_excerpt ?? '',
-            'post_name'     => sanitize_text_field(self::get_post_name($reportage)),
-            'tags_input'    => isset($reportage->tags) && is_array($reportage->tags) ? map_deep($reportage->tags, 'sanitize_text_field') : [],
+            'post_type' => sanitize_text_field(pubjet_post_type()),
+            'post_title' => isset($post_content['title']) ? sanitize_text_field($post_content['title']) : '',
+            'post_status' => 'future' === $post_status ? $post_status : EnumPostStatus::Publish,
+            'post_content' => $post_content['content'] ?? '',
+            'post_excerpt' => $post_excerpt ?? '',
+            'post_name' => sanitize_text_field(self::get_post_name($reportage)),
+            'tags_input' => isset($reportage->tags) && is_array($reportage->tags) ? map_deep($reportage->tags, 'sanitize_text_field') : [],
             'post_category' => (int)$def_category > 0 ? [intval($def_category)] : '',
-            'meta_input'    => [
-                EnumPostMetakeys::ReportageId         => intval($reportage->id),
+            'meta_input' => [
+                EnumPostMetakeys::ReportageId => intval($reportage->id),
                 EnumPostMetakeys::ReportageContentUrl => sanitize_url($reportage->content_file),
-                EnumPostMetakeys::PanelData           => $reportage,
-                EnumPostMetakeys::Source              => 'triboon',
-                EnumPostMetakeys::MetaTitle           => sanitize_text_field($reportage->meta_title) ?? '',
-                EnumPostMetakeys::MetaDescription     => sanitize_text_field($reportage->meta_description) ?? ''
+                EnumPostMetakeys::PanelData => $reportage,
+                EnumPostMetakeys::Source => 'triboon',
+                EnumPostMetakeys::MetaTitle => sanitize_text_field($reportage->meta_title) ?? '',
+                EnumPostMetakeys::MetaDescription => sanitize_text_field($reportage->meta_description) ?? ''
             ],
         ];
 
@@ -156,11 +162,11 @@ class ReportagePost extends Singleton {
         pubjet_log('======= New Post Args =======');
         pubjet_log($args);
 
-        add_filter('wp_kses_allowed_html', [Filters::class,"allowReportageIframe"], 10, 2);
+        add_filter('wp_kses_allowed_html', [Filters::class, "allowReportageIframe"], 10, 2);
         try {
             $post_id = wp_insert_post($args);
         } finally {
-            remove_filter('wp_kses_allowed_html', [Filters::class,"allowReportageIframe"], 10);
+            remove_filter('wp_kses_allowed_html', [Filters::class, "allowReportageIframe"], 10);
         }
 
         pubjet_log('======= New Post Result =======');
@@ -168,7 +174,7 @@ class ReportagePost extends Singleton {
 
         if (is_wp_error($post_id)) {
             pubjet_log_sentry(sprintf('%s: %s', 'خطا در ایجاد نوشته رپورتاژ', $post_id->get_error_message()), [
-                'reportage_id'    => $reportage->id,
+                'reportage_id' => $reportage->id,
                 'reportage_title' => $reportage->title,
             ]);
             return new \WP_Error('insert-reportage', $post_id->get_error_message());
@@ -209,13 +215,15 @@ class ReportagePost extends Singleton {
      * @return string
      * @throws \Exception
      */
-    public static function get_time_format($utc_datetime_str) {
+    public static function get_time_format($utc_datetime_str)
+    {
         $dt = new DateTime($utc_datetime_str, new DateTimeZone('UTC'));
         $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
         return $dt->format('Y-m-d H:i:s');
     }
 
-    public static function reportage_exists($reportage_id) {
+    public static function reportage_exists($reportage_id)
+    {
         global $wpdb;
         $post_id = $wpdb->get_col($wpdb->prepare("SELECT `post_id` FROM {$wpdb->postmeta} where `meta_key` = %s AND `meta_value` = %s LIMIT 1", EnumPostMetakeys::ReportageId, $reportage_id));
         if (!$post_id) {
@@ -230,11 +238,12 @@ class ReportagePost extends Singleton {
      *
      * @return array
      */
-    public static function get_post_content($content, $title) {
+    public static function get_post_content($content, $title)
+    {
         $content = self::handle_images($content);
         pubjet_log($content);
-        $post_content                    = self::normalize_html($content['html_file']);
-        $post_content                    = self::remove_repeate_headeing_title_in_content($post_content, $title);
+        $post_content = self::normalize_html($content['html_file']);
+        $post_content = self::remove_repeate_headeing_title_in_content($post_content, $title);
         $post_content['featured_img_id'] = $content['featured_img_id'];
         return $post_content;
     }
@@ -244,20 +253,22 @@ class ReportagePost extends Singleton {
      *
      * @return string
      */
-    public static function get_post_name($reportage) {
+    public static function get_post_name($reportage)
+    {
         global $pubjet_settings;
         $post_name = $reportage->title;
         // Use Google Translate service for translating post title
         $use_google_translate = pubjet_isset_value($pubjet_settings['useGoogleTranslate']);
         if ($use_google_translate) {
-            $trans     = new GoogleTranslate();
+            $trans = new GoogleTranslate();
             $post_name = $trans->translate('fa', 'en', $reportage->title);
             return sanitize_title_with_dashes($post_name, '', 'save');
         }
         return false;
     }
 
-    public static function normalize_html($post_content) {
+    public static function normalize_html($post_content)
+    {
         $post_content = preg_replace('/\s*<a/', '<a', $post_content);
         $post_content = preg_replace('/<\/a>\s*/', '</a>', $post_content);
         $post_content = str_replace("\n\r", "", $post_content);
@@ -528,19 +539,20 @@ class ReportagePost extends Singleton {
         return (int)$attachment_id;
     }
 
-    public static function get_content_file($reportage) {
+    public static function get_content_file($reportage)
+    {
 
         //$content_file = str_replace("https://cdn.triboon.net", "https://cdn.pubjet.ir", $reportage->content_file);
 
         pubjet_log(':: Content File ::');
         pubjet_log($reportage->content_file);
         $response = wp_remote_get($reportage->content_file, [
-            'timeout'     => 25,
+            'timeout' => 25,
             'redirection' => 5,
-            'blocking'    => true,
-            'sslverify'   => false,
+            'blocking' => true,
+            'sslverify' => false,
         ]);
-        $body     = wp_remote_retrieve_body($response);
+        $body = wp_remote_retrieve_body($response);
 
         pubjet_log(':: First ::');
         pubjet_log($body);
@@ -548,7 +560,7 @@ class ReportagePost extends Singleton {
         // Check gateway error
         if (pubjet_gateway_error($body) || empty($body)) {
             $response = wp_remote_get($reportage->content_file);
-            $body     = wp_remote_retrieve_body($response);
+            $body = wp_remote_retrieve_body($response);
 
             pubjet_log(':: Second ::');
             pubjet_log($body);
@@ -561,7 +573,8 @@ class ReportagePost extends Singleton {
         return $body;
     }
 
-    public static function remove_repeate_headeing_title_in_content($content, $object_title) {
+    public static function remove_repeate_headeing_title_in_content($content, $object_title)
+    {
 
         preg_match('/<h1\b[^>]*>(.*?)<\/h1>/i', $content, $matches);
 
@@ -569,12 +582,12 @@ class ReportagePost extends Singleton {
             $h1Tag = strip_tags($matche);
             if ($index == 0) {
                 $object_title = empty(trim($object_title)) ? trim($h1Tag) : $object_title;
-                $content      = str_replace($matche, '', $content);
+                $content = str_replace($matche, '', $content);
             } else {
                 $object_title = empty(trim($object_title)) ? trim($h1Tag) : $object_title;
-                $matche2      = str_replace('<h1', '<h2', $matche);
-                $matche2      = str_replace('</h1', '</h2', $matche2);
-                $content      = str_replace($matche, $matche2, $content);
+                $matche2 = str_replace('<h1', '<h2', $matche);
+                $matche2 = str_replace('</h1', '</h2', $matche2);
+                $content = str_replace($matche, $matche2, $content);
             }
         }
 
@@ -583,18 +596,19 @@ class ReportagePost extends Singleton {
 
         return [
             'content' => $content,
-            'title'   => $object_title,
+            'title' => $object_title,
         ];
     }
 
     /**
-     * @param string   $new_status New post status.
-     * @param string   $old_status Old post status.
-     * @param \WP_Post $post       Post object.
+     * @param string $new_status New post status.
+     * @param string $old_status Old post status.
+     * @param \WP_Post $post Post object.
      *
      * @return void
      */
-    public function afterPublishReportage($new_status, $old_status, $post) {
+    public function afterPublishReportage($new_status, $old_status, $post)
+    {
         if ($post->post_type !== pubjet_post_type() || EnumPostStatus::Publish !== $new_status) {
             return;
         }
@@ -614,7 +628,8 @@ class ReportagePost extends Singleton {
      *
      * @return mixed
      */
-    public function publishReportageRequest($post_id, $reportage_id) {
+    public function publishReportageRequest($post_id, $reportage_id)
+    {
         return pubjet_publish_reportage($post_id, $reportage_id);
     }
 
