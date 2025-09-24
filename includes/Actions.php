@@ -52,8 +52,18 @@ class Actions extends Singleton {
         add_action('save_post',[$this,'savePubjetMetaData']);
         add_action('wp_head', [$this,'addMetaDataToFrontPages'] , 15);
         add_action('wp_after_insert_post', [$this, 'sendPermalinkUpdateToApi'], 15, 4);
+
         add_action('save_post', [$this, 'pubjet_reportage_count_clear_cache']);
         add_action('delete_post', [$this, 'pubjet_reportage_count_clear_cache']);
+        add_action('updated_postmeta', [$this, 'pubjet_clear_cache_on_meta_update'], 10, 3);
+        add_action('added_postmeta', [$this, 'pubjet_clear_cache_on_meta_update'], 10, 3);
+        add_action('deleted_postmeta', [$this, 'pubjet_clear_cache_on_meta_delete'], 10, 1);
+
+        add_action('save_post', [$this, 'clear_reportage_cdn_cache'], 10, 3);
+        add_action('save_post', [$this, 'save_cdn_checkbox'],9);
+        add_action('save_post', [$this, 'clearMetaCacheOnSave'], 10, 3);
+
+
     }
 
     /**
@@ -163,19 +173,20 @@ class Actions extends Singleton {
      * @throws \Exception
      * @since 4.0.0
      */
-    public function processCreateReportage($reportage) {
+    public function processCreateReportage($reportage)
+    {
         $lock_key = 'pubjet_reportage_creation_lock_' . $reportage->id;
         $lock_time = 30;
 
         $log_data = [
-            'reportage_id'    => pubjet_isset_value($reportage->id),
+            'reportage_id' => pubjet_isset_value($reportage->id),
             'reportage_title' => pubjet_isset_value($reportage->title),
         ];
 
         if (get_transient($lock_key)) {
             $duplicate_error_message = 'در حال پردازش درخواست مشابه. لطفاً منتظر بمانید.';
             pubjet_log(['Error' => ['message' => $duplicate_error_message] + $log_data]);
-            pubjet_log_sentry($duplicate_error_message,['message' => $duplicate_error_message] + $log_data);
+            pubjet_log_sentry($duplicate_error_message, ['message' => $duplicate_error_message] + $log_data);
             $this->error($duplicate_error_message, 429);
             return;
         }
@@ -185,20 +196,24 @@ class Actions extends Singleton {
             $wp_post_id = ReportagePost::insert($reportage);
 
             if (!$wp_post_id || is_wp_error($wp_post_id)) {
+                if (is_wp_error($wp_post_id) && $wp_post_id->get_error_code() === 'reportage-exists') {
+                    throw new \Exception($wp_post_id->get_error_message(), 409); // 409 for duplicate reportage
+                }
                 throw new \Exception(is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در ثبت نوشته رپورتاژ.');
             }
 
             pubjet_log($reportage->wp_post_id ? 'Post updated: ' . $reportage->wp_post_id : 'Post created: ' . $wp_post_id);
 
             $this->success([
-                'postId'      => $wp_post_id,
-                'postStatus'  => get_post_status($wp_post_id) ?: 'Unknown',
+                'postId' => $wp_post_id,
+                'postStatus' => get_post_status($wp_post_id) ?: 'Unknown',
                 'reportageId' => $reportage->id,
             ]);
         } catch (\Exception $e) {
             pubjet_log(['Error' => $e->getMessage()] + $log_data);
-            pubjet_log_sentry($e->getMessage(), ["message" =>  $e->getMessage()] + $log_data);
-            $this->error($e->getMessage(), 400);
+            pubjet_log_sentry($e->getMessage(), ["message" => $e->getMessage()] + $log_data);
+            $status_code = $e->getCode() ?: 400;
+            $this->error($e->getMessage(), $status_code);
         } finally {
             delete_transient($lock_key);
         }
@@ -626,6 +641,47 @@ class Actions extends Singleton {
                 }
             }
         }
+    }
+
+    public function clear_reportage_cdn_cache($post_id) {
+        if (wp_is_post_revision($post_id)) {
+            return;
+        }
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+        $cache_key = 'pubjet_cdn_content_' . $post_id;
+        delete_transient($cache_key);
+    }
+    public function save_cdn_checkbox($post_id) {
+
+        if (!isset($_POST['pubjet_cdn_nonce']) || !wp_verify_nonce($_POST['pubjet_cdn_nonce'], 'pubjet_cdn_nonce_action')) {
+            return;
+        }
+
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
+        if (isset($_POST['pubjet_use_cdn']) && $_POST['pubjet_use_cdn'] == '1') {
+            update_post_meta($post_id, 'pubjet_use_cdn', true);
+        } else {
+            delete_post_meta($post_id, 'pubjet_use_cdn');
+        }
+    }
+
+    public function clearMetaCacheOnSave($post_id, $post, $update) {
+        if (wp_is_post_autosave($post_id) || wp_is_post_revision($post_id)) {
+            return;
+        }
+        wp_cache_delete("pubjet_meta_$post_id", 'pubjet');
     }
 
 }
