@@ -12,14 +12,16 @@ use triboon\pubjet\includes\widgets\Backlinks;
 
 defined('ABSPATH') || exit;
 
-class Actions extends Singleton {
+class Actions extends Singleton
+{
 
     use Utils;
 
     /**
      * @return void
      */
-    public function init() {
+    public function init()
+    {
         add_action("admin_menu", [$this, "registerMenu"], 15);
 //        add_action("admin_footer", [$this, "adminFooterScripts"], 15);
         add_action("wp_head", [$this, "publishMissedSchedulePosts"], 15);
@@ -49,8 +51,11 @@ class Actions extends Singleton {
 
         add_action('init', [$this, 'showSiteCategories'], 15);
         add_action('pubjet_create_reportage', [$this, 'processCreateReportage'], 15);
-        add_action('save_post',[$this,'savePubjetMetaData']);
-        add_action('wp_head', [$this,'addMetaDataToFrontPages'] , 15);
+        add_action('save_post', [$this, 'savePubjetMetaData']);
+        add_action('wp_head', [$this, 'addMetaDataToFrontPages'], 15);
+
+
+//        add_action('pre_post_update', [$this, 'updateOldReportagePermalink'] );
         add_action('wp_after_insert_post', [$this, 'sendPermalinkUpdateToApi'], 15, 4);
 
         add_action('save_post', [$this, 'pubjet_reportage_count_clear_cache']);
@@ -69,7 +74,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function showPluginStatus() {
+    public function showPluginStatus()
+    {
         $action = $this->get('action');
         if (EnumActions::PubjetStatus !== $action) {
             return;
@@ -85,7 +91,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function showSiteCategories() {
+    public function showSiteCategories()
+    {
         $action = $this->get('action');
         if (EnumActions::PubjetCategories !== $action) {
             return;
@@ -99,11 +106,11 @@ class Actions extends Singleton {
     }
 
 
-
     /**
      * @return void
      */
-    public function createBacklinkByActionQueryString() {
+    public function createBacklinkByActionQueryString()
+    {
         $action = $this->get('action');
         if (EnumActions::CreateBacklink !== $action) {
             return;
@@ -134,7 +141,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function createReportageByActionQueryString() {
+    public function createReportageByActionQueryString()
+    {
         $action = $this->get('action');
         if (EnumActions::CreateReportage !== $action) {
             return;
@@ -222,7 +230,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function registerElementorWidgets() {
+    public function registerElementorWidgets()
+    {
         /**
          * The pubjet_elementor_widgets_instances filter.
          *
@@ -239,7 +248,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function registerWidgets() {
+    public function registerWidgets()
+    {
         /**
          * The pubjet_widgets_classes filter.
          *
@@ -256,7 +266,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function createDbTables() {
+    public function createDbTables()
+    {
         /**
          * The pubjet_database_tables filter.
          *
@@ -271,20 +282,21 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function changeReportageAuthor($reportage_post_id, $reportage) {
+    public function changeReportageAuthor($reportage_post_id, $reportage)
+    {
 
 
         global $pubjet_settings;
-        $status    = pubjet_isset_value($pubjet_settings['repauthor']['status']);
-        $default_author_id  = pubjet_isset_value($pubjet_settings['repauthor']['authorId']);
-        $authorCategory = pubjet_isset_value($pubjet_settings['repauthor']['authorCategory'] , []);
+        $status = pubjet_isset_value($pubjet_settings['repauthor']['status']);
+        $default_author_id = pubjet_isset_value($pubjet_settings['repauthor']['authorId']);
+        $authorCategory = pubjet_isset_value($pubjet_settings['repauthor']['authorCategory'], []);
 
         if (!$default_author_id || !$status) {
             return;
         }
         pubjet_log("======= Change Reportage Author =======");
 
-        $reportage_post              = get_post($reportage_post_id);
+        $reportage_post = get_post($reportage_post_id);
         $reportage_post->post_author = $default_author_id;
 
         $reportage_category = wp_get_post_categories($reportage_post_id);
@@ -314,7 +326,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function publishFutureBacklinks() {
+    public function publishFutureBacklinks()
+    {
         // بررسی اگر transient وجود دارد یا نه
         if (false === get_transient(EnumTransients::PublishFutureBacklinks)) {
             // ارسال ورژن افزونه به API
@@ -338,7 +351,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function checkAndSendVersion() {
+    public function checkAndSendVersion()
+    {
         // بررسی اگر transient وجود دارد یا نه
         if (false === get_transient('pubjet_daily_plugin_status_check')) {
             // ارسال ورژن افزونه به API
@@ -370,7 +384,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function reportageCustomFields($post_id, $reportage_data) {
+    public function reportageCustomFields($post_id, $reportage_data)
+    {
         global $pubjet_settings;
         $status = pubjet_isset_value($pubjet_settings['metakeys']['status']);
         if (!$status) {
@@ -391,7 +406,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function createCategory($term_id, $tt_id, $taxonomy, $args) {
+    public function createCategory($term_id, $tt_id, $taxonomy, $args)
+    {
         if ('category' !== $taxonomy) {
             return;
         }
@@ -405,7 +421,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function deleteCategory($term, $tt_id, $taxonomy, $deleted_term) {
+    public function deleteCategory($term, $tt_id, $taxonomy, $deleted_term)
+    {
         if ('category' !== $taxonomy) {
             return;
         }
@@ -415,7 +432,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function alignReportageImagesCenter() {
+    public function alignReportageImagesCenter()
+    {
         global $pubjet_settings;
         if (!is_singular('post')) {
             return;
@@ -442,7 +460,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function pluginFont() {
+    public function pluginFont()
+    {
         ?>
         <style>
             @font-face {
@@ -498,7 +517,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function addScriptToReportage() {
+    public function addScriptToReportage()
+    {
 
         if (!is_singular() || !pubjet_is_reportage(get_the_ID())) {
             return;
@@ -527,13 +547,14 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function adminFooterScripts() {
+    public function adminFooterScripts()
+    {
         global $wpdb;
 
         if (get_current_screen()->id != 'edit-post') {
             return;
         }
-        $posts      = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft' , 'pending') AND meta.meta_key = 'pubjet_reportage_id' ";
+        $posts = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft' , 'pending') AND meta.meta_key = 'pubjet_reportage_id' ";
         $count_post = $wpdb->get_var($posts);
         ?>
         <script>
@@ -547,7 +568,8 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function registerMenu() {
+    public function registerMenu()
+    {
         add_menu_page(
             pubjet__('pubjet'),
             pubjet__('pubjet'),
@@ -562,10 +584,15 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function pubjetSettingsPageCallback() {
+    public function pubjetSettingsPageCallback()
+    {
         pubjet_template('settings');
     }
 
+    /**
+     * @param $post_id
+     * @return void
+     */
     public function savePubjetMetaData($post_id)
     {
         if (!isset($_POST['pubjet_reportage_nonce']) || !wp_verify_nonce($_POST['pubjet_reportage_nonce'], 'pubjet_reportage_nonce_action')) {
@@ -585,16 +612,19 @@ class Actions extends Singleton {
         }
     }
 
+    /**
+     * @return void
+     */
     public function addMetaDataToFrontPages()
     {
         if (!is_single()) return;
 
         global $post;
-        if(pubjet_is_reportage($post->ID)){
-            if(!empty($post->pubjet_meta_title)){
+        if (pubjet_is_reportage($post->ID)) {
+            if (!empty($post->pubjet_meta_title)) {
                 echo '<meta name="title" content="' . esc_attr($post->pubjet_meta_title) . '" />' . "\n";
             }
-            if(!empty($post->pubjet_meta_description)){
+            if (!empty($post->pubjet_meta_description)) {
                 echo '<meta name="description" content="' . esc_attr($post->pubjet_meta_description) . '" />' . "\n";
             }
         }
