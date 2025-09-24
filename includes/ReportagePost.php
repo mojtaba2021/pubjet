@@ -623,22 +623,26 @@ class ReportagePost extends Singleton {
      *
      * @return string|integer
      */
-    public static function findReportageCategory($reportage) {
+    public static function findReportageCategory($reportage)
+    {
         global $pubjet_settings;
         $result = false;
         if (!empty($reportage->relative_category)) {
-            $found  = get_term_by('slug', $reportage->relative_category['unique_name'], 'category');
+            $found = get_term_by('slug', $reportage->relative_category['unique_name'], 'category');
             $result = $found ? $found->term_id : false;
         } else {
             // Find category id based on pricing plans
-            if (!empty($pubjet_settings['pricingPlans'])) {
+            if (!empty($pubjet_settings['pricingPlans']) && !empty($reportage->pricing_plan_title)) {
                 foreach ($pubjet_settings['pricingPlans'] as $pricingPlan) {
-                    if ($pricingPlan['title'] == $reportage->pricing_plan_title) {
-                        if(!empty($pricingPlan->relative_categories)){
-                             $found = get_term_by('slug', $pricingPlan->relative_categories[0]->unique_name, 'category');
-                             $result = $found ? $found->term_id : false;
-                             break;
+                    if (!empty($pricingPlan['title']) && $pricingPlan['title'] === $reportage->pricing_plan_title) {
+                        if (!empty($pricingPlan['relative_categories'][0]['unique_name'])) {
+                            $slug = $pricingPlan['relative_categories'][0]['unique_name'];
+                            $found = get_term_by('slug', $slug, 'category');
+                            if ($found !== false && !is_wp_error($found)) {
+                                return $found->term_id;
+                            }
                         }
+                        break;
                     }
                 }
             }
