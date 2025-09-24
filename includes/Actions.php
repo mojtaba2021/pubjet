@@ -351,13 +351,17 @@ class Actions extends Singleton {
     /**
      * @return void
      */
-    public function syncSettingsAfterUpdate($upgrader_object, $options) {
-        if ($options['action'] == 'update' && $options['type'] == 'plugin' && isset($options['plugins'])) {
+    public function syncSettingsAfterUpdate($upgrader_object, $options)
+    {
+        error_log("begin syncSettingsAfterUpdate");
+        if ( in_array( $options['action'], ['update', 'install'], true )
+            && $options['type'] === 'plugin'
+            && isset($options['plugins']) ) {
             foreach ($options['plugins'] as $plugin) {
-                if ($plugin == PUBJET_PLUGIN_BASE) {
+                if ($plugin === PUBJET_PLUGIN_BASE) {
                     pubjet_sync_settings();
                     pubjet_sync_categories();
-                    break;
+                    pubjet_delete_first_image_option();
                 }
             }
         }
