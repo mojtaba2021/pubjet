@@ -264,108 +264,267 @@ class ReportagePost extends Singleton {
         return str_replace("\n", "", $post_content);
     }
 
-    public static function handle_images($html_content, $just_thumbnail = false) {
-        preg_match_all('/<img[^>]+>/i', $html_content, $result);
-        $featured_image_isset = false;
-        $featured_image_id    = null;
 
-        foreach ($result[0] as $img) {
+    public static function handle_images($html_content, $just_thumbnail = false, $use_cdn = false)
+    {
+        pubjet_log("Starting handle_images", [
+            'just_thumbnail' => $just_thumbnail,
+            'use_cdn' => $use_cdn,
+            'content_length' => strlen($html_content)
+        ]);
 
-            $pattern = '/<img\s+[^>]*src="([^"]+)"[^>]*>/i';
-            if (preg_match($pattern, $img, $matches)) {
-
-                $src = $matches[1];
-
-                if ($just_thumbnail) {
-
-                    $attach_id         = self::upload_from_url(str_replace('\\"', '', $src));
-                    $featured_image_id = $attach_id;
-                    $html_content      = str_replace($src, wp_get_attachment_url($attach_id), $html_content);
-
-                    break;
-
-                } else {
-                    $attach_id = self::upload_from_url(str_replace('\\"', '', $src));
-
-                    if ($featured_image_isset == false) {
-                        $featured_image_id    = $attach_id;
-                        $featured_image_isset = true;
-                    }
-
-                    $html_content = str_replace($src, wp_get_attachment_url($attach_id), $html_content);
-                }
-
-
-            }
-
+        if (empty($html_content)) {
+            pubjet_log("Empty HTML content provided");
+            return ['html_file' => $html_content, 'featured_img_id' => null];
         }
 
-        return ['html_file' => $html_content, 'featured_img_id' => $featured_image_id];
+        preg_match_all('/<img[^>]+>/i', $html_content, $result);
+        $images_found = count($result[0]);
+
+        if ($images_found === 0) {
+            pubjet_log("No images found in HTML");
+            return ['html_file' => $html_content, 'featured_img_id' => null];
+        }
+
+        pubjet_log("Found {$images_found} images to process");
+
+        $featured_image_isset = false;
+        $featured_image_id = null;
+        $processed_count = 0;
+
+        foreach ($result[0] as $index => $img) {
+            $pattern = '/<img\s+[^>]*src="([^"]+)"[^>]*>/i';
+            if (!preg_match($pattern, $img, $matches)) {
+                pubjet_log_sentry('Invalid img tag - no src found', [
+                    'image_index' => $index,
+                    'tag' => $img
+                ]);
+                continue;
+            }
+
+            $src = str_replace('\\"', '', $matches[1]);
+
+            if (empty($src) || !filter_var($src, FILTER_VALIDATE_URL)) {
+                pubjet_log_sentry('Invalid image URL', [
+                    'image_index' => $index,
+                    'src' => $src
+                ]);
+                continue;
+            }
+
+            $attach_id = self::upload_from_url($src);
+            if (!$attach_id) {
+                continue; // Error already logged in upload_from_url
+            }
+
+            $processed_count++;
+
+            if ($just_thumbnail) {
+                $featured_image_id = $attach_id;
+                $new_img_tag = self::create_new_img_tag($img, $attach_id, $use_cdn, $src);
+                if ($new_img_tag) {
+                    $html_content = str_replace($img, $new_img_tag, $html_content);
+                }
+                break;
+            } else {
+                if (!$featured_image_isset) {
+                    $featured_image_id = $attach_id;
+                    $featured_image_isset = true;
+                }
+
+                $new_img_tag = self::create_new_img_tag($img, $attach_id, $use_cdn, $src);
+                if ($new_img_tag) {
+                    $html_content = str_replace($img, $new_img_tag, $html_content);
+                }
+            }
+        }
+
+        pubjet_log(["Images processing completed" => [
+            'total_found' => $images_found,
+            'processed' => $processed_count,
+            'failed' => $images_found - $processed_count,
+            'featured_image_id' => $featured_image_id
+        ]]);
+
+        return [
+            'html_file' => $html_content,
+            'featured_img_id' => $featured_image_id,
+            'images_processed' => $images_found,
+            'processed_urls' => $processed_count,
+            'failed_images' => $images_found - $processed_count,
+            ];
     }
 
-    public static function upload_from_url($url, $title = null) {
+
+    public static function create_new_img_tag($original_tag, $attachment_id, $use_cdn = false, $original_src = '')
+    {
+        if (!$attachment_id || !is_numeric($attachment_id)) {
+            pubjet_log_sentry('Invalid attachment ID for img tag creation', [
+                'attachment_id' => $attachment_id
+            ]);
+            return $original_tag;
+        }
+
+        $file_path = get_attached_file($attachment_id);
+        if (!$file_path) {
+            pubjet_log_sentry('Attachment file not found', [
+                'attachment_id' => $attachment_id
+            ]);
+            return $original_tag;
+        }
+
+        $data_attach = '';
+        if (!empty($original_src)) {
+            $path = parse_url($original_src, PHP_URL_PATH);
+            if ($path !== null) {
+                $data_attach = rawurldecode(basename($path));
+            }
+        }
+
+        if (empty($data_attach)) {
+            $data_attach = basename($file_path);
+        }
+
+        // Determine new image URL
+        if ($use_cdn && !empty($original_src)) {
+            if (!defined('PUBJET_CDN_ROOT')) {
+                pubjet_log_sentry('PUBJET_CDN_ROOT not defined, falling back to WP URL', [
+                    'attachment_id' => $attachment_id
+                ]);
+                $new_image_url = wp_get_attachment_url($attachment_id);
+            } else {
+                $new_image_url = PUBJET_CDN_ROOT . "/" . $data_attach;
+            }
+        } else {
+            $new_image_url = wp_get_attachment_url($attachment_id);
+        }
+
+        if (empty($new_image_url)) {
+            pubjet_log_sentry('Failed to get attachment URL', [
+                'attachment_id' => $attachment_id,
+                'use_cdn' => $use_cdn
+            ]);
+            return $original_tag;
+        }
+
+        // Extract attributes from original tag
+        $attributes = [];
+        preg_match_all('/(\w+)=["\']([^"\']*)["\']/', $original_tag, $attr_matches, PREG_SET_ORDER);
+
+        foreach ($attr_matches as $attr) {
+            $attributes[$attr[1]] = $attr[2];
+        }
+
+        // Set new attributes
+        $attributes['src'] = $new_image_url;
+        $attributes['data-attach'] = $data_attach;
+
+        // Add loading="lazy" for performance if not set
+        if (!isset($attributes['loading'])) {
+            $attributes['loading'] = 'lazy';
+        }
+
+        // Build new tag
+        $new_tag = '<img';
+        foreach ($attributes as $key => $value) {
+            $new_tag .= ' ' . $key . '="' . esc_attr($value) . '"';
+        }
+        $new_tag .= '>';
+
+        pubjet_log("Image tag created successfully", [
+            'attachment_id' => $attachment_id,
+            'cdn_used' => $use_cdn
+        ]);
+
+        return $new_tag;
+    }
+
+    public static function upload_from_url($url, $title = null)
+    {
+        if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
+            pubjet_log_sentry('Invalid URL for upload', [
+                'url' => $url
+            ]);
+            return false;
+        }
+
+        // Load required WordPress functions
         if (!function_exists('media_handle_sideload')) {
             require_once(ABSPATH . 'wp-admin/includes/image.php');
             require_once(ABSPATH . 'wp-admin/includes/file.php');
             require_once(ABSPATH . 'wp-admin/includes/media.php');
         }
-        // Download url to a temp file
-        $tmp = download_url($url);
-        if (is_wp_error($tmp)) return false;
 
-        // Get the filename and extension ("photo.png" => "photo", "png")
-        $filename  = pathinfo($url, PATHINFO_FILENAME);
+        // Download file to temp location
+        $tmp = download_url($url);
+        if (is_wp_error($tmp)) {
+            pubjet_log_sentry('Failed to download file from URL', [
+                'url' => $url,
+                'error' => $tmp->get_error_message()
+            ]);
+            return false;
+        }
+
+        // Get filename and extension
+        $filename = pathinfo($url, PATHINFO_FILENAME);
         $extension = pathinfo($url, PATHINFO_EXTENSION);
 
-        // An extension is required or else WordPress will reject the upload
+        // Handle missing extension
         if (!$extension) {
-            // Look up mime type, example: "/photo.png" -> "image/png"
             $mime = mime_content_type($tmp);
             $mime = is_string($mime) ? sanitize_mime_type($mime) : false;
 
-            // Only allow certain mime types because mime types do not always end in a valid extension (see the .doc example below)
             $mime_extensions = [
-                // mime_type         => extension (no period)
-                'text/plain'         => 'txt',
-                'text/csv'           => 'csv',
+                'text/plain' => 'txt',
+                'text/csv' => 'csv',
                 'application/msword' => 'doc',
-                'image/jpg'          => 'jpg',
-                'image/jpeg'         => 'jpeg',
-                'image/gif'          => 'gif',
-                'image/png'          => 'png',
-                'video/mp4'          => 'mp4',
-                'image/webp'         => 'webp',
+                'image/jpg' => 'jpg',
+                'image/jpeg' => 'jpeg',
+                'image/gif' => 'gif',
+                'image/png' => 'png',
+                'video/mp4' => 'mp4',
+                'image/webp' => 'webp',
             ];
 
             if (isset($mime_extensions[$mime])) {
-                // Use the mapped extension
                 $extension = $mime_extensions[$mime];
             } else {
-                // Could not identify extension
+                pubjet_log_sentry('Could not determine file extension', [
+                    'url' => $url,
+                    'mime_type' => $mime
+                ]);
                 wp_delete_file($tmp);
-//                @unlink($tmp);
                 return false;
             }
         }
 
-        // Upload by "sideloading": "the same way as an uploaded file is handled by media_handle_upload"
+        // Upload file
         $args = [
-            'name'     => "$filename.$extension",
+            'name' => "$filename.$extension",
             'tmp_name' => $tmp,
         ];
 
-        // Do the upload
         $attachment_id = media_handle_sideload($args, 0, $title);
 
         // Cleanup temp file
         wp_delete_file($tmp);
 
-        // Error uploading
+        // Check for upload errors
         if (is_wp_error($attachment_id)) {
+            pubjet_log_sentry('Failed to upload file to media library', [
+                'url' => $url,
+                'filename' => "$filename.$extension",
+                'error' => $attachment_id->get_error_message()
+            ]);
             return false;
         }
 
-        // Success, return attachment ID (int)
+        pubjet_log("File uploaded successfully", [
+            'url' => $url,
+            'attachment_id' => $attachment_id,
+            'filename' => "$filename.$extension"
+        ]);
+
         return (int)$attachment_id;
     }
 
