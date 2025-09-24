@@ -29,7 +29,6 @@ class Filters extends Singleton {
 
         add_filter("pubjet_new_reportage_post_args", [$this, "addReportageTags"], 15, 2);
         // add this if its necessary
-        // add_filter('admin_post_thumbnail_html',[$this,'regenerateFeaturedImage'], 15, 3);
         add_filter('admin_post_thumbnail_html',[$this,'regenerateFeaturedImage'], 15, 3);
         add_filter('the_content', [$this, 'useCdnForReportageImages'], 10);
         add_filter('post_thumbnail_html', [$this, 'useCdnForFeaturedImage'], 10, 5);
