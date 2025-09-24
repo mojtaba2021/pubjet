@@ -194,6 +194,7 @@ class ModalReportageAuthor extends AntModal {
                 render: (value, record,index) => {
                     return (
                         <Select
+                            showSearch
                             style={{
                                 width: '100%',
                             }}
@@ -207,6 +208,9 @@ class ModalReportageAuthor extends AntModal {
                                     key: category.id,
                                 }))
                             }
+                            filterOption={(input, option) =>
+                                option.label.toLowerCase().includes(input.toLowerCase())
+                            }
                             onChange={(value) => this.handleAuthorCategoryChange(index, 'category', value)}
 
                         />
@@ -219,6 +223,7 @@ class ModalReportageAuthor extends AntModal {
                 render: (value, record,index) => {
                     return (
                         <Select
+                            showSearch
                             style={{
                                 width: '100%',
                             }}
@@ -231,6 +236,9 @@ class ModalReportageAuthor extends AntModal {
                                     label: author.display_name,
                                     key: author.ID,
                                 }))
+                            }
+                            filterOption={(input, option) =>
+                                option.label.toLowerCase().includes(input.toLowerCase())
                             }
                             onChange={(value) => this.handleAuthorCategoryChange(index, 'author', value)}
                         />
@@ -373,7 +381,7 @@ class ModalReportageAuthor extends AntModal {
         return <Spin spinning={loading}>
 
             <Select
-                // showSearch
+                showSearch
                 allowClear
                 style={{ width: '100%', height: '40px',margin: '8px 0 20px 0' }}
                 value={selectedAuthor ? { value: selectedAuthor.ID, label: selectedAuthor.display_name } : null}

@@ -30,3 +30,13 @@
 .cursorPointer {
   cursor: pointer;
 }
+
+// TODO remove selection inset
+.select {
+  :global {
+    .ant-select-selection-search{
+      inset-inline-start: 0px;
+      inset-inline-end: 0px;
+    }
+  }
+}
