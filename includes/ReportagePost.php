@@ -124,7 +124,12 @@ class ReportagePost extends Singleton
         $post_date = self::get_post_date($reportage->preferred_publish_date);
         $post_status = self::get_post_status($post_date);
         $post_excerpt = self::normalize_html($reportage->lead_content ?? '');
-        $post_thumbnail = self::upload_from_url($reportage->lead_image);
+
+        $lead_image_obj = (object) ((array) ($reportage->lead_image_obj ?? []));
+        $lead_image     = $lead_image_obj->image ?? ($reportage->lead_image ?? '');
+        $lead_image_alt = sanitize_text_field($lead_image_obj->alt_tag ?? '');
+        $post_thumbnail = $lead_image ? self::upload_from_url($lead_image, $lead_image_alt) : null;
+
 
         $args = [
             'post_type' => sanitize_text_field(pubjet_post_type()),
@@ -323,7 +328,12 @@ class ReportagePost extends Singleton
                 continue;
             }
 
-            $attach_id = self::upload_from_url($src);
+            $alt_text = '';
+            if (preg_match('/alt=["\']([^"\']*)["\']/', $img, $alt_matches)) {
+                $alt_text = $alt_matches[1];
+            }
+
+            $attach_id = self::upload_from_url($src,$alt_text);
             if (!$attach_id) {
                 continue; // Error already logged in upload_from_url
             }
@@ -430,6 +440,14 @@ class ReportagePost extends Singleton
         $attributes['src'] = $new_image_url;
         $attributes['data-attach'] = $data_attach;
 
+        // if alt tag not exists in attributes , get from wordpress image meta
+        if (empty($attributes['alt'])) {
+            $wp_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+            if (!empty($wp_alt)) {
+                $attributes['alt'] = $wp_alt;
+            }
+        }
+
         // Add loading="lazy" for performance if not set
         if (!isset($attributes['loading'])) {
             $attributes['loading'] = 'lazy';
@@ -444,13 +462,14 @@ class ReportagePost extends Singleton
 
         pubjet_log("Image tag created successfully", [
             'attachment_id' => $attachment_id,
-            'cdn_used' => $use_cdn
+            'cdn_used' => $use_cdn,
+            'has_alt' => !empty($attributes['alt'])
         ]);
 
         return $new_tag;
     }
 
-    public static function upload_from_url($url, $title = null)
+    public static function upload_from_url($url, $alt_text = null)
     {
         if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
             pubjet_log_sentry('Invalid URL for upload', [
@@ -509,6 +528,9 @@ class ReportagePost extends Singleton
             }
         }
 
+        // Use alt_text as title if provided, otherwise use filename
+        $title = !empty($alt_text) ? $alt_text : null;
+
         // Upload file
         $args = [
             'name' => "$filename.$extension",
@@ -528,6 +550,11 @@ class ReportagePost extends Singleton
                 'error' => $attachment_id->get_error_message()
             ]);
             return false;
+        }
+
+        // Set alt text for image if provided
+        if (!empty($alt_text)) {
+            update_post_meta($attachment_id, '_wp_attachment_image_alt', $alt_text);
         }
 
         pubjet_log("File uploaded successfully", [
