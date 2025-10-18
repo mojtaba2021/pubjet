@@ -2040,23 +2040,9 @@ function pubjet_get_reportage_count(): int
  */
 function get_current_subdomain()
 {
-    $admin_url = admin_url('admin-ajax.php');
-    $parsed_admin = parse_url($admin_url);
-
-    $current_host = $_SERVER['HTTP_HOST'];
-
-
-    if ($current_host !== $parsed_admin['host']) {
-        return $current_host;
-    }
-
-    $admin_path = $parsed_admin['path'];
-    $wp_base_path = str_replace('/wp-admin/admin-ajax.php', '', $admin_path);
-
-    if ($wp_base_path && $wp_base_path !== '') {
-        return trim($wp_base_path, '/');
-    }
-    return '';
+    $site_url = home_url('/');
+    $parsed = parse_url($site_url);
+    return isset($parsed['path']) ? trim($parsed['path'], '/') : '';
 }
 
 /**
