@@ -6,7 +6,7 @@
     Author URI:  https://triboon.net
     License: GPL v2 or later
     License URI: http://www.gnu.org/licenses/gpl-2.0.txt
-    Version: 5.4.0
+    Version: 5.4.3
 */
 
 use triboon\pubjet\includes\enums\EnumOldOptions;
@@ -279,7 +279,7 @@ if (!class_exists('Pubjet')) {
             if ($stored_version !== $current_version) {
 
                 pubjet_sync_settings();
-                pubjet_sync_categories();
+//                pubjet_sync_categories();
                 pubjet_delete_first_image_option();
 
                 $pubjet_settings[EnumOptions::ActivationVersion] = $current_version;
@@ -305,6 +305,8 @@ if (!class_exists('Pubjet')) {
          */
         public function onDeactivation() {
             pubjet_send_plugin_status_to_api('inactive');
+            $cron = \triboon\pubjet\includes\Cron::getInstance();
+            $cron->deactivateAllCronJobs();
         }
 
     }
