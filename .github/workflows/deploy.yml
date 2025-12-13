@@ -1,41 +1,39 @@
 name: Build Plugin and Create Clean ZIP
-
 on:
   push:
     branches:
       - dev
-
 jobs:
   build-and-zip:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
+      
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
           tools: composer:v2
-
+      
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-
+      
       - name: Install PHP Dependencies
         run: |
           composer clear-cache
           composer install --no-dev --optimize-autoloader
-
+      
       - name: Install Node.js Dependencies
         run: npm install
-
+      
       - name: Build Assets with Webpack
         run: npm run build
-
+      
       - name: Create Clean ZIP of Plugin
+        id: create-zip
         run: |
           ZIP_FILE="pubjet-$(date +'%Y%m%d%H%M%S').zip"
           echo "Creating ZIP: $ZIP_FILE"
@@ -57,9 +55,10 @@ jobs:
             -x "webpack.dev.js" \
             -x "webpack.prod.js"
           echo "ZIP created: $ZIP_FILE"
-
+          echo "zip_file=$ZIP_FILE" >> $GITHUB_OUTPUT
+      
       - name: Upload ZIP as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: pubjet-dev-zip
-          path: "$ZIP_FILE"
+          path: ${{ steps.create-zip.outputs.zip_file }}
