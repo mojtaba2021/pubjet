@@ -32,7 +32,6 @@ class Ajax extends Singleton
         $this->ajax('find-terms', [$this, 'findTerms'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('categories', [$this, 'findWpCategories'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('remind-admin-notice', [$this, 'remindAdminNotice'], EnumAjaxPrivType::LoggedIn);
-        $this->ajax('sync-categories', [$this, 'syncAndSaveCategories'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('find-authors', [$this, 'findAuthors'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('save-reportage-author', [$this, 'saveReportageAuthor'], EnumAjaxPrivType::LoggedIn);
 
