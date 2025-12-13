@@ -1,73 +1,64 @@
-name: Deploy Plugin to Dev Site
-
+name: Build Plugin and Create Clean ZIP
 on:
   push:
     branches:
       - dev
-
 jobs:
-  deploy:
+  build-and-zip:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
+      
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
           tools: composer:v2
-
+      
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-
+      
       - name: Install PHP Dependencies
         run: |
           composer clear-cache
           composer install --no-dev --optimize-autoloader
-
+      
       - name: Install Node.js Dependencies
         run: npm install
-
+      
       - name: Build Assets with Webpack
         run: npm run build
-
-      - name: Deploy Dev to gishehcinema.ir
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          DEV_SERVER: ${{ secrets.DEV_SERVER }}
-          DEV_PATH: ${{ secrets.DEV_PATH }}
+      
+      - name: Create Clean ZIP of Plugin
+        id: create-zip
         run: |
-          echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
-          
-          # Debug: Check environment variables
-          echo "DEV_SERVER: $DEV_SERVER"
-          echo "DEV_PATH: $DEV_PATH"
-          
-          # Validate DEV_PATH
-          if [ -z "$DEV_PATH" ]; then
-            echo "Error: DEV_PATH is empty or not set"
-            exit 1
-          fi
-          
-          # Test SSH connection
-          ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER whoami || { echo "SSH connection failed"; exit 1; }
-          
-          # Deploy with rsync
-          rsync -avz -vv --exclude 'private_key' --exclude-from='.github/exclude-list.txt' \
-            -e "ssh -i private_key -o StrictHostKeyChecking=no" \
-            ./ root@$DEV_SERVER:$DEV_PATH/
-          
-          # Fix ownership and permissions
-          ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER << EOF
-            echo "Updating ownership to gishehcinema2..."
-            chown -R gishehcinema2:gishehcinema2 "$DEV_PATH"
-            chmod -R 755 "$DEV_PATH"
-            echo "Ownership and permissions updated for $DEV_PATH"
-            ls -ld "$DEV_PATH"
-              EOF
-          
-          rm -f private_key
+          ZIP_FILE="pubjet-$(date +'%Y%m%d%H%M%S').zip"
+          echo "Creating ZIP: $ZIP_FILE"
+          zip -r "$ZIP_FILE" . \
+            -x ".git*" \
+            -x ".github/*" \
+            -x "node_modules/*" \
+            -x "src/*" \
+            -x "version" \
+            -x "debug.txt" \
+            -x ".idea/*" \
+            -x ".editorconfig" \
+            -x "composer.json" \
+            -x "composer.lock" \
+            -x ".gitignore" \
+            -x "package.json" \
+            -x "package-lock.json" \
+            -x ".babelrc" \
+            -x "webpack.dev.js" \
+            -x "webpack.prod.js"
+          echo "ZIP created: $ZIP_FILE"
+          echo "zip_file=$ZIP_FILE" >> $GITHUB_OUTPUT
+      
+      - name: Upload ZIP as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pubjet-dev-zip
+          path: ${{ steps.create-zip.outputs.zip_file }}
