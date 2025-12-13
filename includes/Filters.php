@@ -453,7 +453,7 @@ class Filters extends Singleton {
      * @param $attr
      * @return array|string|string[]|null
      */
-    public function useCdnForFeaturedImage($html, $post_id, $post_thumbnail_id, $size, $attr) {
+    public function useCdnForFeaturedImage($html, $post_id = null, $post_thumbnail_id = null, $size = null, $attr = null) {
         if (!pubjet_is_reportage($post_id)) return $html;
 
         $use_cdn = get_post_meta($post_id, 'pubjet_use_cdn', true);
