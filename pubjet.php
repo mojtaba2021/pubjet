@@ -33,7 +33,6 @@ if (!class_exists('Pubjet')) {
         public static function instance() {
             if (!isset(self::$instance) && !(self::$instance instanceof Pubjet)) {
                 self::$instance = new Pubjet();
-                self::$instance->loadTextDomain();
                 self::$instance->constants();
                 self::$instance->includes();
                 self::$instance->setupGlobals();
@@ -71,6 +70,7 @@ if (!class_exists('Pubjet')) {
         private function init() {
             register_activation_hook(__FILE__, [$this, 'onActivation']);
             register_deactivation_hook(__FILE__, [$this, 'onDeactivation']);
+            add_action('init', [$this, 'loadTextDomain'], 5);
             add_action('plugins_loaded', [$this, 'onPluginLoaded'], 15);
         }
 
