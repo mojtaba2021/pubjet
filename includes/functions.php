@@ -1730,7 +1730,7 @@ function pubjet_send_pricing_plans_to_api($pricingPlans,$token)
     // Step 2: Bulk fetch all categories
     $terms = get_terms([
         'taxonomy'   => 'category',
-        'include'    => $all_category_ids,
+        'slug'    => $all_category_ids,
         'hide_empty' => false,
     ]);
 
