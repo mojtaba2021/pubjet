@@ -926,6 +926,7 @@ function pubjet_strings() {
         'empty-token'                => esc_html__('The Access Token cannot be Empty', 'pubjet'),
         'pubjet'                     => esc_html__('Pubjet', 'pubjet'),
         'reportage'                  => esc_html__('Reportage', 'pubjet'),
+        'triboon-reportage'          => esc_html__('Triboon Reportage', 'pubjet'),
         'enable'                     => esc_html__('Enable', 'pubjet'),
         'disable'                    => esc_html__('Disable', 'pubjet'),
         'copy'                       => esc_html__('Copy', 'pubjet'),

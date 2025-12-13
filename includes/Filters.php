@@ -399,7 +399,7 @@ class Filters extends Singleton {
             '<a href="%s" class="%s">%s <span class="count">(%d)</span></a>',
             admin_url('edit.php?post_type=post&reportage=true'),
             $current_class,
-            pubjet__('reportage'),
+            pubjet__('triboon-reportage'),
             $count
         );
 
