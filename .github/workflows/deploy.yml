@@ -1,4 +1,4 @@
-name: Deploy Plugin to Dev Site
+name: Build Plugin and Create ZIP
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - dev
 
 jobs:
-  deploy:
+  build-and-zip:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,39 +35,16 @@ jobs:
       - name: Build Assets with Webpack
         run: npm run build
 
-      - name: Deploy Dev to gishehcinema.ir
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          DEV_SERVER: ${{ secrets.DEV_SERVER }}
-          DEV_PATH: ${{ secrets.DEV_PATH }}
+      - name: Create ZIP of Plugin
         run: |
-          echo "$SSH_PRIVATE_KEY" > private_key && chmod 600 private_key
-          
-          # Debug: Check environment variables
-          echo "DEV_SERVER: $DEV_SERVER"
-          echo "DEV_PATH: $DEV_PATH"
-          
-          # Validate DEV_PATH
-          if [ -z "$DEV_PATH" ]; then
-            echo "Error: DEV_PATH is empty or not set"
-            exit 1
-          fi
-          
-          # Test SSH connection
-          ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER whoami || { echo "SSH connection failed"; exit 1; }
-          
-          # Deploy with rsync
-          rsync -avz -vv --exclude 'private_key' --exclude-from='.github/exclude-list.txt' \
-            -e "ssh -i private_key -o StrictHostKeyChecking=no" \
-            ./ root@$DEV_SERVER:$DEV_PATH/
-          
-          # Fix ownership and permissions
-          ssh -i private_key -o StrictHostKeyChecking=no root@$DEV_SERVER << EOF
-            echo "Updating ownership to gishehcinema2..."
-            chown -R gishehcinema2:gishehcinema2 "$DEV_PATH"
-            chmod -R 755 "$DEV_PATH"
-            echo "Ownership and permissions updated for $DEV_PATH"
-            ls -ld "$DEV_PATH"
-              EOF
-          
-          rm -f private_key
+          ZIP_FILE="pubjet-dev-$(date +'%Y%m%d%H%M%S').zip"
+          echo "Creating ZIP: $ZIP_FILE"
+          # exclude node_modules and git files
+          zip -r $ZIP_FILE . -x "*.git*" "node_modules/*"
+          echo "ZIP created: $ZIP_FILE"
+
+      - name: Upload ZIP as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: pubjet-dev-zip
+          path: pubjet-dev-*.zip
