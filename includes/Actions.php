@@ -28,8 +28,7 @@ class Actions extends Singleton
 //        add_action("wp_footer", [$this, "addScriptToReportage"], 15);
         add_action("admin_head", [$this, "pluginFont"], 15);
         add_action("wp_head", [$this, "alignReportageImagesCenter"], 15);
-        add_action('created_term', [$this, 'createCategory'], 15, 5);
-        add_action('delete_term', [$this, 'deleteCategory'], 15, 4);
+
         add_action('pubjet_new_reportage', [$this, 'reportageCustomFields'], 15, 2);
         add_action('upgrader_process_complete', [$this, 'syncSettingsAfterUpdate'], 15, 2);
         add_action('init', [$this, 'checkAndSendVersion'], 15);
