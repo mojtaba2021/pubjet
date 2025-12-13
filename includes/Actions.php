@@ -715,7 +715,7 @@ class Actions extends Singleton
         if (wp_is_post_autosave($post_id) || wp_is_post_revision($post_id)) {
             return;
         }
-        wp_cache_delete("pubjet_meta_$post_id", 'pubjet');
+        delete_transient("pubjet_meta_$post_id");
     }
 
 }
