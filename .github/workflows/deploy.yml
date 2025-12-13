@@ -39,12 +39,11 @@ jobs:
         run: |
           ZIP_FILE="pubjet-dev-$(date +'%Y%m%d%H%M%S').zip"
           echo "Creating ZIP: $ZIP_FILE"
-          # exclude node_modules and git files
           zip -r $ZIP_FILE . -x "*.git*" "node_modules/*"
           echo "ZIP created: $ZIP_FILE"
 
       - name: Upload ZIP as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pubjet-dev-zip
           path: pubjet-dev-*.zip
