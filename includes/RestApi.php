@@ -65,8 +65,13 @@ class RestApi extends Singleton
      */
     public function checkMissedReportage(\WP_REST_Request $request)
     {
+        $this->success(['status' => 'processing', 'message' => 'در حال پردازش']);
         $this->finishRequest();
+        $this->processCheckMissedReportage();
+    }
 
+    public function processCheckMissedReportage()
+    {
         global $wpdb;
 
         $dt = new DateTime('now', new DateTimeZone(wp_timezone_string()));
@@ -102,7 +107,7 @@ class RestApi extends Singleton
 
             $after_status = get_post_status($post->ID);
             pubjet_log([
-                'function'       => 'checkMissedReportage',
+                'function'       => 'processCheckMissedReportage',
                 'post_ID'        => $post->ID,
                 'post_title'     => $post->post_title,
                 'post_type'      => $post->post_type,
@@ -326,8 +331,10 @@ class RestApi extends Singleton
              * @since 4.0.0
              */
             do_action('pubjet_create_reportage', $reportage);
+            exit;
         } catch (\Exception $ex) {
             $this->error($ex->getMessage(), 400);
+            exit;
         }
     }
 
@@ -385,22 +392,25 @@ class RestApi extends Singleton
         ignore_user_abort(true);
 
         if (!headers_sent()) {
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+
+            ob_start();
+
             header('Expires: Wed, 11 Jan 1984 05:00:00 GMT');
             header('Cache-Control: no-cache, must-revalidate, max-age=0');
+            header('Content-Length: 0');
+            header('Connection: close');
+
+            ob_end_flush();
+            flush();
         }
 
         if (PHP_VERSION_ID >= 70016 && function_exists('fastcgi_finish_request')) {
             fastcgi_finish_request();
         } else if (function_exists('litespeed_finish_request')) {
             litespeed_finish_request();
-        } else {
-            ob_start();
-            $size = ob_get_length();
-            header("Content-Length: $size");
-            header("Connection: close");
-            ob_end_flush();
-            ob_flush();
-            flush();
         }
 
     }
