@@ -117,7 +117,7 @@ function pubjet_api_success($data = []) {
  * @return array|bool[]|mixed[]|string[]
  * @since 3.3.4
  */
-function pubjet_ajax_error($error = '', $status_code = 403) {
+function pubjet_ajax_error($error = '', $status_code = 400) {
     if (is_wp_error($error)) {
         $error = $error->get_error_messages();
     } else {
