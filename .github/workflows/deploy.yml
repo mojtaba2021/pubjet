@@ -1,4 +1,4 @@
-name: Build Plugin and Create ZIP
+name: Build Plugin and Create Clean ZIP
 
 on:
   push:
@@ -35,15 +35,31 @@ jobs:
       - name: Build Assets with Webpack
         run: npm run build
 
-      - name: Create ZIP of Plugin
+      - name: Create Clean ZIP of Plugin
         run: |
-          ZIP_FILE="pubjet-dev-$(date +'%Y%m%d%H%M%S').zip"
+          ZIP_FILE="pubjet-$(date +'%Y%m%d%H%M%S').zip"
           echo "Creating ZIP: $ZIP_FILE"
-          zip -r $ZIP_FILE . -x "*.git*" "node_modules/*"
+          zip -r "../$ZIP_FILE" . \
+            -x ".git*" \
+            -x ".github/*" \
+            -x "node_modules/*" \
+            -x "src/*" \
+            -x "version" \
+            -x "debug.txt" \
+            -x ".idea/*" \
+            -x ".editorconfig" \
+            -x "composer.json" \
+            -x "composer.lock" \
+            -x ".gitignore" \
+            -x "package.json" \
+            -x "package-lock.json" \
+            -x ".babelrc" \
+            -x "webpack.dev.js" \
+            -x "webpack.prod.js"
           echo "ZIP created: $ZIP_FILE"
 
       - name: Upload ZIP as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: pubjet-dev-zip
-          path: pubjet-dev-*.zip
+          path: "../pubjet-*.zip"
