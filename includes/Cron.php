@@ -8,7 +8,7 @@ use triboon\pubjet\includes\enums\EnumPostTypes;
 
 defined('ABSPATH') || exit;
 
-class   Cron extends Singleton
+class Cron extends Singleton
 {
 
     /**
@@ -16,7 +16,7 @@ class   Cron extends Singleton
      */
     public function init()
     {
-        add_filter('cron_schedules', [$this, 'registerInterval'], 15);
+        add_filter('cron_schedules', [$this, 'registerInterval'], 10);
         add_action('wp', [$this, 'registerCron'], 15);
         add_action('pubjet_sync_reportage_url', [$this, 'runSyncReportageUrl'], 15);
         add_action('pubjet_schedule_delete_logs', [$this, 'deletePubjetLogs'], 15);

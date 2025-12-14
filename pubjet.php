@@ -279,7 +279,6 @@ if (!class_exists('Pubjet')) {
             if ($stored_version !== $current_version) {
 
                 pubjet_sync_settings();
-//                pubjet_sync_categories();
                 pubjet_delete_first_image_option();
 
                 $pubjet_settings[EnumOptions::ActivationVersion] = $current_version;
