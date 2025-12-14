@@ -10,8 +10,7 @@ import Misc from "./Misc";
 import RequiredPhpModules from "./RequiredPhpModules";
 import ModalMetakeys from "./ModalMetakeys";
 import ModalReportageAuthor from "./ModalReportageAuthor";
-import BacklinkPlans from "./BacklinkPlans";
-
+// import BacklinkPlans from "./BacklinkPlans";
 
 const Settings = props => {
     // const allHaveRelativeCategories =  props.options?.pricingPlans?.every(plan =>
