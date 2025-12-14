@@ -1,6 +1,5 @@
 import React from 'react';
 import styles from './Settings.module.scss';
-
 import {connect} from "trim-redux";
 import Header from "./Header";
 import General from "./General";
@@ -10,17 +9,29 @@ import {pubjet__} from "../../../shared/scripts/utils";
 import Misc from "./Misc";
 import RequiredPhpModules from "./RequiredPhpModules";
 import ModalMetakeys from "./ModalMetakeys";
-// import SyncCategories from "./SyncCategories";
 import ModalReportageAuthor from "./ModalReportageAuthor";
+import BacklinkPlans from "./BacklinkPlans";
 
 
 const Settings = props => {
-    const allHaveRelativeCategories =  props.options?.pricingPlans?.every(plan =>
-        Array.isArray(plan?.relative_categories) && plan?.relative_categories?.length > 0
-    );
+    // const allHaveRelativeCategories =  props.options?.pricingPlans?.every(plan =>
+    //     Array.isArray(plan?.relative_categories) && plan?.relative_categories?.length > 0
+    // );
+    // const hasIncompletePlans = !allHaveRelativeCategories;
+    const pricingPlans = props.options?.pricingPlans || [];
+    const allPlansHaveCategories =
+        pricingPlans.length > 0 &&
+        pricingPlans.every(plan =>
+            Array.isArray(plan?.categories) && plan.categories.length > 0
+        );
+
     const hasInvalidToken = !props.options.checkToken?.valid;
-    const hasIncompletePlans = !allHaveRelativeCategories;
+
+    const hasIncompletePlans = !allPlansHaveCategories;
     const shouldDisableMiscTab = hasInvalidToken || hasIncompletePlans;
+
+    console.log(pricingPlans);
+    console.log(shouldDisableMiscTab);
 
     return <div className={styles.container}>
         <Header/>
@@ -32,6 +43,11 @@ const Settings = props => {
                     key: 'general',
                     label: pubjet__('general'),
                     children: <General/>,
+                },
+                {
+                    key: 'backlink-plans',
+                    label: pubjet__('backlink-plans'),
+                    children: <BacklinkPlans/>,
                 },
                 {
                     key: 'debug',
