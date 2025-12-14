@@ -2,7 +2,7 @@ import React from 'react';
 import BaseComponent from "../../components/BaseComponent/BaseComponent";
 import styles from './General.module.scss';
 import {connect} from "trim-redux";
-import {Button, Spin} from "antd";
+import {Button, Spin, Tooltip} from "antd";
 import SaveAlert from "./SaveAlert";
 import Form from "./Form";
 import {SaveOutlined} from "@ant-design/icons";
@@ -12,12 +12,12 @@ import {pubjet__} from "../../../shared/scripts/utils";
 class General extends BaseComponent {
 
     state = {
-        token  : '',
-        debug  : false,
-        error  : false,
+        token: '',
+        debug: false,
+        error: false,
         loading: false,
-        saving : false,
-        saved  : false,
+        saving: false,
+        saved: false,
     };
 
     /**
@@ -51,27 +51,56 @@ class General extends BaseComponent {
      * @returns {Element}
      */
     render() {
-        const {loading, error} = this.state;
-        const {pricingPlans,checkToken , pricingPlansChanged = false} = this.props.options;
+        const {loading, error, saving, saved} = this.state;
+        const {
+            pricingPlans = [],
+            checkToken,
+            pricingPlansChanged = false
+        } = this.props.options;
+
+        const hasInvalidPlan = pricingPlans.some(
+            plan => !plan.categories?.length
+        );
+
+        const shouldHighlightButton =
+            pricingPlansChanged || hasInvalidPlan;
+
+        const isSaveDisabled = hasInvalidPlan;
+
+
+        const saveButton = (
+            <Button
+                className={`${styles.button} ${
+                    shouldHighlightButton ? styles.changed : ''
+                }`}
+                type="primary"
+                block
+                size="large"
+                loading={saving}
+                disabled={isSaveDisabled}
+                onClick={this.save}
+                icon={<SaveOutlined />}
+                shape="square"
+            >
+                {pubjet__('update-settings')}
+            </Button>
+        );
+
         return (
             <div className={styles.container}>
                 <Spin spinning={loading}>
                     <div className={styles.formWrapper}>
                         <Form/>
-                        {!error && <SaveAlert saved={this.state.saved}/>}
-                        { (checkToken?.valid && pricingPlans?.length > 0) &&
-                            <Button
-                            className={`${styles.button} ${pricingPlansChanged ? styles.changed : ''}`}
-                            type={'primary'}
-                            block={true}
-                            size={'large'}
-                            loading={this.state.saving}
-                            onClick={this.save}
-                            icon={<SaveOutlined/>}
-                            shape={'square'}
-                        >
-                            {pubjet__('update-settings')}
-                        </Button>}
+                        {!error && <SaveAlert saved={saved}/>}
+                        {(checkToken?.valid && pricingPlans.length > 0) && (
+                            isSaveDisabled ? (
+                                <Tooltip title="برای ذخیره تنظیمات، ابتدا دسته‌بندی پلن را مشخص کنید">
+                                    <span>{saveButton}</span>
+                                </Tooltip>
+                            ) : (
+                                saveButton
+                            )
+                        )}
                     </div>
                 </Spin>
             </div>
