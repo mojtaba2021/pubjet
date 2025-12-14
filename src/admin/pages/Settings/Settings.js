@@ -13,10 +13,7 @@ import ModalReportageAuthor from "./ModalReportageAuthor";
 // import BacklinkPlans from "./BacklinkPlans";
 
 const Settings = props => {
-    // const allHaveRelativeCategories =  props.options?.pricingPlans?.every(plan =>
-    //     Array.isArray(plan?.relative_categories) && plan?.relative_categories?.length > 0
-    // );
-    // const hasIncompletePlans = !allHaveRelativeCategories;
+
     const pricingPlans = props.options?.pricingPlans || [];
     const allPlansHaveCategories =
         pricingPlans.length > 0 &&
@@ -25,12 +22,12 @@ const Settings = props => {
         );
 
     const hasInvalidToken = !props.options.checkToken?.valid;
+    const hasUnsavedChanges = props.options.pricingPlansChanged === true;
 
-    const hasIncompletePlans = !allPlansHaveCategories;
-    const shouldDisableMiscTab = hasInvalidToken || hasIncompletePlans;
-
-    console.log(pricingPlans);
-    console.log(shouldDisableMiscTab);
+    const shouldDisableMiscTab =
+        hasInvalidToken ||
+        !allPlansHaveCategories ||
+        hasUnsavedChanges;
 
     return <div className={styles.container}>
         <Header/>
@@ -61,13 +58,17 @@ const Settings = props => {
                 {
                     key: 'misc',
                     label: shouldDisableMiscTab ? (
-                        <Tooltip placement="top" title={pubjet__('misc-disable-tooltip')} color='#ff4d4f'>
+                        <Tooltip
+                            placement="top"
+                            title={pubjet__('misc-disable-tooltip')}
+                            color="#ff4d4f"
+                        >
                             <span>{pubjet__('advanced')}</span>
                         </Tooltip>
                     ) : pubjet__('advanced'),
                     disabled: shouldDisableMiscTab,
-                    children: <Misc/>,
-                },
+                    children: <Misc />,
+                }
             ]}
         />
         <ModalMetakeys/>
