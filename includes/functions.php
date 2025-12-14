@@ -918,6 +918,7 @@ function pubjet_strings() {
         'pricing-plans'              => esc_html__('Pricing Plans', 'pubjet'),
         'plans-categories'           => esc_html__('Plans Categories', 'pubjet'),
         'check-token'                => esc_html__('Check Token', 'pubjet'),
+        'checking-token'             => esc_html__('Checking Token', 'pubjet'),
         'default-category'           => esc_html__('Default Category', 'pubjet'),
         'triboon-token'              => esc_html__('Access Token', 'pubjet'),
         'congratulation'             => esc_html__('Congratulations !', 'pubjet'),
