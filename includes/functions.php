@@ -1006,7 +1006,7 @@ function pubjet_strings() {
 function pubjet_find_authors() {
     $args = [
         'role__in' => ['author', 'administrator'],
-        'orderby'  => 'ID',
+        'orderby'  => 'display_name',
         'order'    => 'ASC',
     ];
 
