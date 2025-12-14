@@ -1,20 +1,26 @@
 import React, { useEffect } from 'react';
 import styles from "./Form.module.scss";
 import { changeInput, doCheckToken } from "./Actions";
-import { Alert, Button, Form as AntForm, Input, Space, Tooltip } from "antd";
+import { Alert, Button, Form as AntForm, Input } from "antd";
 import { connect } from "trim-redux";
 import CheckTokenResult from "./CheckTokenResult";
 import { pubjet__ } from "../../../shared/scripts/utils";
-import {CheckCircleFilled, CloseCircleFilled, LoadingOutlined, ReloadOutlined, SaveOutlined} from "@ant-design/icons";
+import {CheckCircleFilled, CloseCircleFilled, LoadingOutlined, ReloadOutlined} from "@ant-design/icons";
 import PricingPlans from "./PricingPlans";
 
 
 const { TextArea } = Input;
 
-const MAX_COUNT = 10;
 const Form = props => {
     const { token, pricingPlans, checkToken } = props.options;
 
+    /* TODO Refactor useEffect to this
+            useEffect(() => {
+            if (token && !checkToken?.checking) {
+                doCheckToken();
+            }
+        }, [token]);
+     */
     useEffect(() => {
         if (token) {
             doCheckToken();
@@ -75,9 +81,10 @@ const Form = props => {
                 )
             ) : null
         }
-        {(!checkToken?.valid || (pricingPlans?.length == 0)) && (
+        {(!checkToken?.valid || (pricingPlans?.length === 0)) && (
             <AntForm.Item>
                 <Button
+                    disabled={checkToken?.checking}
                     type={'primary'}
                     block={true}
                     size={'large'}
@@ -85,7 +92,10 @@ const Form = props => {
                     icon={<ReloadOutlined />}
                     shape={'square'}
                 >
-                    {pubjet__('check-token')}
+                    {checkToken?.checking
+                        ? pubjet__('checking-token')
+                        : pubjet__('check-token')
+                    }
                 </Button>
             </AntForm.Item>)}
 
