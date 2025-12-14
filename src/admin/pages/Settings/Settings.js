@@ -15,6 +15,8 @@ import ModalReportageAuthor from "./ModalReportageAuthor";
 const Settings = props => {
 
     const pricingPlans = props.options?.pricingPlans || [];
+    const hasCheckedToken = props.options?.checkToken?.checked === true;
+
     const allPlansHaveCategories =
         pricingPlans.length > 0 &&
         pricingPlans.every(plan =>
@@ -24,10 +26,12 @@ const Settings = props => {
     const hasInvalidToken = !props.options.checkToken?.valid;
     const hasUnsavedChanges = props.options.pricingPlansChanged === true;
 
-    const shouldDisableMiscTab =
+    const shouldDisableMiscTab = hasCheckedToken && (
         hasInvalidToken ||
         !allPlansHaveCategories ||
-        hasUnsavedChanges;
+        hasUnsavedChanges
+    );
+
 
     return <div className={styles.container}>
         <Header/>
