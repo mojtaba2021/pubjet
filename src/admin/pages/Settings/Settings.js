@@ -44,11 +44,11 @@ const Settings = props => {
                     label: pubjet__('general'),
                     children: <General/>,
                 },
-                {
-                    key: 'backlink-plans',
-                    label: pubjet__('backlink-plans'),
-                    children: <BacklinkPlans/>,
-                },
+                // {
+                //     key: 'backlink-plans',
+                //     label: pubjet__('backlink-plans'),
+                //     children: <BacklinkPlans/>,
+                // },
                 {
                     key: 'debug',
                     label: pubjet__('debug'),
