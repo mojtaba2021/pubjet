@@ -18,6 +18,7 @@ class Cron extends Singleton
     {
         add_filter('cron_schedules', [$this, 'registerInterval'], 10);
         add_action('wp', [$this, 'registerCron'], 15);
+
         add_action('pubjet_sync_reportage_url', [$this, 'runSyncReportageUrl'], 15);
         add_action('pubjet_schedule_delete_logs', [$this, 'deletePubjetLogs'], 15);
         add_action('pubjet_check_missed_posts', [$this, 'publishMissedSchedulePosts']);
@@ -28,20 +29,12 @@ class Cron extends Singleton
      */
     public function registerInterval($schedules)
     {
-        $schedules['every_minute'] = [
-            'interval' => MINUTE_IN_SECONDS,
-            'display' => pubjet__('every-minute'),
-        ];
 
         $schedules['every_five_minutes'] = [
             'interval' => 5 * MINUTE_IN_SECONDS,
             'display' => pubjet__('every-five-minutes'),
         ];
 
-        $schedules['daily'] = [
-            'interval' => DAY_IN_SECONDS,
-            'display' => pubjet__('every-day'),
-        ];
         return $schedules;
     }
 
@@ -50,14 +43,20 @@ class Cron extends Singleton
      */
     public function registerCron()
     {
-        if (!wp_next_scheduled('pubjet_sync_reportage_url')) {
-            wp_schedule_event(time(), 'every_minute', 'pubjet_sync_reportage_url');
+        if (get_transient('pubjet_register_cron_lock')) {
+            return;
         }
-        if (!wp_next_scheduled('pubjet_clear_logs')) {
-            wp_schedule_event(time(), 'daily', 'pubjet_schedule_delete_logs');
-        }
-        if (!wp_next_scheduled('pubjet_check_missed_posts')) {
-            wp_schedule_event(time(), 'every_five_minutes', 'pubjet_check_missed_posts');
+        set_transient('pubjet_register_cron_lock', 1, 30);
+        $hooks = [
+            'pubjet_sync_reportage_url'   => 'every_five_minutes',
+            'pubjet_schedule_delete_logs' => 'daily',
+            'pubjet_check_missed_posts'   => 'every_five_minutes',
+        ];
+
+        foreach ($hooks as $hook => $schedule) {
+            if (!wp_next_scheduled($hook)) {
+                wp_schedule_event(time(), $schedule, $hook);
+            }
         }
     }
 
@@ -66,14 +65,22 @@ class Cron extends Singleton
      */
     public function runSyncReportageUrl()
     {
-        $batch_size = apply_filters('pubjet_sync_batch_size', 10);
+        $batch_size = (int) apply_filters('pubjet_sync_batch_size', 10);
+        if ($batch_size <= 0) return;
 
         $args = [
-            'post_type' => EnumPostTypes::Post,
-            'meta_key' => EnumPostMetakeys::FailedSyncUrl,
-            'posts_per_page' => $batch_size,
-            'orderby' => 'date',
-            'order' => 'ASC'
+            'post_type'             => 'post',
+            'posts_per_page'        => $batch_size,
+            'orderby'               => 'date',
+            'order'                 => 'ASC',
+            'meta_query'          => [
+                [
+                    'key'     => EnumPostMetakeys::FailedSyncUrl,
+                    'compare' => 'EXISTS',
+                ],
+            ],
+            'no_found_rows'         => true,
+            'suppress_filters'      => true,
         ];
 
         $posts = get_posts($args);
@@ -86,6 +93,8 @@ class Cron extends Singleton
                 continue;
             }
             $result = pubjet_publish_reportage($post->ID, $reportage_id);
+
+            // 200 = success | 429 = already registered (idempotent)
             if (isset($result['code']) && in_array($result['code'], [200, 429])) {
                 delete_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl);
             }
@@ -98,9 +107,9 @@ class Cron extends Singleton
     public function deletePubjetLogs()
     {
         $log_file = pubjet_debug_dir();
-        $max_size = apply_filters('pubjet_max_log_size', 100 * 1024 * 1024);
         if (!file_exists($log_file)) return;
 
+        $max_size = (int) apply_filters('pubjet_max_log_size', 100 * 1024 * 1024);
         $file_size = filesize($log_file);
         if ($file_size <= $max_size) return;
 
@@ -116,7 +125,7 @@ class Cron extends Singleton
     {
         global $pubjet_settings;
 
-        $last_check = pubjet_isset_value($pubjet_settings[EnumOptions::LastCheckingMissedPosts]);
+        $last_check = pubjet_isset_value($pubjet_settings[EnumOptions::LastCheckingMissedPosts] , 0);
         if (pubjet_now_ts() - $last_check < 60) {
             return;
         }
@@ -129,15 +138,14 @@ class Cron extends Singleton
 
     public function deactivateAllCronJobs()
     {
-        $cron_hooks = [
+        $hooks = [
             'pubjet_sync_reportage_url',
-            'pubjet_clear_logs',
+            'pubjet_schedule_delete_logs',
             'pubjet_check_missed_posts',
         ];
 
-        foreach ($cron_hooks as $hook) {
-            $timestamp = wp_next_scheduled($hook);
-            if ($timestamp) {
+        foreach ($hooks as $hook) {
+            while ($timestamp = wp_next_scheduled($hook)) {
                 wp_unschedule_event($timestamp, $hook);
             }
         }
