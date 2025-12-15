@@ -270,7 +270,7 @@ if (!class_exists('Pubjet')) {
          */
         private function migrateCronJobs($stored_version)
         {
-            if (!$stored_version || version_compare($stored_version, '5.4.4', '<')) {
+            if (!$stored_version || version_compare($stored_version, '5.4.4', '<=')) {
                 $cron = \triboon\pubjet\includes\Cron::getInstance();
                 $cron->deactivateAllCronJobs();
                 $cron->registerCron();
