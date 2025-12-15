@@ -59,8 +59,8 @@ trait Utils {
      * @since  1.0
      * @author Triboon
      */
-    public function error($message, $args = []) {
-        pubjet_ajax_error($message, $args);
+    public function error($message, $status_code = 400) {
+        pubjet_ajax_error($message, $status_code);
     }
 
     /**
