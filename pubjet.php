@@ -160,10 +160,10 @@ if (!class_exists('Pubjet')) {
          * @author Triboon
          */
         public function getScriptsVersion() {
-            if (!function_exists('get_plugin_data')) {
+            if (!function_exists('get_file_data')) {
                 require_once(ABSPATH . 'wp-admin/includes/plugin.php');
             }
-            $plugin_data = get_plugin_data(__FILE__);
+            $plugin_data = get_file_data( __FILE__, ['Version' => 'Version'], 'plugin' );
 
             return (defined('WP_ENVIRONMENT') && "development" === WP_ENVIRONMENT) ? time() : $plugin_data['Version'];
         }
@@ -174,7 +174,7 @@ if (!class_exists('Pubjet')) {
          * @return mixed
          */
         public function getVersion() {
-            $plugin_data = get_plugin_data(__FILE__);
+            $plugin_data = get_file_data( __FILE__, ['Version' => 'Version'], 'plugin' );
             return $plugin_data['Version'];
         }
 
