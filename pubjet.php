@@ -265,21 +265,6 @@ if (!class_exists('Pubjet')) {
         }
 
         /**
-         * @since 5.4.4
-         * Migrate Pubjet Cron Jobs (interval & hooks)
-         */
-        private function migrateCronJobs($stored_version)
-        {
-            if (!$stored_version || version_compare($stored_version, '5.4.4', '<=')) {
-                $cron = \triboon\pubjet\includes\Cron::getInstance();
-                $cron->deactivateAllCronJobs();
-                $cron->registerCron();
-            }
-        }
-
-
-
-        /**
          * @return void
          * @since  5.3.0
          * @author Triboon
@@ -291,8 +276,6 @@ if (!class_exists('Pubjet')) {
             $current_version = $this->getVersion();
 
             if ($stored_version !== $current_version) {
-
-                $this->migrateCronJobs($stored_version);
 
                 pubjet_sync_settings();
                 pubjet_delete_first_image_option();
