@@ -66,6 +66,8 @@ class Actions extends Singleton
         add_action('save_post', [$this, 'save_cdn_checkbox'],9);
         add_action('save_post', [$this, 'clearMetaCacheOnSave'], 10, 3);
 
+        add_action('pubjet_after_register_cron',[$this, 'cleanupPubjetRegisteredCrons'], 99, 1);
+
 
     }
 
@@ -714,5 +716,24 @@ class Actions extends Singleton
         }
         delete_transient("pubjet_meta_$post_id");
     }
+
+    /**
+     * Remove all Pubjet registered cron events in one pass.
+     *
+     * @return void
+     */
+    public function cleanupPubjetRegisteredCrons($registered_hooks)
+    {
+        if (get_option('pubjet_cron_cleanup_done')) {
+            return;
+        }
+
+        $cron = Cron::getInstance();
+
+        if ($cron->removePubjetCrons($registered_hooks)) {
+            update_option('pubjet_cron_cleanup_done', 1, false);
+        }
+    }
+
 
 }
