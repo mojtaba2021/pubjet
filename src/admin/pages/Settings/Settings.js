@@ -19,19 +19,17 @@ const Settings = props => {
 
     const allPlansHaveCategories =
         pricingPlans.length > 0 &&
-        pricingPlans.every(plan =>
-            Array.isArray(plan?.categories) && plan.categories.length > 0
-        );
+        pricingPlans.every(plan => {
+            const cats = Array.isArray(plan.categories) ? plan.categories : [plan.categories];
+            return cats.length > 0;
+        });
 
     const hasInvalidToken = !props.options.checkToken?.valid;
     const hasUnsavedChanges = props.options.pricingPlansChanged === true;
 
-    const shouldDisableMiscTab = hasCheckedToken && (
-        hasInvalidToken ||
-        !allPlansHaveCategories ||
-        hasUnsavedChanges
-    );
-
+    const shouldDisableMiscTab = hasCheckedToken
+        ? hasInvalidToken || !allPlansHaveCategories || hasUnsavedChanges
+        : true;
 
     return <div className={styles.container}>
         <Header/>
