@@ -722,16 +722,21 @@ class Actions extends Singleton
      *
      * @return void
      */
-    public function cleanupPubjetRegisteredCrons($registered_hooks)
-    {
+    public function cleanupPubjetRegisteredCrons($registered_hooks){
         if (get_option('pubjet_cron_cleanup_done')) {
             return;
         }
 
         $cron = Cron::getInstance();
-
-        if ($cron->removePubjetCrons($registered_hooks)) {
-            update_option('pubjet_cron_cleanup_done', 1, false);
+        try {
+            $removed_hooks = $cron->removePubjetCrons(array_keys($registered_hooks));
+            if ($removed_hooks) {
+                update_option('pubjet_cron_cleanup_done', 1, false);
+                pubjet_log('[Pubjet Cron] Cleanup finished. Removed ' . count($removed_hooks) . ' hooks.');
+            }
+        } catch (\Exception $e) {
+            pubjet_log('[Pubjet Cron][ERROR] ' . $e->getMessage());
+            pubjet_log_sentry($e->getMessage(), ['hook_count' => count($registered_hooks),'function'   => __METHOD__,]);
         }
     }
 
