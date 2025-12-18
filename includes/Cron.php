@@ -4,7 +4,7 @@ namespace triboon\pubjet\includes;
 
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
-use triboon\pubjet\includes\enums\EnumPostTypes;
+
 
 defined('ABSPATH') || exit;
 
@@ -47,17 +47,21 @@ class Cron extends Singleton
             return;
         }
         set_transient('pubjet_register_cron_lock', 1, 30);
+
         $hooks = [
             'pubjet_sync_reportage_url'   => 'every_five_minutes',
             'pubjet_schedule_delete_logs' => 'daily',
             'pubjet_check_missed_posts'   => 'every_five_minutes',
         ];
 
+        $hooks = apply_filters('pubjet_cron_hooks', $hooks);
+
         foreach ($hooks as $hook => $schedule) {
             if (!wp_next_scheduled($hook)) {
                 wp_schedule_event(time(), $schedule, $hook);
             }
         }
+        do_action('pubjet_after_register_cron', $hooks);
     }
 
     /**
@@ -136,20 +140,44 @@ class Cron extends Singleton
         $restApi->processCheckMissedReportage();
     }
 
-    public function deactivateAllCronJobs()
-    {
-        $hooks = [
-            'pubjet_sync_reportage_url',
-            'pubjet_schedule_delete_logs',
-            'pubjet_check_missed_posts',
-        ];
 
-        foreach ($hooks as $hook) {
-            while ($timestamp = wp_next_scheduled($hook)) {
-                wp_unschedule_event($timestamp, $hook);
+    public function removePubjetCrons(array $hooks)
+    {
+        $crons = _get_cron_array();
+        if (empty($crons) || !is_array($crons)) return false;
+
+        $changed = false;
+        foreach ($crons as $timestamp => $events) {
+            foreach ($hooks as $hook) {
+                if (isset($events[$hook])) {
+                    unset($crons[$timestamp][$hook]);
+                    $changed = true;
+                }
+            }
+            if (empty($crons[$timestamp])) {
+                unset($crons[$timestamp]);
             }
         }
+
+        if ($changed) _set_cron_array($crons);
+
+        return $changed;
     }
+
+    public function deactivateAllCronJobs()
+    {
+        $hooks = apply_filters(
+            'pubjet_cron_cleanup_hooks',
+            [
+                'pubjet_sync_reportage_url',
+                'pubjet_schedule_delete_logs',
+                'pubjet_check_missed_posts',
+            ]
+        );
+
+        $this->removePubjetCrons($hooks);
+    }
+
 
 
 }
