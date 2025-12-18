@@ -405,32 +405,6 @@ class Actions extends Singleton
     /**
      * @return void
      */
-    public function createCategory($term_id, $tt_id, $taxonomy, $args)
-    {
-        if ('category' !== $taxonomy) {
-            return;
-        }
-        $term = get_term_by('term_id', $term_id, $taxonomy);
-        if (!$term) {
-            return;
-        }
-        pubjet_sync_categories();
-    }
-
-    /**
-     * @return void
-     */
-    public function deleteCategory($term, $tt_id, $taxonomy, $deleted_term)
-    {
-        if ('category' !== $taxonomy) {
-            return;
-        }
-        pubjet_sync_categories();
-    }
-
-    /**
-     * @return void
-     */
     public function alignReportageImagesCenter()
     {
         global $pubjet_settings;

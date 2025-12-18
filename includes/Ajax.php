@@ -93,20 +93,6 @@ class Ajax extends Singleton
     /**
      * @return void
      */
-    public function syncAndSaveCategories()
-    {
-        global $pubjet_settings;
-        $this->checkNonce();
-        $categories = $this->post('categories');
-        pubjet_update_setting('categories', trim($categories));
-        $pubjet_settings['categories'] = $categories ?? [];
-        pubjet_sync_categories();
-        $this->success();
-    }
-
-    /**
-     * @return void
-     */
     public function findWpCategories()
     {
         $this->checkNonce();
