@@ -94,7 +94,7 @@ class Filters extends Singleton {
         if (!pubjet_is_reportage($post_id)) {
             return $classes;
         }
-        $classes[] = "pubjet-post pubjet-reportage triboon-reportage";
+        $classes[] = "pj-rpt";
         return $classes;
     }
 

@@ -421,7 +421,7 @@ class Actions extends Singleton
         }
         ?>
         <style>
-            .pubjet-reportage img {
+            .pj-rpt img {
                 display: block !important;
                 margin-left: auto !important;
                 margin-right: auto !important;
