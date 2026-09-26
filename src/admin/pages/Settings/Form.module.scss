@@ -23,6 +23,7 @@
   :global {
     input {
       outline: 0 !important;
+      min-height: unset !important;
     }
   }
   @include mq-max('md') {
