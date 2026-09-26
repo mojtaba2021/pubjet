@@ -117,7 +117,7 @@ function pubjet_api_success($data = []) {
  * @return array|bool[]|mixed[]|string[]
  * @since 3.3.4
  */
-function pubjet_ajax_error($error = '', $status_code = 403) {
+function pubjet_ajax_error($error = '', $status_code = 400) {
     if (is_wp_error($error)) {
         $error = $error->get_error_messages();
     } else {
@@ -918,6 +918,7 @@ function pubjet_strings() {
         'pricing-plans'              => esc_html__('Pricing Plans', 'pubjet'),
         'plans-categories'           => esc_html__('Plans Categories', 'pubjet'),
         'check-token'                => esc_html__('Check Token', 'pubjet'),
+        'checking-token'             => esc_html__('Checking Token', 'pubjet'),
         'default-category'           => esc_html__('Default Category', 'pubjet'),
         'triboon-token'              => esc_html__('Access Token', 'pubjet'),
         'congratulation'             => esc_html__('Congratulations !', 'pubjet'),
@@ -926,6 +927,7 @@ function pubjet_strings() {
         'empty-token'                => esc_html__('The Access Token cannot be Empty', 'pubjet'),
         'pubjet'                     => esc_html__('Pubjet', 'pubjet'),
         'reportage'                  => esc_html__('Reportage', 'pubjet'),
+        'triboon-reportage'          => esc_html__('Triboon Reportage', 'pubjet'),
         'enable'                     => esc_html__('Enable', 'pubjet'),
         'disable'                    => esc_html__('Disable', 'pubjet'),
         'copy'                       => esc_html__('Copy', 'pubjet'),
@@ -1004,7 +1006,7 @@ function pubjet_strings() {
 function pubjet_find_authors() {
     $args = [
         'role__in' => ['author', 'administrator'],
-        'orderby'  => 'ID',
+        'orderby'  => 'display_name',
         'order'    => 'ASC',
     ];
 
@@ -1364,69 +1366,6 @@ function pubjet_find_wp_tags() {
 
 
 /**
- * @since 1.0.0
- */
-function pubjet_sync_categories() {
-    global $pubjet_settings;
-
-
-    /**
-     * The pubjet_before_sync_categories action.
-     *
-     * @since 1.0.0
-     */
-    do_action('pubjet_before_sync_categories');
-
-    if (pubjet_isset_value($pubjet_settings['categories'])) {
-        $categories     = [];
-        $categories_ids = is_array($pubjet_settings['categories']) ? $pubjet_settings['categories'] : array_map('trim', explode(',', $pubjet_settings['categories']  ?? ''));
-
-        foreach ($categories_ids as $category_id) {
-            $category = get_category($category_id);
-            if ($category && !is_wp_error($category)) {
-                $categories[] = [
-                    'title'       => $category->name,
-                    'unique_name' => $category->slug,
-                ];
-            }
-        }
-    } else {
-        $categories = pubjet_find_wp_categories(false, false);
-
-        if ($categories) {
-            $categories = array_map(function ($item) {
-                return [
-                    'title'       => $item['name'],
-                    'unique_name' => $item['slug'],
-                ];
-            }, $categories);
-        }
-    }
-
-    pubjet_log($categories);
-
-    /**
-     * The pubjet_sync_category_sync filter.
-     *
-     * @since 1.0.0
-     */
-    $url = apply_filters('pubjet_sync_category_sync', pubjet_api_root() . '/external/wp/relative-category/', pubjet_token());
-
-    if (pubjet_is_dev_mode()) {
-        return;
-    }
-
-    $response = pubjet_request($url, 'POST', [
-        'Content-Type'  => 'application/json; charset=utf-8',
-        'Authorization' => 'Token ' . pubjet_token(),
-    ],                         json_encode(['categories' => $categories,]), ['data_format' => 'body',]);
-
-    pubjet_log($response);
-    return $response;
-}
-
-
-/**
  * @return void
  */
 function pubjet_sync_settings() {
@@ -1452,9 +1391,7 @@ function pubjet_sync_settings() {
 
 }
 
-/*
- * @return array
- */
+
 /**
  * @return mixed|null
  */
@@ -1520,31 +1457,6 @@ function pubjet_update_setting($option_name, $option_value) {
     return update_option(EnumOldOptions::Settings, $settings);
 }
 
-/**
- * @param $terms
- * @param $method
- *
- * @return void
- */
-function pubjet_sync_category($terms, $method = 'POST') {
-    $terms = is_array($terms) ? $terms : [$terms];
-    /**
-     * The pubjet_sync_category_sync filter.
-     *
-     * @since 1.0.0
-     */
-    $url = apply_filters('pubjet_sync_category_sync', pubjet_api_root() . '/external/wp/relative-category/', pubjet_token());
-
-    if (pubjet_is_dev_mode()) {
-        $url = 'https://api-staging.triboon.net/external/wp/relative-category/';
-    }
-    return pubjet_request($url, $method, [
-        'Content-Type'  => 'application/json',
-        'Authorization' => 'Token ' . trim(pubjet_token()),
-    ],                    json_encode([
-                                          'categories' => $terms,
-                                      ]));
-}
 
 /**
  * @param $message
@@ -1819,7 +1731,7 @@ function pubjet_send_pricing_plans_to_api($pricingPlans,$token)
     // Step 2: Bulk fetch all categories
     $terms = get_terms([
         'taxonomy'   => 'category',
-        'include'    => $all_category_ids,
+        'slug'    => $all_category_ids,
         'hide_empty' => false,
     ]);
 

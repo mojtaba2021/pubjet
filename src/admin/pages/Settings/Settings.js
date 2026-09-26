@@ -1,6 +1,5 @@
 import React from 'react';
 import styles from './Settings.module.scss';
-
 import {connect} from "trim-redux";
 import Header from "./Header";
 import General from "./General";
@@ -10,17 +9,27 @@ import {pubjet__} from "../../../shared/scripts/utils";
 import Misc from "./Misc";
 import RequiredPhpModules from "./RequiredPhpModules";
 import ModalMetakeys from "./ModalMetakeys";
-// import SyncCategories from "./SyncCategories";
 import ModalReportageAuthor from "./ModalReportageAuthor";
-
+// import BacklinkPlans from "./BacklinkPlans";
 
 const Settings = props => {
-    const allHaveRelativeCategories =  props.options?.pricingPlans?.every(plan =>
-        Array.isArray(plan?.relative_categories) && plan?.relative_categories?.length > 0
-    );
+
+    const pricingPlans = props.options?.pricingPlans || [];
+    const hasCheckedToken = props.options?.checkToken?.checked === true;
+
+    const allPlansHaveCategories =
+        pricingPlans.length > 0 &&
+        pricingPlans.every(plan => {
+            const cats = Array.isArray(plan.categories) ? plan.categories : [plan.categories];
+            return cats.length > 0;
+        });
+
     const hasInvalidToken = !props.options.checkToken?.valid;
-    const hasIncompletePlans = !allHaveRelativeCategories;
-    const shouldDisableMiscTab = hasInvalidToken || hasIncompletePlans;
+    const hasUnsavedChanges = props.options.pricingPlansChanged === true;
+
+    const shouldDisableMiscTab = hasCheckedToken
+        ? hasInvalidToken || !allPlansHaveCategories || hasUnsavedChanges
+        : true;
 
     return <div className={styles.container}>
         <Header/>
@@ -33,6 +42,11 @@ const Settings = props => {
                     label: pubjet__('general'),
                     children: <General/>,
                 },
+                // {
+                //     key: 'backlink-plans',
+                //     label: pubjet__('backlink-plans'),
+                //     children: <BacklinkPlans/>,
+                // },
                 {
                     key: 'debug',
                     label: pubjet__('debug'),
@@ -46,13 +60,17 @@ const Settings = props => {
                 {
                     key: 'misc',
                     label: shouldDisableMiscTab ? (
-                        <Tooltip placement="top" title={pubjet__('misc-disable-tooltip')} color='#ff4d4f'>
+                        <Tooltip
+                            placement="top"
+                            title={pubjet__('misc-disable-tooltip')}
+                            color="#ff4d4f"
+                        >
                             <span>{pubjet__('advanced')}</span>
                         </Tooltip>
                     ) : pubjet__('advanced'),
                     disabled: shouldDisableMiscTab,
-                    children: <Misc/>,
-                },
+                    children: <Misc />,
+                }
             ]}
         />
         <ModalMetakeys/>

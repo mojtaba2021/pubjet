@@ -32,7 +32,6 @@ class Ajax extends Singleton
         $this->ajax('find-terms', [$this, 'findTerms'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('categories', [$this, 'findWpCategories'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('remind-admin-notice', [$this, 'remindAdminNotice'], EnumAjaxPrivType::LoggedIn);
-        $this->ajax('sync-categories', [$this, 'syncAndSaveCategories'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('find-authors', [$this, 'findAuthors'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('save-reportage-author', [$this, 'saveReportageAuthor'], EnumAjaxPrivType::LoggedIn);
 
@@ -89,20 +88,6 @@ class Ajax extends Singleton
         $authors = pubjet_find_authors();
 
         $this->success($authors);
-    }
-
-    /**
-     * @return void
-     */
-    public function syncAndSaveCategories()
-    {
-        global $pubjet_settings;
-        $this->checkNonce();
-        $categories = $this->post('categories');
-        pubjet_update_setting('categories', trim($categories));
-        $pubjet_settings['categories'] = $categories ?? [];
-        pubjet_sync_categories();
-        $this->success();
     }
 
     /**

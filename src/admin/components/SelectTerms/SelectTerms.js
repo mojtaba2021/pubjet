@@ -1,14 +1,14 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import styles from './SelectTerms.module.scss';
-import { findEndpointUrl, getAdminAjaxUrl, getAxios } from "../../../shared/scripts/utils";
+import { getAdminAjaxUrl, getAxios } from "../../../shared/scripts/utils";
 import DebounceSelect from "../DebounceSelect/DebounceSelect";
 
 const axios = getAxios();
 
 const SelectTerms = props => {
     const { selectProps, taxonomy, placeholder, value, onChange, className, mode, maxCount, suffixIcon, required } = props;
-    const [error, setError] = useState(false);
+    // const [error, setError] = useState(false);
     const [cachedOptions, setCachedOptions] = useState([]);
 
     const fetchPosts = useCallback((keyword = '') => {
@@ -27,15 +27,21 @@ const SelectTerms = props => {
     }, [taxonomy, value, maxCount]);
 
     const applyDisableLogic = useCallback((options, currentValue, currentMaxCount) => {
+        if (!Array.isArray(currentValue)) {
+            return options;
+        }
+
         return options.map(option => {
-            const isSelected = currentValue && Array.isArray(currentValue) && currentValue.includes(option.value);
-            const isMaxReached = currentValue && Array.isArray(currentValue) && currentValue.length >= currentMaxCount;
+            const isSelected = currentValue.includes(option.value);
+            const isMaxReached = currentValue.length >= currentMaxCount;
+
             return {
                 ...option,
                 disabled: !isSelected && isMaxReached,
             };
         });
     }, []);
+
 
     const processedOptions = useMemo(() => {
         if (cachedOptions.length > 0) {
@@ -44,25 +50,21 @@ const SelectTerms = props => {
         return [];
     }, [cachedOptions, value, maxCount, applyDisableLogic]);
 
+    const hasError = useMemo(() => {
+        if (!required) return false;
+
+        return !value ||
+            (Array.isArray(value) && value.length === 0);
+    }, [value, required]);
+
     const handleChange = useCallback((selected) => {
         const isEmpty = !selected ||
-            (Array.isArray(selected) && selected.length === 0) ||
-            selected === '' ||
-            selected === null ||
-            selected === undefined;
+            (Array.isArray(selected) && selected.length === 0);
 
-        if (isEmpty) {
-            onChange(Array.isArray(value) ? [] : null);
-        } else {
-            onChange(selected);
-        }
+        const emptyValue = mode === 'multiple' ? [] : null;
 
-        if (required && isEmpty) {
-            setError(true);
-        } else {
-            setError(false);
-        }
-    }, [onChange, required, value]);
+        onChange(isEmpty ? emptyValue : selected);
+    }, [onChange, mode]);
 
     const displayValue = useMemo(() => {
         if (!value) return undefined;
@@ -82,7 +84,7 @@ const SelectTerms = props => {
             externalOptions={processedOptions.length > 0 ? processedOptions : null}
             allowClear={selectProps.allowClear || false}
             suffixIcon={suffixIcon}
-            status={error ? 'error' : undefined}
+            status={hasError ? 'error' : undefined}
             {...selectProps}
         />
     );

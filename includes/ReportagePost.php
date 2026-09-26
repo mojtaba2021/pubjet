@@ -38,6 +38,7 @@ class ReportagePost extends Singleton
     {
         $dt = new DateTime(date('Y-m-d H:i:s e'));
         $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
+        $dt->modify('+3 minutes');
         $current_time = $dt->format('Y-m-d H:i:s');
         return strtotime($post_date) > strtotime($current_time) ? 'future' : 'publish';
     }

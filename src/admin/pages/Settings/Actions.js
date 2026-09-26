@@ -46,6 +46,7 @@ export const doCheckToken = () => {
                 payload: {},
             },
             pricingPlans: [],
+            pricingPlansChanged: false,
         });
         return Promise.resolve({ success: false, error: 'No token' });
     }
@@ -87,6 +88,7 @@ export const doCheckToken = () => {
                         error: false,
                         payload: response.payload,
                     },
+                    pricingPlansChanged: false,
                 });
                 resolve(response);
             } else {

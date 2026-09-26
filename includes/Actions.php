@@ -24,12 +24,10 @@ class Actions extends Singleton
     {
         add_action("admin_menu", [$this, "registerMenu"], 15);
 //        add_action("admin_footer", [$this, "adminFooterScripts"], 15);
-        add_action("wp_head", [$this, "publishMissedSchedulePosts"], 15);
 //        add_action("wp_footer", [$this, "addScriptToReportage"], 15);
         add_action("admin_head", [$this, "pluginFont"], 15);
         add_action("wp_head", [$this, "alignReportageImagesCenter"], 15);
-        add_action('created_term', [$this, 'createCategory'], 15, 5);
-        add_action('delete_term', [$this, 'deleteCategory'], 15, 4);
+
         add_action('pubjet_new_reportage', [$this, 'reportageCustomFields'], 15, 2);
         add_action('upgrader_process_complete', [$this, 'syncSettingsAfterUpdate'], 15, 2);
         add_action('init', [$this, 'checkAndSendVersion'], 15);
@@ -67,6 +65,8 @@ class Actions extends Singleton
         add_action('save_post', [$this, 'clear_reportage_cdn_cache'], 10, 3);
         add_action('save_post', [$this, 'save_cdn_checkbox'],9);
         add_action('save_post', [$this, 'clearMetaCacheOnSave'], 10, 3);
+
+        add_action('pubjet_after_register_cron',[$this, 'cleanupPubjetRegisteredCrons'], 99, 1);
 
 
     }
@@ -368,13 +368,12 @@ class Actions extends Singleton
     public function syncSettingsAfterUpdate($upgrader_object, $options)
     {
         error_log("begin syncSettingsAfterUpdate");
-        if ( in_array( $options['action'], ['update', 'install'], true )
+        if (in_array($options['action'], ['update', 'install'], true)
             && $options['type'] === 'plugin'
-            && isset($options['plugins']) ) {
+            && isset($options['plugins'])) {
             foreach ($options['plugins'] as $plugin) {
                 if ($plugin === PUBJET_PLUGIN_BASE) {
                     pubjet_sync_settings();
-                    pubjet_sync_categories();
                     pubjet_delete_first_image_option();
                 }
             }
@@ -401,32 +400,6 @@ class Actions extends Singleton
             }
             update_post_meta($post_id, $item['name'], $item['value']);
         }
-    }
-
-    /**
-     * @return void
-     */
-    public function createCategory($term_id, $tt_id, $taxonomy, $args)
-    {
-        if ('category' !== $taxonomy) {
-            return;
-        }
-        $term = get_term_by('term_id', $term_id, $taxonomy);
-        if (!$term) {
-            return;
-        }
-        pubjet_sync_categories();
-    }
-
-    /**
-     * @return void
-     */
-    public function deleteCategory($term, $tt_id, $taxonomy, $deleted_term)
-    {
-        if ('category' !== $taxonomy) {
-            return;
-        }
-        pubjet_sync_categories();
     }
 
     /**
@@ -715,7 +688,31 @@ class Actions extends Singleton
         if (wp_is_post_autosave($post_id) || wp_is_post_revision($post_id)) {
             return;
         }
-        wp_cache_delete("pubjet_meta_$post_id", 'pubjet');
+        delete_transient("pubjet_meta_$post_id");
     }
+
+    /**
+     * Remove all Pubjet registered cron events in one pass.
+     *
+     * @return void
+     */
+    public function cleanupPubjetRegisteredCrons($registered_hooks){
+        if (get_option('pubjet_cron_cleanup_done')) {
+            return;
+        }
+
+        $cron = Cron::getInstance();
+        try {
+            $removed_hooks = $cron->removePubjetCrons(array_keys($registered_hooks));
+            if ($removed_hooks) {
+                update_option('pubjet_cron_cleanup_done', 1, false);
+                pubjet_log('[Pubjet Cron] Cleanup finished. Removed ' . count($removed_hooks) . ' hooks.');
+            }
+        } catch (\Exception $e) {
+            pubjet_log('[Pubjet Cron][ERROR] ' . $e->getMessage());
+            pubjet_log_sentry($e->getMessage(), ['hook_count' => count($registered_hooks),'function'   => __METHOD__,]);
+        }
+    }
+
 
 }

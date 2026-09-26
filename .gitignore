@@ -1,3 +1,16 @@
+node_modules/
+dist/
+build/
+.env
+.env.*
+private_key
+private_keys
+*.pem
+*.key
+/.vscode/
+/.idea/
+/.DS_Store
+vendor/
 # Project exclude paths
 /node_modules/
 /vendor/

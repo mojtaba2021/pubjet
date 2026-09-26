@@ -6,7 +6,7 @@
     Author URI:  https://triboon.net
     License: GPL v2 or later
     License URI: http://www.gnu.org/licenses/gpl-2.0.txt
-    Version: 5.4.3
+    Version: 5.4.6
 */
 
 use triboon\pubjet\includes\enums\EnumOldOptions;
@@ -33,7 +33,6 @@ if (!class_exists('Pubjet')) {
         public static function instance() {
             if (!isset(self::$instance) && !(self::$instance instanceof Pubjet)) {
                 self::$instance = new Pubjet();
-                self::$instance->loadTextDomain();
                 self::$instance->constants();
                 self::$instance->includes();
                 self::$instance->setupGlobals();
@@ -71,6 +70,7 @@ if (!class_exists('Pubjet')) {
         private function init() {
             register_activation_hook(__FILE__, [$this, 'onActivation']);
             register_deactivation_hook(__FILE__, [$this, 'onDeactivation']);
+            add_action('init', [$this, 'loadTextDomain'], 5);
             add_action('plugins_loaded', [$this, 'onPluginLoaded'], 15);
         }
 
@@ -160,10 +160,10 @@ if (!class_exists('Pubjet')) {
          * @author Triboon
          */
         public function getScriptsVersion() {
-            if (!function_exists('get_plugin_data')) {
+            if (!function_exists('get_file_data')) {
                 require_once(ABSPATH . 'wp-admin/includes/plugin.php');
             }
-            $plugin_data = get_plugin_data(__FILE__);
+            $plugin_data = get_file_data( __FILE__, ['Version' => 'Version'], 'plugin' );
 
             return (defined('WP_ENVIRONMENT') && "development" === WP_ENVIRONMENT) ? time() : $plugin_data['Version'];
         }
@@ -174,7 +174,7 @@ if (!class_exists('Pubjet')) {
          * @return mixed
          */
         public function getVersion() {
-            $plugin_data = get_plugin_data(__FILE__);
+            $plugin_data = get_file_data( __FILE__, ['Version' => 'Version'], 'plugin' );
             return $plugin_data['Version'];
         }
 
@@ -264,7 +264,6 @@ if (!class_exists('Pubjet')) {
             $GLOBALS['pubjet_options']  = $GLOBALS['pubjet_settings'];
         }
 
-
         /**
          * @return void
          * @since  5.3.0
@@ -279,7 +278,6 @@ if (!class_exists('Pubjet')) {
             if ($stored_version !== $current_version) {
 
                 pubjet_sync_settings();
-//                pubjet_sync_categories();
                 pubjet_delete_first_image_option();
 
                 $pubjet_settings[EnumOptions::ActivationVersion] = $current_version;

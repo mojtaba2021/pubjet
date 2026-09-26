@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Pubjet | پاب‌جت\n"
-"POT-Creation-Date: 2025-06-08 10:26+0330\n"
-"PO-Revision-Date: 2025-06-08 10:27+0330\n"
+"POT-Creation-Date: 2025-12-14 12:08+0330\n"
+"PO-Revision-Date: 2025-12-14 12:09+0330\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fa\n"
@@ -120,10 +120,16 @@ msgstr ""
 "خود نمایش دهید"
 
 #: includes/functions.php:896
+#, fuzzy
+#| msgid "Backlinks"
+msgid "Backlink Plans"
+msgstr "بک لینک"
+
+#: includes/functions.php:897
 msgid "Use Google Translate for English Slug"
 msgstr "انگلیسی کردن پیوند یکتا"
 
-#: includes/functions.php:897
+#: includes/functions.php:898
 msgid ""
 "By default, the URL of the reportage post is generated from the reportage title "
 "in Persian, if you want to use the Google Translate service to English the slug "
@@ -134,27 +140,27 @@ msgstr ""
 "می‌خواهید از سرویس ترجمه گوگل برای انگلیسی کردن اسلاگ و آدرس نوشته رپورتاژ استفاده "
 "کنید، می‌توانید این گزینه را فعال کنید."
 
-#: includes/functions.php:898
+#: includes/functions.php:899
 msgid "Version"
 msgstr "نسخه"
 
-#: includes/functions.php:899
+#: includes/functions.php:900
 msgid "Username"
 msgstr "نام کاربری"
 
-#: includes/functions.php:900
+#: includes/functions.php:901
 msgid "Display Name"
 msgstr "نام نمایشی"
 
-#: includes/functions.php:901
+#: includes/functions.php:902
 msgid "Author Name"
 msgstr "نام نویسنده"
 
-#: includes/functions.php:902
+#: includes/functions.php:903
 msgid "Manual Approve"
 msgstr "تایید و انتشار دستی رپورتاژ"
 
-#: includes/functions.php:903
+#: includes/functions.php:904
 msgid "Enable this option if you want to review the reportage manually after review"
 msgstr ""
 "به‌طور پیش‌فرض، پابجت رپورتاژها را به‌صورت خودکار و لحظه‌ای در سایت منتشر می‌کند. در "
@@ -163,7 +169,7 @@ msgstr ""
 "به‌صورت \"در انتظار بررسی\" قرار می‌گیرد و شما فرصت خواهید داشت تا محتوا را بررسی، "
 "اصلاح و در نهایت به‌صورت دستی در سایت منتشر کنید."
 
-#: includes/functions.php:904
+#: includes/functions.php:905
 msgid ""
 "This feature is useful when you want to make Pubjet compatible with other plugins "
 "that perform actions on the text menu. By using this feature, users can easily "
@@ -177,47 +183,47 @@ msgstr ""
 "متادیتاهای خاصی را به رپورتاژها اضافه کنند. این امکان باعث بهبود یکپارچگی و "
 "هماهنگی بین افزونه‌ها شده و مدیریت محتوا را ساده‌تر و کارآمدتر می‌کند."
 
-#: includes/functions.php:905
+#: includes/functions.php:906
 msgid "Save"
 msgstr "ذخیره کردن"
 
-#: includes/functions.php:906
+#: includes/functions.php:907
 msgid "Delete"
 msgstr "حذف"
 
-#: includes/functions.php:907
+#: includes/functions.php:908
 msgid "Actions"
 msgstr "عملیات"
 
-#: includes/functions.php:908
+#: includes/functions.php:909
 msgid "Key Name"
 msgstr "نام متا کلید"
 
-#: includes/functions.php:909
+#: includes/functions.php:910
 msgid "Key Value"
 msgstr "مقدار متا کلید"
 
-#: includes/functions.php:910
+#: includes/functions.php:911
 msgid "Defining Custom Metakeys for Posts"
 msgstr "افزودن متاکلیدهای سفارشی"
 
-#: includes/functions.php:911
+#: includes/functions.php:912
 msgid "Add Metakey"
 msgstr "افزودن کلید"
 
-#: includes/functions.php:912
+#: includes/functions.php:913
 msgid "Metakeys"
 msgstr "تعریف متا کلید‌ها"
 
-#: includes/functions.php:913
+#: includes/functions.php:914
 msgid "Delete First Image"
 msgstr "حذف کردن اولین عکس رپورتاژ"
 
-#: includes/functions.php:914
+#: includes/functions.php:915
 msgid "Align Center Images"
 msgstr "وسط چین کردن تصاویر"
 
-#: includes/functions.php:915
+#: includes/functions.php:916
 msgid ""
 "If you want all the images in the reports to be displayed in the middle of the "
 "fold, activate this option. Please note that this option is only applied to "
@@ -227,196 +233,204 @@ msgstr ""
 "شوند این گزینه را فعال کنید. دقت کنید که این گزینه فقط بر روی رپورتاژ ها اعمال می "
 "شود و از سایر نوشته ها صرف نظر می شود."
 
-#: includes/functions.php:916
+#: includes/functions.php:917
 msgid "Plan Name"
 msgstr "پلن"
 
-#: includes/functions.php:917
+#: includes/functions.php:918
 msgid "Category"
 msgstr "دسته‌بندی"
 
-#: includes/functions.php:918
+#: includes/functions.php:919
 msgid "Pricing Plans"
 msgstr "لیست پلن ها"
 
-#: includes/functions.php:919
+#: includes/functions.php:920
 msgid "Plans Categories"
 msgstr "دسته بندی به ازای پلن"
 
-#: includes/functions.php:920
+#: includes/functions.php:921
 msgid "Check Token"
 msgstr "بررسی توکن"
 
-#: includes/functions.php:921
+#: includes/functions.php:922
+msgid "Checking Token"
+msgstr "درحال بررسی توکن"
+
+#: includes/functions.php:923
 msgid "Default Category"
 msgstr "دسته‌بندی پیش‌فرض"
 
-#: includes/functions.php:922
+#: includes/functions.php:924
 msgid "Access Token"
 msgstr "توکن دسترسی تریبون"
 
-#: includes/functions.php:923
+#: includes/functions.php:925
 msgid "Congratulations !"
 msgstr "تبریک !"
 
-#: includes/functions.php:924
+#: includes/functions.php:926
 msgid "The Access Token is Valid"
 msgstr "توکن دسترسی صحیح است"
 
-#: includes/functions.php:925
+#: includes/functions.php:927
 msgid "The Access Token is Invalid"
 msgstr "توکن دسترسی صحیح نیست"
 
-#: includes/functions.php:926
+#: includes/functions.php:928
 msgid "The Access Token cannot be Empty"
 msgstr "توکن دسترسی نمی تواند خالی باشد"
 
 #. Plugin Name of the plugin/theme
-#: includes/functions.php:927
+#: includes/functions.php:929
 msgid "Pubjet"
 msgstr "پابجت"
 
-#: includes/functions.php:928
+#: includes/functions.php:930
 msgid "Reportage"
 msgstr "رپورتاژ"
 
-#: includes/functions.php:929
+#: includes/functions.php:931
+msgid "Triboon Reportage"
+msgstr "رپورتاژ تریبون"
+
+#: includes/functions.php:932
 msgid "Enable"
 msgstr "فعال سازی"
 
-#: includes/functions.php:930
+#: includes/functions.php:933
 msgid "Disable"
 msgstr "غیرفعال سازی"
 
-#: includes/functions.php:931
+#: includes/functions.php:934
 msgid "Copy"
 msgstr "کپی کردن"
 
-#: includes/functions.php:932
+#: includes/functions.php:935
 msgid "Copied !"
 msgstr "کپی شد !"
 
-#: includes/functions.php:933
+#: includes/functions.php:936
 msgid "Clearing Plugin Data After Deletion"
 msgstr "پاک‌سازی اطلاعات افزونه پس از حذف"
 
-#: includes/functions.php:934
+#: includes/functions.php:937
 msgid "No"
 msgstr "خیر"
 
-#: includes/functions.php:935
+#: includes/functions.php:938
 msgid "Yes"
 msgstr "بله"
 
-#: includes/functions.php:936
+#: includes/functions.php:939
 msgid "Delete Log"
 msgstr "حذف فایل لاگ"
 
-#: includes/functions.php:937
+#: includes/functions.php:940
 msgid "Are you sure to delete the log file?"
 msgstr "آیا از حذف فایل لاگ مطمئن هستید ؟"
 
-#: includes/functions.php:938
+#: includes/functions.php:941
 msgid "Refresh"
 msgstr "بارگذاری مجدد"
 
-#: includes/functions.php:939
+#: includes/functions.php:942
 msgid "Refresh Data"
 msgstr "بارگذاری مجدد"
 
-#: includes/functions.php:940
+#: includes/functions.php:943
 msgid "An error has occurred. Try again"
 msgstr "خطایی رخ داده است. مجددا تلاش کنید"
 
-#: includes/functions.php:941
+#: includes/functions.php:944
 msgid "Post not found"
 msgstr "نوشته پیدا نشد"
 
-#: includes/functions.php:942
+#: includes/functions.php:945
 msgid "Reportage not found"
 msgstr "رپورتاژ پیدا نشد"
 
-#: includes/functions.php:943
+#: includes/functions.php:946
 msgid "Unfortunately, the operation was not done. This post is not a reportage"
 msgstr "متاسفانه عملیات انجام نشد. این نوشته رپورتاژ نیست"
 
-#: includes/functions.php:944
+#: includes/functions.php:947
 msgid "Error deleting file. File deletion access is restricted from the host side"
 msgstr "خطا در حذف فایل. دسترسی حذف فایل از سمت هاست محدود شده است"
 
-#: includes/functions.php:945
+#: includes/functions.php:948
 msgid "Some required parameters were not sent with the request"
 msgstr "برخی از پارامترهای الزامی همراه با درخواست ارسال نشده است"
 
-#: includes/functions.php:946
+#: includes/functions.php:949
 msgid "You do not have access to perform this operation"
 msgstr "شما دسترسی لازم برای انجام این عملیات را ندارید"
 
-#: includes/functions.php:947
+#: includes/functions.php:950
 msgid "Please enter the access token in the pubjet plugin settings menu"
 msgstr "لطفا توکن دسترسی را در منوی تنظیمات افزونه پاب جت وارد کنید"
 
-#: includes/functions.php:948
+#: includes/functions.php:951
 msgid "The http request method is wrong"
 msgstr "متد ارسالی درخواست مجاز نیست"
 
-#: includes/functions.php:949
+#: includes/functions.php:952
 msgid "The content of the reportage is empty"
 msgstr "محتوای رپورتاژ خالی است"
 
-#: includes/functions.php:950
+#: includes/functions.php:953
 msgid "General"
 msgstr "عمومی"
 
-#: includes/functions.php:951
+#: includes/functions.php:954
 msgid "Debugging"
 msgstr "خطایابی"
 
-#: includes/functions.php:952
+#: includes/functions.php:955
 msgid "Enable Debugging"
 msgstr "فعال‌سازی حالت خطایابی"
 
-#: includes/functions.php:953
+#: includes/functions.php:956
 msgid "Advanced"
 msgstr "پیشرفته"
 
-#: includes/functions.php:954
+#: includes/functions.php:957
 msgid "Saved !"
 msgstr "ذخیره شد !"
 
-#: includes/functions.php:955
+#: includes/functions.php:958
 msgid "Pubjet :: Reportage Data"
 msgstr "پابجت :: اطلاعات رپورتاژ"
 
-#: includes/functions.php:956
+#: includes/functions.php:959
 msgid "Pubjet :: Reportage Options"
 msgstr "پابجت :: تنظیمات رپورتاژ"
 
-#: includes/functions.php:957
+#: includes/functions.php:960
 msgid "Enable NoFollow Links"
 msgstr "فعال سازی لینک های NoFollow"
 
-#: includes/functions.php:958
+#: includes/functions.php:961
 msgid "Please Wait ..."
 msgstr "منتظر بمانید ..."
 
-#: includes/functions.php:959
+#: includes/functions.php:962
 msgid "Modules"
 msgstr "ماژول‌ها"
 
-#: includes/functions.php:960
+#: includes/functions.php:963
 msgid "cUrl"
 msgstr ""
 
-#: includes/functions.php:961
+#: includes/functions.php:964
 msgid "OpenSSL"
 msgstr ""
 
-#: includes/functions.php:962
+#: includes/functions.php:965
 msgid "Required Modules"
 msgstr "ماژول های الزامی"
 
-#: includes/functions.php:963
+#: includes/functions.php:966
 msgid ""
 "Pubjet plugin requires the activation of the following modules for its proper "
 "functioning. If any of the following items are not active, ask your hosting "
@@ -426,27 +440,27 @@ msgstr ""
 "بودن هر یک از این ماژول‌ها، لطفاً از پشتیبانی هاست خود درخواست کنید تا آن‌ها را برای "
 "شما فعال نمایند."
 
-#: includes/functions.php:964
+#: includes/functions.php:967
 msgid "Check  Now"
 msgstr "بررسی مجدد"
 
-#: includes/functions.php:965
+#: includes/functions.php:968
 msgid "Update Settings"
 msgstr "بروزرسانی تنظیمات"
 
-#: includes/functions.php:966
+#: includes/functions.php:969
 msgid "Settings saved successfully"
 msgstr "تنظیمات با موفقیت ذخیره شد"
 
-#: includes/functions.php:967
+#: includes/functions.php:970
 msgid "Gateway 504 error"
 msgstr ""
 
-#: includes/functions.php:968
+#: includes/functions.php:971
 msgid "Pubjet Token"
 msgstr "توکن دسترسی پابجت"
 
-#: includes/functions.php:969
+#: includes/functions.php:972
 msgid ""
 "Pubjet plugin needs an access token to work properly. Please enter the access "
 "token in the plugin settings."
@@ -454,15 +468,15 @@ msgstr ""
 "افزونه پابجت  برای کارکرد درست و صحیح خود نیاز به توکن دسترسی دارد. لطفا در قسمت "
 "تنظیمات افزونه توکن دسترسی را وارد کنید."
 
-#: includes/functions.php:970
+#: includes/functions.php:973
 msgid "Remindme Later"
 msgstr "بعدا یادآوری کن"
 
-#: includes/functions.php:971
+#: includes/functions.php:974
 msgid "Permanent Hide"
 msgstr "دیگر نمایش نده!"
 
-#: includes/functions.php:972
+#: includes/functions.php:975
 msgid ""
 "By default, all your categories are sent to Triboon to determine the reportage "
 "category correctly. If you only want the reportage to be published in certain "
@@ -472,23 +486,23 @@ msgstr ""
 "تریبون ارسال می‌شوند. اگر می‌خواهید رپورتاژها تنها در دسته‌بندی‌های مشخصی منتشر شوند، "
 "می‌توانید دسته‌بندی‌های مورد نظر خود را در این بخش انتخاب کنید."
 
-#: includes/functions.php:973
+#: includes/functions.php:976
 msgid "Categories"
 msgstr "دسته بندی"
 
-#: includes/functions.php:974
+#: includes/functions.php:977
 msgid "Sync Categories"
 msgstr "همگام‌سازی دسته‌بندی‌ها"
 
-#: includes/functions.php:975
+#: includes/functions.php:978
 msgid "Synchronize"
 msgstr "همگام سازی"
 
-#: includes/functions.php:976
+#: includes/functions.php:979
 msgid "Select Reportage Post Author"
 msgstr "تعیین نویسنده برای رپورتاژ"
 
-#: includes/functions.php:977
+#: includes/functions.php:980
 msgid ""
 "By default, when Pabjet publishes a reportage on your website, it uses the "
 "account of the site administrator as the author of the reportage, if you want to "
@@ -497,20 +511,20 @@ msgstr ""
 "اگر مایلید نویسنده‌ای خاص برای همه‌ی دسته‌بندی‌ها در نظر گرفته شود، می‌توانید نام "
 "نویسنده را در این قسمت مشخص کنید."
 
-#: includes/functions.php:978
+#: includes/functions.php:981
 msgid "Add author for Category"
 msgstr "افزودن نویسنده به دسته‌بندی"
 
-#: includes/functions.php:979
+#: includes/functions.php:982
 msgid "Add source domain at the bottom of the reportage"
 msgstr "افزودن منبع خبر برای رپورتاژ"
 
-#: includes/functions.php:980
+#: includes/functions.php:983
 msgid "You can assign a specific author to each report category."
 msgstr ""
 "همچنین شما می‌توانید برای هر دسته‌بندی از رپورتاژها، نویسنده‌ای اختصاصی تعیین کنید."
 
-#: includes/functions.php:981
+#: includes/functions.php:984
 #, php-format
 msgid ""
 "Pubjet version %s has been released. This version includes performance "
@@ -520,11 +534,11 @@ msgstr ""
 "نسخه‌ی %s پابجت به‌همراه بهبودهای عملکردی در دسترس قرار گرفت. برای بهره‌مندی از "
 "جدیدترین ویژگی‌ها و بهبودها، لطفاً افزونه خود را به‌روزرسانی کنید."
 
-#: includes/functions.php:982
+#: includes/functions.php:985
 msgid "A new version of Pubjet has been released!"
 msgstr "نسخه جدید پابجت منتشر شد!"
 
-#: includes/functions.php:983
+#: includes/functions.php:986
 #, php-format
 msgid ""
 "The number of categories that can be selected for synchronization exceeds the "
@@ -532,15 +546,15 @@ msgid ""
 msgstr ""
 "تعداد دسته بندی های قابل انتخاب جهت همگام سازی بیش از حد مجاز (%s مورد ) است."
 
-#: includes/functions.php:984
+#: includes/functions.php:987
 msgid "Sync categories cannot be empty."
 msgstr "همگام سازی دسته بندی ها نمی تواند خالی باشد."
 
-#: includes/functions.php:985
+#: includes/functions.php:988
 msgid "Default category cannot be empty."
 msgstr "دسته بندی پیش فرض نمی تواند خالی باشد."
 
-#: includes/functions.php:986
+#: includes/functions.php:989
 msgid ""
 "By enabling this option, Pubjet's performance history will be saved. In the event "
 "of an error, you can share this information with Triboon's technical team to make "
@@ -550,7 +564,7 @@ msgstr ""
 "می‌توانید این اطلاعات را با تیم فنی تریبون به اشتراک بگذارید تا روند خطایابی و رفع "
 "مشکل سریع‌تر و دقیق‌تر انجام شود."
 
-#: includes/functions.php:987
+#: includes/functions.php:990
 msgid ""
 "By activating this option, if the customer has not included a featured image, the "
 "first image of the report will be removed from the text and considered as the "
@@ -559,7 +573,7 @@ msgstr ""
 "با فعال‌سازی این گزینه، در صورتی که مشتری تصویر شاخص را درج نکرده باشد، تصویر اول "
 "رپورتاژ از متن حذف شده و به‌عنوان تصویر شاخص در نظر گرفته می‌شود."
 
-#: includes/functions.php:988
+#: includes/functions.php:991
 msgid ""
 "By activating this option, the link that is most frequently repeated in the "
 "report will be included as the root domain (main domain) as the news source at "
@@ -568,7 +582,7 @@ msgstr ""
 "با فعال‌سازی این گزینه، لینکی که بیشترین تکرار را در رپورتاژ دارد، به‌صورت روت "
 "دامین (دامنه اصلی) به‌عنوان منبع خبر در انتهای مطلب درج می‌شود."
 
-#: includes/functions.php:989
+#: includes/functions.php:992
 msgid ""
 "By default, reportage articles are published on the site without the author's "
 "name. If you would like a specific author to be considered for these articles, "
@@ -578,18 +592,18 @@ msgstr ""
 "نویسنده‌ای خاص برای این مطالب در نظر گرفته شود، می‌توانید نام نویسنده را در این "
 "قسمت مشخص کنید."
 
-#: includes/functions.php:990
+#: includes/functions.php:993
 msgid ""
 "By enabling this option, all Pubjet settings will be completely erased after "
 "uninstalling Pubjet."
 msgstr ""
 "با فعال‌سازی این گزینه، پس از حذف پابجت، تمام تنظیمات، به‌طور کامل پاک می‌شوند."
 
-#: includes/functions.php:991
+#: includes/functions.php:994
 msgid "Publish advertorials without tags"
 msgstr "انتشار رپورتاژ بدون برچسب"
 
-#: includes/functions.php:992
+#: includes/functions.php:995
 msgid ""
 "By default, advertorials are published with customer-suggested tags. By enabling "
 "this option, advertorials will be published without tags."
@@ -597,12 +611,12 @@ msgstr ""
 "به‌طور پیش‌فرض، رپورتاژها همراه با تگ‌های پیشنهادی مشتریان منتشر می‌شوند. با فعال‌سازی "
 "این گزینه، رپورتاژها بدون درج تگ‌ها منتشر خواهند شد."
 
-#: includes/functions.php:993
+#: includes/functions.php:996
 #, php-format
 msgid "%s pricing plan category cannot be empty."
 msgstr "دسته بندی  %s نمی تواند خالی باشد."
 
-#: includes/functions.php:994
+#: includes/functions.php:997
 #, php-format
 msgid ""
 "The number of categories that can be selected for pricing plans exceeds the "
@@ -610,19 +624,19 @@ msgid ""
 msgstr ""
 "تعداد دسته بندی های قابل انتخاب جهت همگام سازی بیش از حد مجاز (%s مورد ) است."
 
-#: includes/functions.php:995
+#: includes/functions.php:998
 msgid "No pricing plans available!"
 msgstr "لیست پلن ها خالی است!"
 
-#: includes/functions.php:996
+#: includes/functions.php:999
 msgid "To connect Pubjet to the platform, enter pricing plan categories."
 msgstr "جهت اتصال پابجت به تریبون دسته بندی پلن ها را وارد کنید."
 
-#: includes/functions.php:997
+#: includes/functions.php:1000
 msgid "Please specify the category for each plan in the General tab."
 msgstr "لطفا دسته‌بندی به‌ازای هر پلن را در تب عمومی مشخص کنید."
 
-#: pubjet.php:53 pubjet.php:63
+#: pubjet.php:52 pubjet.php:62
 msgid "Cheatin&#8217; huh?"
 msgstr ""
 
