@@ -16,3 +16,5 @@ vendor/
 /vendor/
 debug.txt
 .idea
+/assets/css/
+/assets/js/
