@@ -893,8 +893,6 @@ function pubjet_strings() {
         'backlinks-position'         => esc_html__('Backlinks Position', 'pubjet'),
         'pubjet-backlinks'           => esc_html__('Pubjet Backlinks', 'pubjet'),
         'pubjet-backlinks-hints'     => esc_html__('Using this widget, you can display backlinks in different parts of your website', 'pubjet'),
-        'use-google-translate'       => esc_html__('Use Google Translate for English Slug', 'pubjet'),
-        'use-google-translate-hints' => esc_html__('By default, the URL of the reportage post is generated from the reportage title in Persian, if you want to use the Google Translate service to English the slug and the URL, activate this option. Please note that activating this option will reduce the speed of publishing the reportage.', 'pubjet'),
         'version'                    => esc_html__('Version', 'pubjet'),
         'username'                   => esc_html__('Username', 'pubjet'),
         'displayname'                => esc_html__('Display Name', 'pubjet'),
@@ -1418,7 +1416,6 @@ function pubjet_default_settings() {
         'manualApprove'            => false,
         'publisherCategory'        => false,
         'addReportageTags'         => false,
-        'useGoogleTranslate'       => false,
         'processDataByQueryString' => false,
         'pricingPlansChanged'      => false
     ]);

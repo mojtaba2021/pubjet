@@ -6,7 +6,6 @@ if (!defined("ABSPATH")) exit;
 
 use DateTime;
 use DateTimeZone;
-use Statickidz\GoogleTranslate;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 use triboon\pubjet\includes\enums\EnumPostStatus;
 
@@ -138,7 +137,6 @@ class ReportagePost extends Singleton
             'post_status' => 'future' === $post_status ? $post_status : EnumPostStatus::Publish,
             'post_content' => $post_content['content'] ?? '',
             'post_excerpt' => $post_excerpt ?? '',
-            'post_name' => sanitize_text_field(self::get_post_name($reportage)),
             'tags_input' => isset($reportage->tags) && is_array($reportage->tags) ? map_deep($reportage->tags, 'sanitize_text_field') : [],
             'post_category' => (int)$def_category > 0 ? [intval($def_category)] : '',
             'meta_input' => [
@@ -261,15 +259,9 @@ class ReportagePost extends Singleton
      */
     public static function get_post_name($reportage)
     {
-        global $pubjet_settings;
-        $post_name = $reportage->title;
-        // Use Google Translate service for translating post title
-        $use_google_translate = pubjet_isset_value($pubjet_settings['useGoogleTranslate']);
-        if ($use_google_translate) {
-            $trans = new GoogleTranslate();
-            $post_name = $trans->translate('fa', 'en', $reportage->title);
-            return sanitize_title_with_dashes($post_name, '', 'save');
-        }
+        // Legacy compatibility: English slug generation is intentionally disabled.
+        // Let WordPress generate the slug from the title to avoid conflicts with
+        // external translation services and duplicate publish behavior.
         return false;
     }
 

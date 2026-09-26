@@ -1,9 +1,9 @@
 === Pubjet | پاب‌جت ===
 Contributors: mojtabam2021
 Tags: seo,reportage
-Stable tag: 5.4.6
-Tested up to: 6.8.1
-Requires PHP: 7.2.5
+Stable tag: 5.4.7
+Tested up to: 7.1
+Requires PHP: 7.4
 License: GPL v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -49,6 +49,10 @@ After installing and activating the plugin, go to Pubjet settings menu and enter
 لطفا اگه از نسخه های قبل از 2.7.1 استفاده می کنید، پس از بروزرسانی به نسخه جدید یکبار تنظیمات توکن را مجددا انجام دهید.
 
 == Changelog ==
+
+= 5.4.7 =
+* حذف انگلیسی‌سازی اسلاگ رپورتاژ
+* بهبود کلاس‌بندی و استایل رپورتاژ
 
 = 5.4.6 =
 * ریفکتور و بهینه سازی مدیریت کرون‌ها
