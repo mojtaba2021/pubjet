@@ -692,26 +692,32 @@ class Actions extends Singleton
     }
 
     /**
-     * Remove all Pubjet registered cron events in one pass.
+     * Remove all Pubjet registered cron events in one pass (runs only once per site).
      *
+     * @param array $registered_hooks [hook_name => schedule]
      * @return void
      */
-    public function cleanupPubjetRegisteredCrons($registered_hooks){
+    public function cleanupPubjetRegisteredCrons($registered_hooks)
+    {
         if (get_option('pubjet_cron_cleanup_done')) {
             return;
         }
 
-        $cron = Cron::getInstance();
+        $hook_names = is_array($registered_hooks) ? array_keys($registered_hooks) : [];
+
         try {
-            $removed_hooks = $cron->removePubjetCrons(array_keys($registered_hooks));
-            if ($removed_hooks) {
-                update_option('pubjet_cron_cleanup_done', 1, false);
-                pubjet_log('[Pubjet Cron] Cleanup finished. Removed ' . count($removed_hooks) . ' hooks.');
-            }
-        } catch (\Exception $e) {
+            $removed = Cron::getInstance()->removePubjetCrons($hook_names);
+            pubjet_log('[Pubjet Cron] Cleanup finished. ' . ($removed ? 'Removed hooks: ' . implode(', ', $hook_names) : 'Nothing to remove.'));
+        } catch (\Throwable $e) {
             pubjet_log('[Pubjet Cron][ERROR] ' . $e->getMessage());
-            pubjet_log_sentry($e->getMessage(), ['hook_count' => count($registered_hooks),'function'   => __METHOD__,]);
+            pubjet_log_sentry($e->getMessage(), [
+                'hook_count' => count($hook_names),
+                'function'   => __METHOD__,
+            ]);
         }
+
+        // Mark as done in every case, so this never runs (or fails) on every request.
+        update_option('pubjet_cron_cleanup_done', 1, false);
     }
 
 
