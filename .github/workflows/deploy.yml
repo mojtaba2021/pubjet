@@ -165,7 +165,7 @@ jobs:
     env:
       # Version currently live on wordpress.org that customers update FROM.
       # Change this after every release.
-      PREV_VERSION: '5.4.6'
+      PREV_VERSION: '5.4.8'
     services:
       mysql:
         image: mysql:8.0
