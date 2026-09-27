@@ -13,14 +13,14 @@ jobs:
   # ------------------------------------------------------------------
   compat:
     name: PHP ${{ matrix.php }} compatibility
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         php: ['7.4', '8.0', '8.2', '8.3']
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -51,10 +51,10 @@ jobs:
   # ------------------------------------------------------------------
   build-and-zip:
     needs: compat
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -63,7 +63,7 @@ jobs:
           tools: composer:v2
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '20'
           cache: 'npm'
@@ -96,31 +96,55 @@ jobs:
           # Files go inside a "pubjet/" folder so that installing the ZIP
           # from wp-admin replaces the existing plugin instead of creating a new one.
           mkdir -p build/pubjet
+          # IMPORTANT: every pattern starts with "/" so it only matches at the
+          # repository root. Without it, "src/" would also delete vendor/*/src
+          # (Sentry, Guzzle, ...) and break the plugin.
           rsync -a ./ build/pubjet/ \
-            --exclude=".git*" \
-            --exclude=".github/" \
-            --exclude="build/" \
-            --exclude="node_modules/" \
-            --exclude="src/" \
-            --exclude="version" \
-            --exclude="debug.txt" \
-            --exclude=".idea/" \
-            --exclude=".editorconfig" \
-            --exclude="composer.json" \
-            --exclude="composer.lock" \
-            --exclude="package.json" \
-            --exclude="package-lock.json" \
-            --exclude=".babelrc" \
-            --exclude="webpack.dev.js" \
-            --exclude="webpack.prod.js"
+            --exclude="/.git/" \
+            --exclude="/.gitignore" \
+            --exclude="/.gitattributes" \
+            --exclude="/.github/" \
+            --exclude="/build/" \
+            --exclude="/node_modules/" \
+            --exclude="/src/" \
+            --exclude="/version" \
+            --exclude="/debug.txt" \
+            --exclude="/.idea/" \
+            --exclude="/.editorconfig" \
+            --exclude="/composer.json" \
+            --exclude="/composer.lock" \
+            --exclude="/package.json" \
+            --exclude="/package-lock.json" \
+            --exclude="/.babelrc" \
+            --exclude="/webpack.dev.js" \
+            --exclude="/webpack.prod.js"
 
           cd build
           zip -qr "$ZIP_FILE" pubjet
           echo "ZIP created: $ZIP_FILE"
           echo "zip_file=build/$ZIP_FILE" >> "$GITHUB_OUTPUT"
 
+      # Test the FINAL ZIP itself (what customers will install), not the working directory.
+      - name: Verify the built ZIP
+        run: |
+          rm -rf /tmp/zipcheck && mkdir /tmp/zipcheck
+          unzip -q "${{ steps.create-zip.outputs.zip_file }}" -d /tmp/zipcheck
+          cd /tmp/zipcheck/pubjet
+          test -f pubjet.php || { echo "::error::pubjet.php not at pubjet/ root"; exit 1; }
+          # every file Composer loads on startup must exist
+          php -r '
+            require "vendor/autoload.php";
+            foreach (["Sentry\\SentrySdk", "Sentry\\ClientBuilder", "GuzzleHttp\\Psr7\\Request",
+                      "Psr\\Log\\LoggerInterface", "Symfony\\Component\\OptionsResolver\\OptionsResolver"] as $c) {
+              if (!class_exists($c) && !interface_exists($c)) { fwrite(STDERR, "Missing class: $c\n"); exit(1); }
+            }
+            echo "ZIP autoload OK on PHP " . PHP_VERSION . PHP_EOL;
+          '
+          find . -name "*.php" -print0 | xargs -0 -n1 -P4 php -l > /dev/null
+          echo "Files in ZIP: $(find . -type f | wc -l)"
+
       - name: Upload ZIP as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pubjet-dev-zip
           path: ${{ steps.create-zip.outputs.zip_file }}
