@@ -52,6 +52,7 @@ After installing and activating the plugin, go to Pubjet settings menu and enter
 
 = 5.4.8 =
 * رفع خطای Composer روی سایت‌های با PHP 7.4 (سازگاری وابستگی‌ها با PHP 7.4)
+* رفع خطای TypeError در پاک‌سازی کرون‌ها روی PHP 8
 
 = 5.4.7 =
 * حذف انگلیسی‌سازی اسلاگ رپورتاژ
