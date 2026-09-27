@@ -1,62 +1,124 @@
 name: Build Plugin and Create Clean ZIP
+
 on:
   push:
     branches:
       - dev
+  workflow_dispatch:
+
 jobs:
-  build-and-zip:
+  # ------------------------------------------------------------------
+  # 1) Test on every supported PHP version.
+  #    If anything fails here, no ZIP is built.
+  # ------------------------------------------------------------------
+  compat:
+    name: PHP ${{ matrix.php }} compatibility
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.0', '8.2', '8.3']
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v4
+
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: ${{ matrix.php }}
           tools: composer:v2
-      
+
+      - name: Install PHP Dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+      - name: PHP syntax check
+        run: |
+          find . -name "*.php" \
+            -not -path "./node_modules/*" \
+            -not -path "./vendor/*/tests/*" \
+            -not -path "./vendor/*/Tests/*" \
+            -not -path "./vendor/*/Resources/stubs/*" \
+            -print0 | xargs -0 -n1 -P4 php -l > /dev/null
+
+      # This is exactly what a customer's site does when it loads the plugin.
+      # If vendor/composer/platform_check.php demands a newer PHP, it fails here.
+      - name: Autoload / Composer platform check
+        run: php -r "require 'vendor/autoload.php'; echo 'Autoload OK on PHP ' . PHP_VERSION . PHP_EOL;"
+
+  # ------------------------------------------------------------------
+  # 2) Build the release ZIP on the MINIMUM supported PHP (7.4),
+  #    only after all compatibility tests pass.
+  # ------------------------------------------------------------------
+  build-and-zip:
+    needs: compat
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer:v2
+
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
+          cache: 'npm'
+
       - name: Install PHP Dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+      - name: Verify platform check does not require PHP 8
         run: |
-          composer clear-cache
-          composer install --no-dev --optimize-autoloader
-      
+          php -r "require 'vendor/autoload.php'; echo 'Autoload OK' . PHP_EOL;"
+          if grep -q "PHP_VERSION_ID >= 80" vendor/composer/platform_check.php; then
+            echo "::error::vendor/composer/platform_check.php requires PHP 8+"
+            cat vendor/composer/platform_check.php
+            exit 1
+          fi
+
       - name: Install Node.js Dependencies
-        run: npm install
-      
+        run: npm ci
+
       - name: Build Assets with Webpack
         run: npm run build
-      
+
       - name: Create Clean ZIP of Plugin
         id: create-zip
         run: |
-          ZIP_FILE="pubjet-$(date +'%Y%m%d%H%M%S').zip"
+          VERSION=$(grep -m1 -i "Version:" pubjet.php | awk '{print $2}' | tr -d '\r')
+          ZIP_FILE="pubjet-${VERSION}-$(date +'%Y%m%d%H%M%S').zip"
           echo "Creating ZIP: $ZIP_FILE"
-          zip -r "$ZIP_FILE" . \
-            -x ".git*" \
-            -x ".github/*" \
-            -x "node_modules/*" \
-            -x "src/*" \
-            -x "version" \
-            -x "debug.txt" \
-            -x ".idea/*" \
-            -x ".editorconfig" \
-            -x "composer.json" \
-            -x "composer.lock" \
-            -x ".gitignore" \
-            -x "package.json" \
-            -x "package-lock.json" \
-            -x ".babelrc" \
-            -x "webpack.dev.js" \
-            -x "webpack.prod.js"
+
+          # Files go inside a "pubjet/" folder so that installing the ZIP
+          # from wp-admin replaces the existing plugin instead of creating a new one.
+          mkdir -p build/pubjet
+          rsync -a ./ build/pubjet/ \
+            --exclude=".git*" \
+            --exclude=".github/" \
+            --exclude="build/" \
+            --exclude="node_modules/" \
+            --exclude="src/" \
+            --exclude="version" \
+            --exclude="debug.txt" \
+            --exclude=".idea/" \
+            --exclude=".editorconfig" \
+            --exclude="composer.json" \
+            --exclude="composer.lock" \
+            --exclude="package.json" \
+            --exclude="package-lock.json" \
+            --exclude=".babelrc" \
+            --exclude="webpack.dev.js" \
+            --exclude="webpack.prod.js"
+
+          cd build
+          zip -qr "$ZIP_FILE" pubjet
           echo "ZIP created: $ZIP_FILE"
-          echo "zip_file=$ZIP_FILE" >> $GITHUB_OUTPUT
-      
+          echo "zip_file=build/$ZIP_FILE" >> "$GITHUB_OUTPUT"
+
       - name: Upload ZIP as Artifact
         uses: actions/upload-artifact@v4
         with:
