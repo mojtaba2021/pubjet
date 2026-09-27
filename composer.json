@@ -12,10 +12,14 @@
         }
     ],
     "require": {
+        "php": ">=7.4",
         "sentry/sentry": "^4.7",
         "symfony/options-resolver": "^4.4"
     },
     "config": {
+        "platform": {
+            "php": "7.4.33"
+        },
         "allow-plugins": {
             "php-http/discovery": true
         }

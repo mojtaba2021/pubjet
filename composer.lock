@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9baea57674e9dc52f5f2426a7dfb4a8c",
+    "content-hash": "8a5b1bb9f5d0c3492e7e9442b2f4681d",
     "packages": [
         {
             "name": "guzzlehttp/psr7",
@@ -295,30 +295,30 @@
         },
         {
             "name": "psr/log",
-            "version": "3.0.2",
+            "version": "1.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3"
+                "reference": "d49695b909c3b7628b6289db5479a1c204601f11"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
-                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/d49695b909c3b7628b6289db5479a1c204601f11",
+                "reference": "d49695b909c3b7628b6289db5479a1c204601f11",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.0.0"
+                "php": ">=5.3.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.x-dev"
+                    "dev-master": "1.1.x-dev"
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "Psr\\Log\\": "src"
+                    "Psr\\Log\\": "Psr/Log/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -339,22 +339,22 @@
                 "psr-3"
             ],
             "support": {
-                "source": "https://github.com/php-fig/log/tree/3.0.2"
+                "source": "https://github.com/php-fig/log/tree/1.1.4"
             },
-            "time": "2024-09-11T13:17:53+00:00"
+            "time": "2021-05-03T11:20:27+00:00"
         },
         {
             "name": "sentry/sentry",
-            "version": "4.31.0",
+            "version": "4.32.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/getsentry/sentry-php.git",
-                "reference": "39d9f86bd56c6cc6ae7b64c2b849f7f046d38394"
+                "reference": "c345642bdc0b678965a35ab61fc6323808eb3d2c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/getsentry/sentry-php/zipball/39d9f86bd56c6cc6ae7b64c2b849f7f046d38394",
-                "reference": "39d9f86bd56c6cc6ae7b64c2b849f7f046d38394",
+                "url": "https://api.github.com/repos/getsentry/sentry-php/zipball/c345642bdc0b678965a35ab61fc6323808eb3d2c",
+                "reference": "c345642bdc0b678965a35ab61fc6323808eb3d2c",
                 "shasum": ""
             },
             "require": {
@@ -425,7 +425,7 @@
             ],
             "support": {
                 "issues": "https://github.com/getsentry/sentry-php/issues",
-                "source": "https://github.com/getsentry/sentry-php/tree/4.31.0"
+                "source": "https://github.com/getsentry/sentry-php/tree/4.32.0"
             },
             "funding": [
                 {
@@ -437,7 +437,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-08-27T12:59:01+00:00"
+            "time": "2026-09-24T13:32:44+00:00"
         },
         {
             "name": "symfony/options-resolver",
@@ -677,7 +677,12 @@
     "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "php": ">=7.4"
+    },
     "platform-dev": [],
+    "platform-overrides": {
+        "php": "7.4.33"
+    },
     "plugin-api-version": "2.6.0"
 }
