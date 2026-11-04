@@ -568,19 +568,23 @@ class Actions extends Singleton
      */
     public function savePubjetMetaData($post_id)
     {
-        if (!isset($_POST['pubjet_reportage_nonce']) || !wp_verify_nonce($_POST['pubjet_reportage_nonce'], 'pubjet_reportage_nonce_action')) {
+        if (!isset($_POST['pubjet_reportage_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['pubjet_reportage_nonce'])), 'pubjet_reportage_nonce_action')) {
             return;
         }
 
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return $post_id;
 
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
         if (pubjet_is_reportage($post_id)) {
             if (isset($_POST['pubjet_meta_title'])) {
-                update_post_meta($post_id, 'pubjet_meta_title', sanitize_text_field($_POST['pubjet_meta_title']));
+                update_post_meta($post_id, 'pubjet_meta_title', sanitize_text_field(wp_unslash($_POST['pubjet_meta_title'])));
             }
 
             if (isset($_POST['pubjet_meta_description'])) {
-                update_post_meta($post_id, 'pubjet_meta_description', sanitize_textarea_field($_POST['pubjet_meta_description']));
+                update_post_meta($post_id, 'pubjet_meta_description', sanitize_textarea_field(wp_unslash($_POST['pubjet_meta_description'])));
             }
         }
     }
