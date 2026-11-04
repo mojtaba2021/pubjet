@@ -507,7 +507,7 @@ class Ajax extends Singleton
             $this->success(['text' => '',]);
         }
 
-        $content = file_get_contents(pubjet_debug_dir());
+        $content = pubjet_mask_secrets(file_get_contents(pubjet_debug_dir()));
 
         /**
          * The pubjet_debug_content filter.

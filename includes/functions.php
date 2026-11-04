@@ -732,7 +732,44 @@ function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
         return false;
     }
 
-    return file_put_contents($file, $method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n", FILE_APPEND | LOCK_EX);
+    $entry = pubjet_mask_secrets($method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n");
+
+    return file_put_contents($file, $entry, FILE_APPEND | LOCK_EX);
+}
+
+/**
+ * @param string $value
+ *
+ * @return string Only the last four characters of the value are kept.
+ */
+function pubjet_mask_secret($value) {
+    $value = (string) $value;
+    return '****' . (strlen($value) > 4 ? substr($value, -4) : '');
+}
+
+/**
+ * Mask the stored token and authorization header values in a text.
+ *
+ * @param string $text
+ *
+ * @return string
+ */
+function pubjet_mask_secrets($text) {
+    $text  = (string) $text;
+    $token = pubjet_token();
+    if (is_string($token) && strlen(trim($token)) > 4) {
+        $text = str_replace(trim($token), pubjet_mask_secret(trim($token)), $text);
+    }
+    $secret = '[A-Za-z0-9._~+\/=\-]{16,}';
+    // Authorization schemes, e.g. "Token xxx" or "api-key xxx"
+    $text = preg_replace_callback('/\b(Token|api-key|Bearer)(\s+)(' . $secret . ')/i', function ($matches) {
+        return $matches[1] . $matches[2] . pubjet_mask_secret($matches[3]);
+    }, $text);
+    // Raw values after an authorization key, e.g. in print_r() or JSON output
+    $text = preg_replace_callback('/(authori[a-z]*["\']?\]?\s*(?:=>|:)\s*["\']?)(' . $secret . ')/i', function ($matches) {
+        return $matches[1] . pubjet_mask_secret($matches[2]);
+    }, $text);
+    return $text;
 }
 
 /**
@@ -1205,7 +1242,6 @@ function pubjet_find_token_details($token) {
     ];
     $result = pubjet_request($url, EnumHttpMethods::GET, $headers, [], $args);
     pubjet_log('====== Check Token ======');
-    pubjet_log($headers);
     pubjet_log($result);
     pubjet_log('====== END Check Token ======');
 
