@@ -119,6 +119,9 @@ class Backlinks extends DbTable {
      */
     public function createTable() {
         global $wpdb;
+        if (!function_exists('dbDelta')) {
+            require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        }
         $sql = "
 			CREATE TABLE IF NOT EXISTS `{$this->table_name}`
 			(

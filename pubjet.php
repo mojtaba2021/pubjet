@@ -306,6 +306,8 @@ if (!class_exists('Pubjet')) {
             }
 
             \triboon\pubjet\includes\Cron::scheduleStoredTokenCheck();
+
+            \triboon\pubjet\includes\Actions::getInstance()->createDbTables();
         }
 
         /**
@@ -316,6 +318,7 @@ if (!class_exists('Pubjet')) {
         public function onActivation() {
             pubjet_send_plugin_status_to_api('active');
             $this->migrate();
+            \triboon\pubjet\includes\Actions::getInstance()->createDbTables();
             flush_rewrite_rules();
         }
 
