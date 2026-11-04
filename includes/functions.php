@@ -30,16 +30,19 @@ function pubjet_shortcode($name, $args) {
  * @since  1.0
  */
 function pubjet_is_prod_mode() {
-    return !defined('WP_ENVIRONMENT') || "production" === WP_ENVIRONMENT;
+    return !pubjet_is_dev_mode();
 }
 
 /**
+ * Development mode is only for local development: it needs the PUBJET_DEV_MODE constant
+ * and a "local" environment type.
+ *
  * @return boolean
  * @author Triboon
  * @since  1.0
  */
 function pubjet_is_dev_mode() {
-    return defined('WP_ENVIRONMENT') && "development" === WP_ENVIRONMENT;
+    return defined('PUBJET_DEV_MODE') && true === PUBJET_DEV_MODE && 'local' === wp_get_environment_type();
 }
 
 /**

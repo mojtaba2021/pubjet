@@ -165,7 +165,7 @@ if (!class_exists('Pubjet')) {
             }
             $plugin_data = get_file_data( __FILE__, ['Version' => 'Version'], 'plugin' );
 
-            return (defined('WP_ENVIRONMENT') && "development" === WP_ENVIRONMENT) ? time() : $plugin_data['Version'];
+            return (function_exists('pubjet_is_dev_mode') && pubjet_is_dev_mode()) ? time() : $plugin_data['Version'];
         }
 
         /**
