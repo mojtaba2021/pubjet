@@ -1106,10 +1106,26 @@ function pubjet_is_request_token_valid() {
         return new \WP_Error('missing-token', pubjet__('missing-token'));
     }
     $request_token = pubjet_get_server_var('authorization');
-    if ($request_token === pubjet_token()) {
+    if (pubjet_token_matches($request_token)) {
         return true;
     }
     return new WP_Error('invalid-token', pubjet__('invalid-token'));
+}
+
+/**
+ * Compare a request token with the stored token in constant time.
+ *
+ * @param mixed $request_token
+ *
+ * @return boolean
+ */
+function pubjet_token_matches($request_token) {
+    $stored_token  = is_string(pubjet_token()) ? pubjet_token() : '';
+    $request_token = is_string($request_token) ? $request_token : '';
+    if ('' === $stored_token || '' === $request_token) {
+        return false;
+    }
+    return hash_equals($stored_token, $request_token);
 }
 
 /**

@@ -747,7 +747,7 @@ class Ajax extends Singleton
 
         $header_token = pubjet_isset_value($_SERVER['HTTP_AUTHORIZATION'], '');
 
-        return pubjet_token() == $header_token;
+        return pubjet_token_matches($header_token);
 
     }
 

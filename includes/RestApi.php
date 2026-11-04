@@ -381,7 +381,7 @@ class RestApi extends Singleton
         }
         $authorization_token = $request->get_header('authorization');
         $authorization_token = is_array($authorization_token) ? reset($authorization_token) : $authorization_token;
-        return pubjet_token() == $authorization_token;
+        return pubjet_token_matches($authorization_token);
     }
 
     /**
