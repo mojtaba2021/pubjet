@@ -727,12 +727,67 @@ function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
         $entry = print_r($entry, true);
     }
 
-    $file  = pubjet_debug_dir();
-    $file  = fopen($file, 'a');
-    $bytes = fwrite($file, $method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n");
-    fclose($file);
+    $file = pubjet_debug_dir();
+    if (!pubjet_prepare_log_dir(dirname($file))) {
+        return false;
+    }
 
-    return $bytes;
+    return file_put_contents($file, $method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n", FILE_APPEND | LOCK_EX);
+}
+
+/**
+ * Create the log directory and protect it from direct access.
+ *
+ * @param string $dir
+ *
+ * @return boolean
+ */
+function pubjet_prepare_log_dir($dir) {
+    if (!is_dir($dir) && !wp_mkdir_p($dir)) {
+        return false;
+    }
+    // Only add protection files to the plugin's own log directory
+    if (0 !== strpos(basename($dir), 'pubjet-logs-')) {
+        return is_writable($dir);
+    }
+    $protection_files = [
+        'index.php' => "<?php\n// Silence is golden.\n",
+        '.htaccess' => "<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n",
+    ];
+    foreach ($protection_files as $name => $content) {
+        $path = trailingslashit($dir) . $name;
+        if (!file_exists($path)) {
+            file_put_contents($path, $content);
+        }
+    }
+    return is_writable($dir);
+}
+
+/**
+ * Directory for the debug log, inside uploads with a random name.
+ *
+ * @return string
+ */
+function pubjet_log_dir() {
+    $key = get_option('pubjet_log_dir_key');
+    if (empty($key) || !is_string($key)) {
+        $key = wp_generate_password(20, false);
+        update_option('pubjet_log_dir_key', $key, false);
+    }
+    $uploads = wp_upload_dir(null, false);
+    return trailingslashit($uploads['basedir']) . 'pubjet-logs-' . $key;
+}
+
+/**
+ * Remove the debug log of versions before 5.4.9 from the plugin directory.
+ *
+ * @return void
+ */
+function pubjet_delete_legacy_debug_file() {
+    $legacy_file = PUBJET_DIR_PATH . 'debug.txt';
+    if (file_exists($legacy_file)) {
+        wp_delete_file($legacy_file);
+    }
 }
 
 /**
@@ -759,7 +814,7 @@ function pubjet_debug_dir() {
      *
      * @since 1.0.0
      */
-    return apply_filters('pubjet_debug_dir', PUBJET_DIR_PATH . 'debug.txt');
+    return apply_filters('pubjet_debug_dir', trailingslashit(pubjet_log_dir()) . 'debug.log');
 }
 
 /**

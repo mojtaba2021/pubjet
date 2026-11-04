@@ -280,9 +280,23 @@ if (!class_exists('Pubjet')) {
                 pubjet_sync_settings();
                 pubjet_delete_first_image_option();
 
+                if (empty($stored_version) || version_compare($stored_version, '5.4.9', '<')) {
+                    $this->upgradeTo549();
+                }
+
                 $pubjet_settings[EnumOptions::ActivationVersion] = $current_version;
                 update_option(EnumOptions::Settings, $pubjet_settings);
             }
+        }
+
+        /**
+         * One-time steps when updating to 5.4.9.
+         *
+         * @return void
+         * @since  5.4.9
+         */
+        private function upgradeTo549() {
+            pubjet_delete_legacy_debug_file();
         }
 
         /**
