@@ -723,6 +723,7 @@ function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
         return;
     }
 
+    $entry = pubjet_redact_for_log($entry);
     if (is_array($entry) || is_object($entry)) {
         $entry = print_r($entry, true);
     }
@@ -733,9 +734,81 @@ function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
     }
     pubjet_rotate_log_file($file);
 
-    $entry = pubjet_mask_secrets($method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n");
+    $entry = pubjet_redact_for_log($method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n");
 
     return file_put_contents($file, $entry, FILE_APPEND | LOCK_EX);
+}
+
+/**
+ * Remove credentials and personal data from a value before it is written to the debug log.
+ * Credential fields are masked, personal fields are removed, and e-mail addresses, phone
+ * numbers and tokens inside text are masked. JSON text is decoded, cleaned and encoded again.
+ *
+ * @param mixed   $value
+ * @param boolean $api_response Keep only status codes, is_valid and technical ids (for API responses).
+ *
+ * @return mixed
+ */
+function pubjet_redact_for_log($value, $api_response = false) {
+    if (is_string($value)) {
+        $trimmed = ltrim($value);
+        if ('' !== $trimmed && ('{' === $trimmed[0] || '[' === $trimmed[0])) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                return wp_json_encode(pubjet_redact_for_log($decoded, $api_response));
+            }
+        }
+        if ($api_response) {
+            return '[response body, ' . strlen($value) . ' bytes]';
+        }
+        return pubjet_mask_secrets($value);
+    }
+
+    if ($value instanceof \WP_Error) {
+        return ['wp_error' => $value->get_error_code(), 'message' => pubjet_mask_secrets($value->get_error_message())];
+    }
+
+    if (is_object($value)) {
+        // Only plain data objects are logged; other objects (e.g. HTTP response objects) may hold raw bodies
+        if (!$value instanceof \stdClass) {
+            return '[' . get_class($value) . ']';
+        }
+        $value = get_object_vars($value);
+    }
+
+    if (!is_array($value)) {
+        return $value;
+    }
+
+    $secret_key   = '/token|authori|api[-_]?key|password|secret|nonce|cookie/i';
+    $personal_key = '/^(first_?name|last_?name|full_?name|display_?name|phone|mobile|tel|email|e_?mail|user_?email|user_?name|yn_username|user_?login|nickname|address|national_?code|postal_?code)$/i';
+    $api_key      = '/^(code|status|status_?code|success|is_?valid|id|ids|[a-z_]+_id|[a-z_]+_ids)$/i';
+
+    $result = [];
+    foreach ($value as $key => $item) {
+        $key_text = (string) $key;
+        if (preg_match($secret_key, $key_text)) {
+            $result[$key] = is_string($item) && '' !== $item ? pubjet_mask_secret($item) : '[redacted]';
+            continue;
+        }
+        if (preg_match($personal_key, $key_text)) {
+            $result[$key] = '[redacted]';
+            continue;
+        }
+        $is_json_text = is_string($item) && preg_match('/^\s*[\[{]/', $item) && is_array(json_decode($item, true));
+        if (is_array($item) || is_object($item) || $is_json_text) {
+            $clean = pubjet_redact_for_log($item, $api_response);
+            if (!$api_response || !in_array($clean, [[], '[]', '{}'], true)) {
+                $result[$key] = $clean;
+            }
+            continue;
+        }
+        if ($api_response && (is_int($key) || !preg_match($api_key, $key_text))) {
+            continue;
+        }
+        $result[$key] = is_string($item) ? pubjet_mask_secrets($item) : $item;
+    }
+    return $result;
 }
 
 /**
@@ -770,6 +843,9 @@ function pubjet_mask_secrets($text) {
     $text = preg_replace_callback('/(authori[a-z]*["\']?\]?\s*(?:=>|:)\s*["\']?)(' . $secret . ')/i', function ($matches) {
         return $matches[1] . pubjet_mask_secret($matches[2]);
     }, $text);
+    // Personal data inside free text
+    $text = preg_replace('/[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/', '[email]', $text);
+    $text = preg_replace('/(?<!\d)(?:\+98|0098|0)?9\d{2}[\s\-]?\d{3}[\s\-]?\d{4}(?!\d)/', '[phone]', $text);
     return $text;
 }
 
@@ -1315,7 +1391,7 @@ function pubjet_find_token_details($token) {
     ];
     $result = pubjet_request($url, EnumHttpMethods::GET, $headers, [], $args);
     pubjet_log('====== Check Token ======');
-    pubjet_log($result);
+    pubjet_log(pubjet_redact_for_log($result, true));
     pubjet_log('====== END Check Token ======');
 
     if (is_wp_error($result)) {
@@ -1729,7 +1805,7 @@ function pubjet_send_plugin_status_to_api($status) {
         pubjet_log_sentry('Error sending status to API: ' . $response->get_error_message());
     }
     $result = wp_remote_retrieve_body($response);
-    pubjet_log($result);
+    pubjet_log(pubjet_redact_for_log($result, true));
     return $result;
 }
 
@@ -1797,7 +1873,7 @@ function pubjet_publish_reportage($post_id, $reportage_id) {
 
     $response = wp_remote_post($url, $args);
 
-    pubjet_log([$response, $url, $args]);
+    pubjet_log(['url' => $url, 'response' => pubjet_redact_for_log($response, true)]);
 
     return [
         'code' => wp_remote_retrieve_response_code($response),
@@ -1820,7 +1896,7 @@ function pubjet_publish_backlink_request($backlink_id) {
 
     $result = pubjet_request($url, 'POST', pubjet_http_json_request_headers(), json_encode(['id' => $backlink_id, 'status' => 'publisher_published',]), ['data_format' => 'body']);
 
-    pubjet_log($result);
+    pubjet_log(pubjet_redact_for_log($result, true));
 
     return $result;
 }
@@ -1984,18 +2060,18 @@ function pubjet_send_pricing_plans_to_api($pricingPlans,$token)
     $result = wp_remote_retrieve_body($response);
 
     if ($status_code !== 200) {
-        pubjet_log(['Pricing Plans API Status Code' => $status_code, 'Response' => $result]);
+        pubjet_log(['Pricing Plans API Status Code' => $status_code, 'Response' => pubjet_redact_for_log($result, true)]);
         return new WP_Error('api_error', 'API request failed with status: ' . $status_code);
     }
 
     // Validate the response
     $decoded_result = json_decode($result, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
-        pubjet_log(['Pricing Plans API Invalid JSON Response' => $result]);
+        pubjet_log(['Pricing Plans API Invalid JSON Response' => pubjet_redact_for_log($result, true)]);
         return new WP_Error('invalid_response', 'Invalid JSON response from API');
     }
 
-    pubjet_log(['Pricing Plans API Response' => $decoded_result]);
+    pubjet_log(['Pricing Plans API Response' => pubjet_redact_for_log($decoded_result, true)]);
     return true;
 }
 
