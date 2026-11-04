@@ -577,6 +577,7 @@ class Ajax extends Singleton
         update_option(EnumOptions::Settings, $newSettings);
 
         pubjet_log('before pubjet_send_plugin_status_to_api');
+        delete_option('pubjet_token_reconnect_required');
         pubjet_send_plugin_status_to_api('active');
         pubjet_log('after pubjet_send_plugin_status_to_api');
         /**
@@ -654,6 +655,7 @@ class Ajax extends Singleton
 
         update_option(EnumOptions::Settings, $newSettings);
 
+        delete_option('pubjet_token_reconnect_required');
         pubjet_send_plugin_status_to_api('active');
 
         $this->success($response);

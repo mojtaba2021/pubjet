@@ -1132,6 +1132,7 @@ function pubjet_strings() {
         'gateway-error'              => esc_html__('Gateway 504 error', 'pubjet'),
         'pubjet-token'               => esc_html__('Pubjet Token', 'pubjet'),
         'enter-token-desc'           => esc_html__('Pubjet plugin needs an access token to work properly. Please enter the access token in the plugin settings.', 'pubjet'),
+        'reconnect-token-desc'       => esc_html__('The Pubjet access token is no longer valid. Please enter a new access token in the plugin settings.', 'pubjet'),
         'remindme-later'             => esc_html__('Remindme Later', 'pubjet'),
         'permanent-hide'             => esc_html__('Permanent Hide', 'pubjet'),
         'select-categories-hints'    => esc_html__('By default, all your categories are sent to Triboon to determine the reportage category correctly. If you only want the reportage to be published in certain categories, select them in this section.', 'pubjet'),
@@ -1319,20 +1320,20 @@ function pubjet_find_token_details($token) {
     pubjet_log('====== END Check Token ======');
 
     if (is_wp_error($result)) {
-        return new \WP_Error('error', $result->get_error_message());
+        return new \WP_Error('request-failed', $result->get_error_message());
     }
 
     if (isset($result['code']) && 403 == $result['code']) {
-        return new \WP_Error('error', pubjet__('invalid-token'));
+        return new \WP_Error('invalid-token', pubjet__('invalid-token'));
     }
 
     if (!isset($result['body']->is_valid)) { // Some error occured
-        return new \WP_Error('error', pubjet__('error-occured'));
+        return new \WP_Error('request-failed', pubjet__('error-occured'));
     }
 
     // Check if token is valid or not
     if (!$result['body']->is_valid) {
-        return new \WP_Error('error', pubjet__('invalid-token'));
+        return new \WP_Error('invalid-token', pubjet__('invalid-token'));
     }
 
     // we must remove "Test" plan in production

@@ -22,6 +22,69 @@ class Cron extends Singleton
         add_action('pubjet_sync_reportage_url', [$this, 'runSyncReportageUrl'], 15);
         add_action('pubjet_schedule_delete_logs', [$this, 'deletePubjetLogs'], 15);
         add_action('pubjet_check_missed_posts', [$this, 'publishMissedSchedulePosts']);
+        add_action('pubjet_verify_stored_token', [$this, 'verifyStoredToken'], 15);
+    }
+
+    /**
+     * Schedule a background check of the stored token.
+     *
+     * @return void
+     * @since  5.4.9
+     */
+    public static function scheduleStoredTokenCheck()
+    {
+        if (empty(pubjet_token())) {
+            return;
+        }
+        delete_option('pubjet_token_verify_attempts');
+        if (!wp_next_scheduled('pubjet_verify_stored_token')) {
+            wp_schedule_single_event(time() + 5 * MINUTE_IN_SECONDS, 'pubjet_verify_stored_token');
+        }
+    }
+
+    /**
+     * Check the stored token with Triboon. The token is removed only when Triboon
+     * explicitly rejects it; on connection errors the check is retried later.
+     *
+     * @return void
+     * @since  5.4.9
+     */
+    public function verifyStoredToken()
+    {
+        $token = pubjet_token();
+        if (empty($token)) {
+            delete_option('pubjet_token_verify_attempts');
+            return;
+        }
+
+        $result = pubjet_find_token_details(trim($token));
+
+        if (!is_wp_error($result)) {
+            delete_option('pubjet_token_verify_attempts');
+            return;
+        }
+
+        if ('invalid-token' === $result->get_error_code()) {
+            global $pubjet_settings;
+            $pubjet_settings[EnumOptions::Token] = '';
+            pubjet_update_setting(EnumOptions::Token, '');
+            update_option('pubjet_token_reconnect_required', 'yes', false);
+            delete_option('pubjet_token_verify_attempts');
+            pubjet_log('Stored token check: token was rejected, reconnect required.');
+            return;
+        }
+
+        $attempts     = (int) get_option('pubjet_token_verify_attempts', 0) + 1;
+        $max_attempts = (int) apply_filters('pubjet_token_verify_max_attempts', 24);
+        if ($attempts >= $max_attempts) {
+            delete_option('pubjet_token_verify_attempts');
+            update_option('pubjet_token_verify_stopped', time(), false);
+            pubjet_log('Stored token check: stopped after ' . $attempts . ' failed attempts, token kept. Last error: ' . $result->get_error_message());
+            return;
+        }
+
+        update_option('pubjet_token_verify_attempts', $attempts, false);
+        wp_schedule_single_event(time() + HOUR_IN_SECONDS, 'pubjet_verify_stored_token');
     }
 
     /**
@@ -161,6 +224,7 @@ class Cron extends Singleton
                 'pubjet_sync_reportage_url',
                 'pubjet_schedule_delete_logs',
                 'pubjet_check_missed_posts',
+                'pubjet_verify_stored_token',
             ]
         );
 

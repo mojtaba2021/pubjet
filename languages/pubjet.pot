@@ -226,3 +226,7 @@ msgstr ""
 #. Author URI of the plugin/theme
 msgid "https://triboon.net"
 msgstr ""
+
+#: includes/functions.php
+msgid "The Pubjet access token is no longer valid. Please enter a new access token in the plugin settings."
+msgstr ""

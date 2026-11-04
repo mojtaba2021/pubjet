@@ -662,6 +662,10 @@ msgstr "تریـــبون"
 msgid "https://triboon.net"
 msgstr ""
 
+#: includes/functions.php
+msgid "The Pubjet access token is no longer valid. Please enter a new access token in the plugin settings."
+msgstr "توکن دسترسی پابجت دیگر معتبر نیست. لطفا در تنظیمات افزونه یک توکن دسترسی جدید وارد کنید."
+
 #~ msgid ""
 #~ "By default, Pabjet uses the REST method to process information. If for any "
 #~ "reason this method does not work and you want to use the old method of data "

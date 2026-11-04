@@ -304,6 +304,8 @@ if (!class_exists('Pubjet')) {
             if (!empty($pubjet_settings[EnumOptions::DebugMode]) && empty($pubjet_settings[EnumOptions::DebugModeEnabledAt])) {
                 $pubjet_settings[EnumOptions::DebugModeEnabledAt] = time();
             }
+
+            \triboon\pubjet\includes\Cron::scheduleStoredTokenCheck();
         }
 
         /**
