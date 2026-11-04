@@ -78,11 +78,8 @@ trait Utils {
      * @author Triboon
      */
     public function checkAdminPermission() {
-        if (!is_user_logged_in()) {
-            $this->permissionError();
-        }
-        if (!pubjet_is_admin()) {
-            $this->permissionError();
+        if (!is_user_logged_in() || !pubjet_is_admin()) {
+            $this->error(pubjet__('permission-error'), 403);
         }
     }
 

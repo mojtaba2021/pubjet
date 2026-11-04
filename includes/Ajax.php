@@ -600,13 +600,16 @@ class Ajax extends Singleton
      */
     public function checkToken()
     {
-        $data = $this->check([EnumHttpMethods::GET], false, false);
+        $this->checkAdminPermission();
+        $this->checkNonce();
+
+        $data = $this->check([EnumHttpMethods::POST], false, false);
         if (is_array($data) && isset($data['error'])) {
-            $this->error($data['message']);
+            $this->error($data['message'], 405);
         }
 
-        $token = $this->get('token');
-        if (empty(trim($token))) {
+        $token = trim($this->post('token'));
+        if (empty($token)) {
             $this->error(pubjet__('missing-params'));
         }
 
@@ -616,15 +619,16 @@ class Ajax extends Singleton
          * @since 1.0.0
          */
         do_action('pubjet_check_token');
-        global $pubjet_settings;
-        pubjet_update_setting('token', $token);
-        $pubjet_settings['token'] = $token;
 
         $response = pubjet_find_token_details($token);
         if (is_wp_error($response)) {
             $this->error($response->get_error_message());
         }
 
+        // Store the token only after it has been verified
+        global $pubjet_settings;
+        pubjet_update_setting('token', $token);
+        $pubjet_settings['token'] = $token;
 
         $publisherCategory = pubjet_isset_value($response['publisherCategory']);
 
