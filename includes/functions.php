@@ -794,9 +794,8 @@ function pubjet_rotate_log_file($file) {
     if (file_exists($previous_file)) {
         wp_delete_file($previous_file);
     }
-    if (!@rename($file, $previous_file)) {
-        wp_delete_file($file);
-    }
+    copy($file, $previous_file);
+    wp_delete_file($file);
 }
 
 /**
@@ -812,7 +811,7 @@ function pubjet_prepare_log_dir($dir) {
     }
     // Only add protection files to the plugin's own log directory
     if (0 !== strpos(basename($dir), 'pubjet-logs-')) {
-        return is_writable($dir);
+        return wp_is_writable($dir);
     }
     $protection_files = [
         'index.php' => "<?php\n// Silence is golden.\n",
@@ -824,7 +823,7 @@ function pubjet_prepare_log_dir($dir) {
             file_put_contents($path, $content);
         }
     }
-    return is_writable($dir);
+    return wp_is_writable($dir);
 }
 
 /**
