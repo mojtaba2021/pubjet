@@ -23,7 +23,6 @@ class Filters extends Singleton {
         add_filter('post_class', [$this, 'addPubjetClass'], 15, 3);
         add_filter('plugin_row_meta', [$this, 'pluginRowMeta'], 15, 2);
         add_filter('plugin_action_links_' . PUBJET_PLUGIN_BASE, [$this, 'pluginActionLinks'], 15);
-        add_filter('query_vars', [$this, 'allowActionQueryVar'], 15);
         add_filter('pubjet_reportage_metabox', [$this, 'addMetaDataMetabox'], 15, 3);
 
         add_filter("pubjet_new_reportage_post_args", [$this, "addReportageTags"], 15, 2);
@@ -34,15 +33,6 @@ class Filters extends Singleton {
 
 
     }
-
-    /**
-     * @return void
-     */
-    public function allowActionQueryVar($query_vars) {
-        $query_vars[] = 'action';
-        return $query_vars;
-    }
-
 
     /**
      * @return void
