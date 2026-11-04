@@ -377,19 +377,38 @@ function pubjet_html_tag_atts($attributes, $echo = true) {
     foreach ($attributes as $key => $value) {
         if ($value) {
             if (true === $value) {
-                $result .= sprintf(' %s ', $key);
+                $result .= sprintf(' %s ', esc_attr($key));
             } else {
                 if (!empty(trim($value))) {
-                    $result .= sprintf(' %s = "%s" ', $key, $value);
+                    $result .= sprintf(' %s = "%s" ', esc_attr($key), esc_attr($value));
                 }
             }
         }
     }
     if ($echo) {
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- names and values are escaped above
         echo $result;
     }
 
     return $result;
+}
+
+/**
+ * Allowed tags and attributes for inline SVG icons in admin notices.
+ *
+ * @return array
+ */
+function pubjet_allowed_svg_tags() {
+    $shape = ['d' => true, 'cx' => true, 'cy' => true, 'r' => true, 'x' => true, 'y' => true, 'width' => true, 'height' => true, 'points' => true, 'fill' => true, 'stroke' => true];
+    return [
+        'svg'      => ['xmlns' => true, 'width' => true, 'height' => true, 'viewbox' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'class' => true, 'aria-hidden' => true],
+        'path'     => $shape,
+        'circle'   => $shape,
+        'rect'     => $shape,
+        'line'     => ['x1' => true, 'y1' => true, 'x2' => true, 'y2' => true],
+        'polyline' => $shape,
+        'g'        => ['fill' => true, 'stroke' => true],
+    ];
 }
 
 /**
@@ -495,7 +514,7 @@ function pubjet_template($name, $extend = false, $include = true, $data = []) {
     $template = apply_filters('pubjet_load_template', $template, $name);
 
     if (!$template || !file_exists($template)) {
-        _doing_it_wrong(__FUNCTION__, sprintf("<strong>%s</strong> does not exists in <code>%s</code>.", $name, $template), '1.4.0');
+        _doing_it_wrong(__FUNCTION__, sprintf('<strong>%s</strong> does not exists in <code>%s</code>.', esc_html($name), esc_html($template)), '1.4.0');
 
         return false;
     }
@@ -1545,7 +1564,7 @@ function pubjet_render_condition($condition, $func_or_string) {
 
         return;
     }
-    echo $func_or_string;
+    echo wp_kses_post($func_or_string);
 }
 
 /**
