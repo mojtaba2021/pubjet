@@ -44,7 +44,8 @@ class Cron extends Singleton
 
     /**
      * Check the stored token with Triboon. The token is removed only when Triboon
-     * explicitly rejects it; on connection errors the check is retried later.
+     * explicitly rejects it (JSON 403 with "detail", or is_valid false); any other
+     * response or connection error keeps the token and the check is retried later.
      *
      * @return void
      * @since  5.4.9
@@ -64,7 +65,8 @@ class Cron extends Singleton
             return;
         }
 
-        if ('invalid-token' === $result->get_error_code()) {
+        $error_data = $result->get_error_data();
+        if ('invalid-token' === $result->get_error_code() && !empty($error_data['rejected'])) {
             global $pubjet_settings;
             $pubjet_settings[EnumOptions::Token] = '';
             pubjet_update_setting(EnumOptions::Token, '');

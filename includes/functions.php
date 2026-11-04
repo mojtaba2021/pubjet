@@ -1323,7 +1323,10 @@ function pubjet_find_token_details($token) {
     }
 
     if (isset($result['code']) && 403 == $result['code']) {
-        return new \WP_Error('invalid-token', pubjet__('invalid-token'));
+        // "rejected" is true only for the JSON error Triboon returns for a wrong token
+        $is_json  = false !== stripos((string) pubjet_isset_value($result['content_type'], ''), 'application/json');
+        $rejected = $is_json && is_object($result['body']) && isset($result['body']->detail);
+        return new \WP_Error('invalid-token', pubjet__('invalid-token'), ['rejected' => $rejected]);
     }
 
     if (!isset($result['body']->is_valid)) { // Some error occured
@@ -1332,7 +1335,7 @@ function pubjet_find_token_details($token) {
 
     // Check if token is valid or not
     if (!$result['body']->is_valid) {
-        return new \WP_Error('invalid-token', pubjet__('invalid-token'));
+        return new \WP_Error('invalid-token', pubjet__('invalid-token'), ['rejected' => true]);
     }
 
     // we must remove "Test" plan in production
@@ -1439,7 +1442,7 @@ function pubjet_request($url, $method = 'GET', $headers = [], $body = [], $pargs
     $response_code = wp_remote_retrieve_response_code($response);
     $response_body = json_decode(wp_remote_retrieve_body($response));
 
-    return ['code' => $response_code, 'body' => $response_body];
+    return ['code' => $response_code, 'body' => $response_body, 'content_type' => wp_remote_retrieve_header($response, 'content-type')];
 }
 
 /**
