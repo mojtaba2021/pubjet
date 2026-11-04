@@ -19,3 +19,7 @@ debug.txt
 /assets/css/
 /assets/js/
 /.history/
+# Agent kit (local only, never commit or ship)
+/AGENTS.md
+/START-PROMPT.md
+/agent/

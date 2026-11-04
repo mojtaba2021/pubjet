@@ -117,7 +117,10 @@ jobs:
             --exclude="/package-lock.json" \
             --exclude="/.babelrc" \
             --exclude="/webpack.dev.js" \
-            --exclude="/webpack.prod.js"
+            --exclude="/webpack.prod.js" \
+            --exclude="/AGENTS.md" \
+            --exclude="/START-PROMPT.md" \
+            --exclude="/agent/"
 
           cd build
           zip -qr "$ZIP_FILE" pubjet
@@ -131,6 +134,9 @@ jobs:
           unzip -q "${{ steps.create-zip.outputs.zip_file }}" -d /tmp/zipcheck
           cd /tmp/zipcheck/pubjet
           test -f pubjet.php || { echo "::error::pubjet.php not at pubjet/ root"; exit 1; }
+          for p in AGENTS.md START-PROMPT.md agent; do
+            test ! -e "$p" || { echo "::error::$p must not be in the ZIP"; exit 1; }
+          done
           # every file Composer loads on startup must exist
           php -r '
             require "vendor/autoload.php";
