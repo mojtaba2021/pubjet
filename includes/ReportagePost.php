@@ -570,7 +570,6 @@ class ReportagePost extends Singleton
             'timeout' => 25,
             'redirection' => 5,
             'blocking' => true,
-            'sslverify' => false,
         ]);
         $body = wp_remote_retrieve_body($response);
 

@@ -1424,7 +1424,6 @@ function pubjet_request($url, $method = 'GET', $headers = [], $body = [], $pargs
         'method'    => $method,
         'headers'   => $headers,
         'body'      => $body,
-        'sslverify' => false,
     ];
 
     if ($pargs) {
@@ -1838,7 +1837,6 @@ function pubjet_check_new_version() {
         if ( false === $pubjet_update_info ) {
             $api_url = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&slug=pubjet';
             $response = wp_remote_get($api_url, [
-                'sslverify' => false,
                 'timeout'   => 30
             ]);
 
