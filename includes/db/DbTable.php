@@ -4,7 +4,6 @@ namespace triboon\pubjet\includes\db;
 
 defined('ABSPATH') || exit;
 
-use triboon\pubjet\includes\SqlQueryBuilder;
 
 class DbTable {
 
@@ -170,82 +169,11 @@ class DbTable {
             $item = $wpdb->_escape($item);
         }
         $columns_safe_string = implode(',', $column_names);
-        $query               = "SELECT {$columns_safe_string} FROM {$this->table_name}";
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-        return $wpdb->get_results($query);
+        $table               = esc_sql($this->table_name);
+        // Table and column names are escaped with esc_sql(); there are no user values in this query.
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+        return $wpdb->get_results("SELECT {$columns_safe_string} FROM `{$table}`");
     }
-
-    /**
-     * Get custom column values with condition
-     *
-     * @param        $column_names
-     * @param        $column_name
-     * @param        $column_value
-     * @param string $orderby
-     * @param string $order
-     *
-     * @return array|null|object
-     */
-    public function selectWhere($column_names, $column_name, $column_value, $orderby = '', $order = 'DESC') {
-        global $wpdb;
-
-        foreach ($column_names as &$item) {
-            $item = esc_sql($item);
-        }
-        $columns = implode(',', $column_names);
-
-        if ($order) {
-            $order = esc_sql($order);
-        }
-        if ($orderby) {
-            $orderby = esc_sql($orderby);
-        }
-
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-        $query = "SELECT {$columns} FROM {$this->table_name} WHERE {$column_name} = ";
-        if (is_string($column_value)) {
-            $query .= '%s';
-        } else {
-            $query .= '%d';
-        }
-        if ($orderby) {
-            $query .= " ORDER BY {$orderby} {$order}";
-        }
-
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-        return $wpdb->get_results($wpdb->prepare($query, $column_value));
-    }
-
-    public function selectMultiple($column_names, $where_col_name, $where_col_values, $operator = 'OR') {
-        global $wpdb;
-        if (!$where_col_values) {
-            return [];
-        }
-        foreach ($column_names as &$item) {
-            $item = esc_sql($item);
-        }
-        $columns = implode(',', $column_names);
-
-        $query = "SELECT {$columns} FROM {$this->table_name} WHERE ";
-        foreach ($where_col_values as $col_value) {
-            $query .= "{$where_col_name} = ";
-
-            if (is_string($col_value)) {
-                $query .= '%s ';
-            } else {
-                $query .= '%d ';
-            }
-
-            $query .= $operator . ' ';
-        }
-
-        // delete last operator
-        $query = substr($query, 0, strlen($query) - (strlen($operator) + 1));
-
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-        return $wpdb->get_results($wpdb->prepare($query, $where_col_values));
-    }
-
 
     /**
      * Count rows with specific condition
@@ -275,24 +203,6 @@ class DbTable {
 
         // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
         return $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name}");
-    }
-
-    /**
-     * Get size of table in KB
-     *
-     * @return string|null
-     * @since 1.8
-     */
-    public function size() {
-        global $wpdb;
-        $query  = "
-	        SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) / 1024) AS table_size_kb
-                FROM information_schema.TABLES 
-                WHERE table_schema = %s AND table_name = %s;
-	    ";
-        $pquery = $wpdb->prepare($query, DB_NAME, $this->table_name);
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-        return $wpdb->get_var($pquery);
     }
 
     /**
@@ -455,86 +365,6 @@ class DbTable {
     }
 
     /**
-     * @param $args
-     *
-     * @return array
-     */
-    public function filter($args = []) {
-        global $wpdb;
-
-        $args = wp_parse_args($args, [
-            'page'    => 1,
-            /**
-             * The hoopi_admin_table_page_size filter.
-             *
-             * @since 1.0.0
-             */
-            'perpage' => apply_filters('hoopi_admin_table_page_size', 20),
-            'orderby' => 'id',
-            'order'   => 'desc',
-            'join'    => false,
-            'select'  => ['*'],
-            'groupby' => false,
-            'where'   => false,
-            'limits'  => true,
-        ]);
-
-        $query = new SqlQueryBuilder();
-
-        // Join
-        if ($args['join']) {
-            $query->select($args['select'])->join($args['join']['type'], $args['join']['table'], $args['join']['condition'])->from($this->table_name);
-        } else {
-            $query->select($args['select'])->from($this->table_name);
-        }
-
-        // Group by
-        if ($args['groupby']) {
-            $query->groupBy($args['groupby']);
-        }
-
-        // Where
-        if ($args['where'] && is_array($args['where'])) {
-            $query->where($args['where']);
-        }
-
-        // Order by
-        $query->orderBy([
-                            "field" => $args['orderby'],
-                            "dir"   => $args['order'],
-                        ]);
-
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-        $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM (" . $query->build() . ") as x");
-
-        // Limits
-        if ($args['limits']) {
-            $query->limits([
-                               'start' => (absint($args['page']) - 1) * absint($args['perpage']),
-                               'limit' => absint($args['perpage']),
-                           ]);
-        }
-
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-        $result    = $wpdb->get_results($query->build());
-        $formatted = array_map(function ($item) {
-            return $this->formatRowItem($item);
-        }, $result);
-
-        return [
-            'data'       => $formatted,
-            'pagination' => [
-                'page'        => absint($args['page']),
-                'perPage'     => absint($args['perpage']),
-                'totalRows'   => $total_rows,
-                'totalPages'  => ceil($total_rows / absint($args['perpage'])),
-                'currentPage' => absint($args['page']),
-                'totalItems'  => absint($total_rows),
-            ],
-        ];
-    }
-
-    /**
      * @param $row_item |array
      */
     public function formatRowItem($row_item) {
@@ -552,7 +382,7 @@ class DbTable {
         $table = sanitize_text_field($table);
 
         // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-        return $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE '%s'", $table)) === $table;
+        return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table))) === $table;
     }
 
     /**

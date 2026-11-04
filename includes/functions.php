@@ -1068,9 +1068,8 @@ function pubjet_is_reportage($post_id) {
  */
 function pubjet_find_post_id_by_reportage_id($reportage_id) {
     global $wpdb;
-    $sql  = "SELECT `post_id` FROM  {$wpdb->postmeta} WHERE `meta_key` = %s AND `meta_value` = %s LIMIT 1";
-    $psql = $wpdb->prepare($sql, \triboon\pubjet\includes\enums\EnumPostMetakeys::ReportageId, $reportage_id);
-    return $wpdb->get_var($psql);
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- lookup by meta value, must not be cached
+    return $wpdb->get_var($wpdb->prepare("SELECT `post_id` FROM {$wpdb->postmeta} WHERE `meta_key` = %s AND `meta_value` = %s LIMIT 1", \triboon\pubjet\includes\enums\EnumPostMetakeys::ReportageId, $reportage_id));
 }
 
 /**
@@ -1080,9 +1079,9 @@ function pubjet_find_post_id_by_reportage_id($reportage_id) {
  */
 function pubjet_find_backlink_by_id($backlink_id) {
     global $wpdb;
-    $sql  = "SELECT * FROM  {$wpdb->pubjet_backlinks} WHERE `backlink_id` = %s LIMIT 1";
-    $psql = $wpdb->prepare($sql, $backlink_id);
-    return $wpdb->get_row($psql);
+    $table = esc_sql($wpdb->pubjet_backlinks);
+    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- table name escaped with esc_sql(), value uses a placeholder
+    return $wpdb->get_row($wpdb->prepare("SELECT * FROM `{$table}` WHERE `backlink_id` = %s LIMIT 1", $backlink_id));
 }
 
 /**

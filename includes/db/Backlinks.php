@@ -53,9 +53,9 @@ class Backlinks extends DbTable {
      */
     public function findFutures() {
         global $wpdb;
-        $query  = "SELECT * FROM {$this->table_name} WHERE `status` = 'future' AND `publish_at` <= %s";
-        $pquery = $wpdb->prepare($query, pubjet_now_myql());
-        return $wpdb->get_results($pquery);
+        $table = esc_sql($this->table_name);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- table name escaped with esc_sql(), values use placeholders
+        return $wpdb->get_results($wpdb->prepare("SELECT * FROM `{$table}` WHERE `status` = 'future' AND `publish_at` <= %s", pubjet_now_myql()));
     }
 
     /**
@@ -70,14 +70,13 @@ class Backlinks extends DbTable {
      */
     public function findActives($position = false) {
         global $wpdb;
-        $query = "SELECT * FROM {$this->table_name} WHERE `status`=%s AND (`expired_at` IS NULL OR `expired_at` > %s)";
+        $table = esc_sql($this->table_name);
         if ($position && 'all' !== $position) {
-            $query  .= ' AND `position`=%s';
-            $pquery = $wpdb->prepare($query, 'publish', pubjet_now_myql(), $position);
-        } else {
-            $pquery = $wpdb->prepare($query, 'publish', pubjet_now_myql());
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- table name escaped with esc_sql(), values use placeholders
+            return $wpdb->get_results($wpdb->prepare("SELECT * FROM `{$table}` WHERE `status`=%s AND (`expired_at` IS NULL OR `expired_at` > %s) AND `position`=%s", 'publish', pubjet_now_myql(), $position));
         }
-        return $wpdb->get_results($pquery);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- table name escaped with esc_sql(), values use placeholders
+        return $wpdb->get_results($wpdb->prepare("SELECT * FROM `{$table}` WHERE `status`=%s AND (`expired_at` IS NULL OR `expired_at` > %s)", 'publish', pubjet_now_myql()));
     }
 
     /**
@@ -87,7 +86,9 @@ class Backlinks extends DbTable {
      */
     public function findByBacklinkId($backlink_id) {
         global $wpdb;
-        return $wpdb->get_row($wpdb->prepare("SELECT * FROM {$this->table_name} WHERE `backlink_id` = %d", $backlink_id));
+        $table = esc_sql($this->table_name);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- table name escaped with esc_sql(), values use placeholders
+        return $wpdb->get_row($wpdb->prepare("SELECT * FROM `{$table}` WHERE `backlink_id` = %d", $backlink_id));
     }
 
     /**
@@ -107,8 +108,9 @@ class Backlinks extends DbTable {
      */
     public function findByPosition($position) {
         global $wpdb;
-        $query = "SELECT * FROM {$this->table_name} WHERE `status` = %s AND `position`=%s AND (`expired_at` IS NULL OR `expired_at` > %s)";
-        return $wpdb->get_results($wpdb->prepare($query, 'publish', $position, pubjet_now_myql()));
+        $table = esc_sql($this->table_name);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- table name escaped with esc_sql(), values use placeholders
+        return $wpdb->get_results($wpdb->prepare("SELECT * FROM `{$table}` WHERE `status` = %s AND `position`=%s AND (`expired_at` IS NULL OR `expired_at` > %s)", 'publish', $position, pubjet_now_myql()));
     }
 
     /**
