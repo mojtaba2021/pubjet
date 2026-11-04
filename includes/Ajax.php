@@ -480,29 +480,6 @@ class Ajax extends Singleton
     public function getDebug()
     {
         $this->checkNonce();
-//
-//        pubjet_log(site_url() . '/pubjet-api/reportage');
-//        $data = wp_remote_post(site_url() . '/pubjet-api/reportage', [
-//            'headers'     => [
-//                'Content-Type'  => 'application/json; charset=utf-8',
-//                'Authorization' => '1f4383f17ee6a0fc23440b6cef1cf21d1ab2cdb9',
-//            ],
-//            'body'        => json_encode([
-//                                             'id'                     => '253318',
-//                                             'preferred_publish_date' => '2024-01-21T17:00:30.792740+03:30',
-//                                             'state'                  => 'publisher_accepted',
-//                                             'content_file'           => 'https://cdn.triboon.net/media/reportage_contents_html/e5687f50-30a4-4b9d-9bc0-b686983c2c16.html',
-//                                             'title'                  => 'اقتصاد برتر جهان در سال 2023',
-//                                             'tags'                   => [],
-//                                         ]),
-//            'method'      => 'POST',
-//            'data_format' => 'body',
-//        ]);
-//        pubjet_log($data);
-
-//        pubjet_log(file_get_contents('https://cdn.triboon.net/media/reportage_contents_html/e5687f50-30a4-4b9d-9bc0-b686983c2c16.html'));
-//        pubjet_log(wp_remote_retrieve_body(wp_remote_get('https://cdn.triboon.net/media/reportage_contents_html/e5687f50-30a4-4b9d-9bc0-b686983c2c16.html')));
-
         /**
          * The pubjet_get_debug action.
          *
