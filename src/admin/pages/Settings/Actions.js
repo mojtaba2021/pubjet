@@ -62,12 +62,11 @@ export const doCheckToken = () => {
                 payload: {},
             },
         });
-        axios.get(getAdminAjaxUrl(), {
-            params: {
-                action: 'pubjet-check-token',
-                token: curstate.token,
-                security: getSecurityNonce(),
-            },
+        axios.post(getAdminAjaxUrl(), {
+            action: 'pubjet-check-token',
+            token: curstate.token,
+            security: getSecurityNonce(),
+        }, {
             hideError: true,
         }).then(response => {
             if (response.success) {
