@@ -193,13 +193,15 @@ abstract class BaseNotice {
         if (in_array($pagenow, $pages)) {
             return true;
         }
-        if (empty($_GET['page'])) {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only decides whether a notice is shown
+        $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+        if (empty($current_page)) {
             return false;
         }
         foreach ($pages as $page) {
             if (strpos($page, '*') !== false) {
                 $ppage = str_replace('*', '', $page);
-                if (strpos($_GET['page'], $ppage) !== false) {
+                if (strpos($current_page, $ppage) !== false) {
                     return true;
                 }
             }

@@ -301,13 +301,15 @@ class Filters extends Singleton {
      */
     public function adminFilterPosts($query) {
         global $pagenow;
-        $post_type = isset($_GET['post_type']) ? sanitize_text_field($_GET['post_type']) : '';
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only list filter
+        $post_type = isset($_GET['post_type']) ? sanitize_key(wp_unslash($_GET['post_type'])) : '';
+        $reportage = isset($_GET['reportage']) ? sanitize_key(wp_unslash($_GET['reportage'])) : '';
+        // phpcs:enable WordPress.Security.NonceVerification.Recommended
 
         if (is_admin() &&
             'post' == $post_type &&
             'edit.php' == $pagenow &&
-            isset($_GET['reportage']) &&
-            $_GET['reportage'] == 'true') {
+            'true' === $reportage) {
             $query->query_vars['meta_key']     = 'pubjet_reportage_id';
             $query->query_vars['meta_value']   = '';
             $query->query_vars['meta_compare'] = '!=';
@@ -379,7 +381,8 @@ class Filters extends Singleton {
      */
     public function pubjet_reportage_count($views) {
         $count = pubjet_get_reportage_count();
-        $current_class = (isset($_GET['reportage']) && $_GET['reportage'] == 'true') ? 'current' : '';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only list view
+        $current_class = (isset($_GET['reportage']) && 'true' === sanitize_key(wp_unslash($_GET['reportage']))) ? 'current' : '';
 
         $views['reportages'] = sprintf(
             '<a href="%s" class="%s">%s <span class="count">(%d)</span></a>',

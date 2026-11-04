@@ -669,7 +669,7 @@ class Actions extends Singleton
     }
     public function save_cdn_checkbox($post_id) {
 
-        if (!isset($_POST['pubjet_cdn_nonce']) || !wp_verify_nonce($_POST['pubjet_cdn_nonce'], 'pubjet_cdn_nonce_action')) {
+        if (!isset($_POST['pubjet_cdn_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['pubjet_cdn_nonce'])), 'pubjet_cdn_nonce_action')) {
             return;
         }
 
@@ -681,7 +681,7 @@ class Actions extends Singleton
             return;
         }
 
-        if (isset($_POST['pubjet_use_cdn']) && $_POST['pubjet_use_cdn'] == '1') {
+        if (isset($_POST['pubjet_use_cdn']) && '1' === sanitize_text_field(wp_unslash($_POST['pubjet_use_cdn']))) {
             update_post_meta($post_id, 'pubjet_use_cdn', true);
         } else {
             delete_post_meta($post_id, 'pubjet_use_cdn');

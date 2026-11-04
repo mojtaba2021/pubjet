@@ -1278,24 +1278,13 @@ function pubjet_find_authors() {
  * @return mixed|null
  */
 function pubjet_get_server_var($key, $default = null) {
-    $key_upper = strtoupper($key);
-    $key_lower = strtolower($key);
-
-    if (isset($_SERVER[$key_upper])) {
-        return $_SERVER[$key_upper];
-    } elseif (isset($_SERVER[$key_lower])) {
-        return $_SERVER[$key_lower];
-    } else {
-        // بررسی وجود متغیر با پیشوند HTTP_
-        $http_key_upper = 'HTTP_' . $key_upper;
-        $http_key_lower = 'http_' . $key_lower;
-        if (isset($_SERVER[$http_key_upper])) {
-            return $_SERVER[$http_key_upper];
-        } elseif (isset($_SERVER[$http_key_lower])) {
-            return $_SERVER[$http_key_lower];
+    $candidates = [strtoupper($key), strtolower($key), 'HTTP_' . strtoupper($key), 'http_' . strtolower($key)];
+    foreach ($candidates as $candidate) {
+        if (isset($_SERVER[$candidate])) {
+            return sanitize_text_field(wp_unslash($_SERVER[$candidate]));
         }
-        return $default;
     }
+    return $default;
 }
 
 /**
