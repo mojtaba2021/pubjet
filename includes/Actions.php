@@ -627,7 +627,7 @@ class Actions extends Singleton
 
         if ($old_slug !== $new_slug) {
             $new_url = get_permalink($post_id);
-            send_permalink_change_to_api($post_id, $reportage_id, $new_url);
+            pubjet_send_permalink_change_to_api($post_id, $reportage_id, $new_url);
         }
     }
 

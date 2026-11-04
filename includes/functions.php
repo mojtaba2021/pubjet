@@ -1791,10 +1791,10 @@ function pubjet_send_plugin_status_to_api($status) {
     $request_data = [
         'status' => $status,
         'pubjet_version' => PUBJ()->getVersion(),
-        'backlink_recipient_path'   => get_pubjet_path('pubjet/v1/backlink',        EnumActions::CreateBacklink, $settings),
-        'reportage_recipient_path'  => get_pubjet_path('pubjet/v1/reportage',       EnumActions::CreateReportage, $settings),
-        'status_recipient_path'     => get_pubjet_path('pubjet/v1/status',          EnumActions::PubjetStatus, $settings),
-        'category_recipient_path'   => get_pubjet_path('pubjet/v1/site/categories', EnumActions::PubjetCategories, $settings),
+        'backlink_recipient_path'   => pubjet_get_path('pubjet/v1/backlink',        EnumActions::CreateBacklink, $settings),
+        'reportage_recipient_path'  => pubjet_get_path('pubjet/v1/reportage',       EnumActions::CreateReportage, $settings),
+        'status_recipient_path'     => pubjet_get_path('pubjet/v1/status',          EnumActions::PubjetStatus, $settings),
+        'category_recipient_path'   => pubjet_get_path('pubjet/v1/site/categories', EnumActions::PubjetCategories, $settings),
         'pubjet_data' => [
             'manualApprove' => pubjet_isset_value($settings['manualApprove'], 0),
             'reportage_without_tags' => pubjet_isset_value($settings['addReportageTags'], 0),
@@ -2140,7 +2140,7 @@ function pubjet_validate_pricing_plans(array $pricingPlans): void
  * @param $new_url
  * @return array|void|WP_Error
  */
-function send_permalink_change_to_api($post_id, $reportage_id, $new_url) {
+function pubjet_send_permalink_change_to_api($post_id, $reportage_id, $new_url) {
     if (empty(trim(pubjet_token()))) return;
 
     pubjet_log('====== START Update Permalink ======');
@@ -2215,7 +2215,7 @@ function pubjet_get_reportage_count(): int
 /**
  * @return mixed|string
  */
-function get_current_subdomain()
+function pubjet_get_current_subdomain()
 {
     $site_url = home_url('/');
     $parsed = parse_url($site_url);
@@ -2229,9 +2229,9 @@ function get_current_subdomain()
  * @return string
  */
 
-function get_pubjet_path($endpoint, $action, $settings)
+function pubjet_get_path($endpoint, $action, $settings)
 {
-    $base_url    = get_current_subdomain();
+    $base_url    = pubjet_get_current_subdomain();
     $rest_prefix = rest_get_url_prefix();
     $use_query   = pubjet_isset_value($settings['processDataByQueryString']);
 
@@ -2252,7 +2252,7 @@ function pubjet_delete_first_image_option() {
     if (get_option('pubjet_migration_delete_first_image_v530') !== 'completed') {
         global $pubjet_settings;
         if (isset($pubjet_settings['deleteFirstImage'])) {
-            migrate_delete_first_image_option();
+            pubjet_migrate_delete_first_image_option();
         } else {
             update_option('pubjet_migration_delete_first_image_v530', 'completed');
         }
@@ -2262,7 +2262,7 @@ function pubjet_delete_first_image_option() {
 /**
  * @return void
  */
-function migrate_delete_first_image_option() {
+function pubjet_migrate_delete_first_image_option() {
     pubjet_log("migrate delete first image");
 
     global $pubjet_settings, $wpdb;
