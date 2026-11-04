@@ -46,6 +46,7 @@ class Ajax extends Singleton
     public function saveReportageAuthor()
     {
         global $pubjet_settings;
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         $author_id = sanitize_text_field($this->post('authorId'));
@@ -83,6 +84,7 @@ class Ajax extends Singleton
      */
     public function findAuthors()
     {
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         $authors = pubjet_find_authors();
@@ -95,6 +97,7 @@ class Ajax extends Singleton
      */
     public function findWpCategories()
     {
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         $mode = $this->get('mode', 'flat');
@@ -110,6 +113,7 @@ class Ajax extends Singleton
 
     public function findTerms()
     {
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         $sanitized_taxonomy = sanitize_text_field($this->get('taxonomy'));
@@ -155,6 +159,8 @@ class Ajax extends Singleton
      */
     public function permanentHideAdminNotice()
     {
+        $this->checkAdminPermission();
+
         $notice_id = sanitize_text_field($this->post('noticeId'));
         $security = sanitize_text_field($this->post('security'));
 
@@ -174,6 +180,8 @@ class Ajax extends Singleton
      */
     public function remindAdminNotice()
     {
+        $this->checkAdminPermission();
+
         $notice_id = sanitize_text_field($this->post('noticeId'));
         $security = sanitize_text_field($this->post('security'));
 
@@ -191,6 +199,7 @@ class Ajax extends Singleton
     public function saveReportageOptions()
     {
 
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         if (empty($this->post('postId')) || !pubjet_is_reportage($this->post('postId'))) {
@@ -213,6 +222,7 @@ class Ajax extends Singleton
      */
     public function findReportageOptions()
     {
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         if (empty($this->get('postId')) || !pubjet_is_reportage($this->get('postId'))) {
@@ -236,6 +246,7 @@ class Ajax extends Singleton
      */
     public function findReportagePanelData()
     {
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         // Missing params
@@ -261,6 +272,7 @@ class Ajax extends Singleton
      */
     public function regThumbnail()
     {
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         if (empty($this->post('postId'))) {
@@ -315,6 +327,7 @@ class Ajax extends Singleton
 
     public function regImages()
     {
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         if (empty($this->post('postId'))) {
@@ -444,6 +457,7 @@ class Ajax extends Singleton
      */
     public function deleteDebug()
     {
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         /**
@@ -479,6 +493,7 @@ class Ajax extends Singleton
      */
     public function getDebug()
     {
+        $this->checkAdminPermission();
         $this->checkNonce();
         /**
          * The pubjet_get_debug action.
@@ -509,6 +524,7 @@ class Ajax extends Singleton
      */
     public function saveOptions()
     {
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         // flush_rewrite_rules();
@@ -579,6 +595,7 @@ class Ajax extends Singleton
      */
     public function checkRequiredPhpModules()
     {
+        $this->checkAdminPermission();
         $this->checkNonce();
 
         /**
