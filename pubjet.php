@@ -296,7 +296,14 @@ if (!class_exists('Pubjet')) {
          * @since  5.4.9
          */
         private function upgradeTo549() {
+            global $pubjet_settings;
+
             pubjet_delete_legacy_debug_file();
+
+            // Debug mode that is already on expires one day after the update
+            if (!empty($pubjet_settings[EnumOptions::DebugMode]) && empty($pubjet_settings[EnumOptions::DebugModeEnabledAt])) {
+                $pubjet_settings[EnumOptions::DebugModeEnabledAt] = time();
+            }
         }
 
         /**

@@ -9,6 +9,7 @@ class EnumOptions {
     const Token                   = 'token';
     const DefaultCategory         = 'defaultCategory';
     const DebugMode               = 'debug';
+    const DebugModeEnabledAt      = 'debugEnabledAt';
     const LastCheckingMissedPosts = 'lastCheckingMissedPosts';
     const ActivationVersion       = 'activationVersion';
     const CopyrightStatus         = 'copyrightStatus';

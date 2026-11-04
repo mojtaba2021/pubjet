@@ -110,18 +110,7 @@ class Cron extends Singleton
      */
     public function deletePubjetLogs()
     {
-        $log_file = pubjet_debug_dir();
-        if (!file_exists($log_file)) return;
-
-        $max_size = (int) apply_filters('pubjet_max_log_size', 100 * 1024 * 1024);
-        $file_size = filesize($log_file);
-        if ($file_size <= $max_size) return;
-
-        if (is_writable(dirname($log_file)) && wp_delete_file($log_file)) {
-            error_log('Pubjet Cron: Log file cleared automatically: ' . $log_file);
-        } else {
-            error_log('Pubjet Cron: Failed to delete the log file: ' . $log_file);
-        }
+        pubjet_rotate_log_file(pubjet_debug_dir());
 
     }
 

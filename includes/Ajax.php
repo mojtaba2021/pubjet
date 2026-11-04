@@ -474,6 +474,7 @@ class Ajax extends Singleton
 
         if (is_writeable(pubjet_debug_dir())) {
             wp_delete_file(pubjet_debug_dir()); // Delete debug file
+            wp_delete_file(pubjet_debug_dir() . '.1'); // Delete rotated copy
         } else {
             $this->error(pubjet__('delete-permission-limit'));
         }
@@ -559,7 +560,7 @@ class Ajax extends Singleton
         pubjet_validate_pricing_plans($pricingPlans);
 
 
-        $newSettings = pubjet_prepare_settings_to_save($settings, $publisherCategory);
+        $newSettings = pubjet_stamp_debug_mode(pubjet_prepare_settings_to_save($settings, $publisherCategory));
 
         // First try to send pricing plans to API
         pubjet_log('before pubjet_send_pricing_plans_to_api');

@@ -731,6 +731,7 @@ function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
     if (!pubjet_prepare_log_dir(dirname($file))) {
         return false;
     }
+    pubjet_rotate_log_file($file);
 
     $entry = pubjet_mask_secrets($method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n");
 
@@ -770,6 +771,32 @@ function pubjet_mask_secrets($text) {
         return $matches[1] . pubjet_mask_secret($matches[2]);
     }, $text);
     return $text;
+}
+
+/**
+ * Keep one previous copy of the log when it grows over the size limit.
+ *
+ * @param string $file
+ *
+ * @return void
+ */
+function pubjet_rotate_log_file($file) {
+    /**
+     * The pubjet_max_log_size filter.
+     *
+     * @since 5.4.9 Default is 5 MB.
+     */
+    $max_size = (int) apply_filters('pubjet_max_log_size', 5 * MB_IN_BYTES);
+    if (!file_exists($file) || filesize($file) <= $max_size) {
+        return;
+    }
+    $previous_file = $file . '.1';
+    if (file_exists($previous_file)) {
+        wp_delete_file($previous_file);
+    }
+    if (!@rename($file, $previous_file)) {
+        wp_delete_file($file);
+    }
 }
 
 /**
@@ -832,7 +859,53 @@ function pubjet_delete_legacy_debug_file() {
  */
 function pubjet_is_debug_mode() {
     global $pubjet_settings;
-    return boolval($pubjet_settings[\triboon\pubjet\includes\enums\EnumOptions::DebugMode]);
+    if (!boolval(pubjet_isset_value($pubjet_settings[EnumOptions::DebugMode]))) {
+        return false;
+    }
+    /**
+     * The pubjet_debug_mode_ttl filter. Debug mode is turned off after this many seconds.
+     *
+     * @since 5.4.9
+     */
+    $ttl        = (int) apply_filters('pubjet_debug_mode_ttl', DAY_IN_SECONDS);
+    $enabled_at = (int) pubjet_isset_value($pubjet_settings[EnumOptions::DebugModeEnabledAt], 0);
+    if ($ttl > 0 && $enabled_at > 0 && time() - $enabled_at > $ttl) {
+        pubjet_disable_debug_mode();
+        return false;
+    }
+    return true;
+}
+
+/**
+ * @return void
+ */
+function pubjet_disable_debug_mode() {
+    global $pubjet_settings;
+    $pubjet_settings[EnumOptions::DebugMode]          = false;
+    $pubjet_settings[EnumOptions::DebugModeEnabledAt] = 0;
+    $settings                                         = pubjet_settings();
+    $settings[EnumOptions::DebugMode]                 = false;
+    $settings[EnumOptions::DebugModeEnabledAt]        = 0;
+    update_option(EnumOptions::Settings, $settings);
+}
+
+/**
+ * Record when debug mode was turned on, so it can expire.
+ *
+ * @param array $settings Settings about to be saved.
+ *
+ * @return array
+ */
+function pubjet_stamp_debug_mode(array $settings) {
+    global $pubjet_settings;
+    if (!boolval(pubjet_isset_value($settings[EnumOptions::DebugMode]))) {
+        $settings[EnumOptions::DebugModeEnabledAt] = 0;
+    } elseif (boolval(pubjet_isset_value($pubjet_settings[EnumOptions::DebugMode])) && !empty($pubjet_settings[EnumOptions::DebugModeEnabledAt])) {
+        $settings[EnumOptions::DebugModeEnabledAt] = (int) $pubjet_settings[EnumOptions::DebugModeEnabledAt];
+    } else {
+        $settings[EnumOptions::DebugModeEnabledAt] = time();
+    }
+    return $settings;
 }
 
 /**
@@ -1510,6 +1583,7 @@ function pubjet_default_settings() {
         'token'                    => '',
         'defaultCategory'          => '',
         'debug'                    => '',
+        'debugEnabledAt'           => 0,
         'alignCenterImages'        => '',
         'nofollow'                 => '',
         'lastCategoriesSyncTime'   => '',
