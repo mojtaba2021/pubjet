@@ -145,43 +145,6 @@ function pubjet_ajax_success($data = []) {
 }
 
 /**
- * @return array|null|object
- * @since  1.0
- * @access public
- *
- */
-function pubjet_get_site_admins() {
-    global $wpdb;
-    $query = "
-		SELECT 
-			u.ID, u.user_login, u.user_nicename, u.user_email, um2.meta_value as `mobile`
-		    	FROM {$wpdb->users} u
-		    INNER JOIN {$wpdb->usermeta} m ON m.user_id = u.ID
-		    LEFT OUTER JOIN {$wpdb->usermeta} um2 ON um2.user_id = u.ID AND um2.meta_key = 'mobile'
-		    WHERE m.meta_key = 'wp_capabilities'
-		    AND m.meta_value LIKE '%administrator%'
-		    ORDER BY u.user_registered
-	";
-
-    return $wpdb->get_results($query);
-}
-
-/**
- * @return array
- * @since 1.0
- */
-function pubjet_get_site_admins_user_ids() {
-    $admins = chapar_get_site_admins();
-    if (!$admins) {
-        return false;
-    }
-
-    return array_map(function ($admin) {
-        return $admin->ID;
-    }, $admins);
-}
-
-/**
  * @return integer
  * @since  1.0
  * @author Triboon
@@ -267,86 +230,6 @@ function pubjet_is_admin($user_id = '') {
 }
 
 /**
- * Get user ip address
- *
- * @return mixed|string
- * @since 1.0
- */
-function pubjet_get_ip_address() {
-    if (isset($_SERVER['HTTP_CLIENT_IP'])) {
-        $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-    } else if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } else if (isset($_SERVER['HTTP_X_FORWARDED'])) {
-        $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-    } else if (isset($_SERVER['HTTP_X_CLUSTER_CLIENT_IP'])) {
-        $ipaddress = $_SERVER['HTTP_X_CLUSTER_CLIENT_IP'];
-    } else if (isset($_SERVER['HTTP_FORWARDED_FOR'])) {
-        $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-    } else if (isset($_SERVER['HTTP_FORWARDED'])) {
-        $ipaddress = $_SERVER['HTTP_FORWARDED'];
-    } else if (isset($_SERVER['REMOTE_ADDR'])) {
-        $ipaddress = $_SERVER['REMOTE_ADDR'];
-    } else {
-        $ipaddress = 'UNKNOWN';
-    }
-
-    return apply_filters('pubjet_user_ip', $ipaddress);
-}
-
-/**
- * @return void
- * @author Triboon
- * @since  1.0
- */
-function pubjet_wp_log($data) {
-    if (is_array($data) || is_object($data)) {
-        error_log(print_r($data, true));
-
-        return;
-    }
-    error_log($data);
-}
-
-/**
- * Get woocommerce checkout page url
- *
- * @return string
- * @author Triboon
- * @since  1.0
- */
-function pubjet_find_woo_checkout_page_url() {
-    return get_permalink(wc_get_page_id('checkout'));
-}
-
-/**
- * Get woocommerce shop page url
- *
- * @return string
- * @author Triboon
- * @since  1.0
- */
-function pubjet_find_woo_shop_page_url() {
-    return get_permalink(wc_get_page_id('shop'));
-}
-
-/**
- * @param       $item
- * @param array $args
- */
-function pubjet_echo_or_call($item, $args = []) {
-    if (is_callable($item)) {
-        call_user_func($item, $args);
-
-        return;
-    }
-    if (isset($args['return']) && $args['return']) {
-        return $item;
-    }
-    echo is_array($item) ? implode(' ', $item) : $item;
-}
-
-/**
  * Get specific user roles
  *
  * @param string $user_id
@@ -409,30 +292,6 @@ function pubjet_allowed_svg_tags() {
         'polyline' => $shape,
         'g'        => ['fill' => true, 'stroke' => true],
     ];
-}
-
-/**
- * Conditionally render markup
- *
- * @param         $condition
- * @param Closure $render
- *
- * @since 1.0
- */
-function pubjet_condition_render($condition, $render) {
-    if (is_callable($condition)) {
-        $condition = call_user_func($condition);
-    }
-    if ($condition) {
-        if (is_callable($render)) {
-            ob_start();
-            call_user_func($render);
-            $output = ob_get_clean();
-        } else {
-            $output = $render;
-        }
-        echo $output;
-    }
 }
 
 /**
@@ -558,181 +417,6 @@ function pubjet_get_page_templates() {
 }
 
 /**
- * @param      $args
- * @param bool $echo
- *
- * @since 1.0
- */
-function pubjet_swiper($args, $echo = true) {
-    $defaults = [
-        'loop'             => true,
-        'spaceBetween'     => 0,
-        'slidesPerView'    => 1,
-        'lazy'             => true,
-        'autoHeight'       => false,
-        'show_timebar'     => false,
-        'autoPlay'         => [
-            'delay'                => 3000,
-            'disableOnInteraction' => true,
-        ],
-        'navigation'       => [
-            'display' => true,
-            'nextEl'  => '.swiper-button-next',
-            'prevEl'  => '.swiper-button-prev',
-        ],
-        'pagination'       => [
-            'display'   => true,
-            'clickable' => true,
-            'classes'   => '',
-            'el'        => '.swiper-pagination',
-        ],
-        'scrollbar'        => [
-            'display' => true,
-            'el'      => '.swiper-scrollbar',
-        ],
-        'breakpoints'      => [
-            '0'    => [
-                'slidesPerView' => 1,
-            ],
-            '576'  => [
-                'slidesPerView' => 2,
-            ],
-            '768'  => [
-                'slidesPerView' => 3,
-            ],
-            '992'  => [
-                'slidesPerView' => 4,
-            ],
-            '1200' => [
-                'slidesPerView' => 5,
-            ],
-            '1400' => [
-                'slidesPerView' => 6,
-            ],
-        ],
-        'thumbs'           => [
-            'show' => false,
-            'data' => [],
-        ],
-        'data'             => [],
-        'callback'         => [],
-        'container_after'  => function () {
-        },
-        'container_before' => function () {
-        },
-    ];
-    $args     = pubjet_parse_args($args, $defaults);
-    if (isset ($args['id']) && $args['id']) {
-        $args['id'] = str_replace("-", "_", $args['id']);
-    } else {
-        $args['id'] = 'carousel_' . uniqid(rand());
-    }
-    // Check if data is an array and is not empty
-    if (!isset($args['data']) || empty($args['data']) || !is_array($args['data'])) {
-        return;
-    }
-    // We need callbcak
-    if (!isset($args['callback']) || empty($args['callback'])) {
-        return;
-    }
-    ?>
-    <div class="triboon-swiper-container">
-        <?php
-        if (isset($args['container_before']) && is_callable($args['container_before'])) {
-            call_user_func($args['container_before']);
-        }
-        ?>
-        <?php if (isset($args['thumbs']['show']) && $args['thumbs']['show']) { ?>
-            <div class="thumbs thumbs-<?php echo esc_attr($args['id']) ?>">
-                <div class="swiper-wrapper">
-                    <?php
-                    if (isset($args['thumbs']['data']) && $args['thumbs']['data'] && is_array($args['thumbs']['data'])) {
-                        foreach ($args['thumbs']['data'] as $item) {
-                            ?>
-                            <div class="swiper-slide">
-                                <span class="thumbs__title"><?php echo $item; ?></span>
-                            </div>
-                            <?php
-                        }
-                    }
-                    ?>
-                </div>
-            </div>
-        <?php } ?>
-        <div id="<?php echo esc_attr($args['id']); ?>" class="swiper slides">
-            <div class="swiper-wrapper">
-                <?php foreach ($args['data'] as $index => $item) { ?>
-                    <div class="swiper-slide">
-                        <?php call_user_func($args['callback'], $item, $index); ?>
-                    </div>
-                <?php } ?>
-            </div>
-            <?php if (is_array($args['pagination']) && isset($args['pagination']['display']) && $args['pagination']['display']) { ?>
-                <div class="swiper-pagination <?php echo esc_attr($args['pagination']['classes']); ?>"></div>
-            <?php } ?>
-            <?php if (is_array($args['scrollbar']) && $args['scrollbar'] && isset($args['scrollbar']['display']) && $args['scrollbar']['display']) { ?>
-                <div class="swiper-scrollbar"></div>
-            <?php } ?>
-            <?php if (is_array($args['navigation']) && $args['navigation'] && isset($args['navigation']['display']) && $args['navigation']['display']) { ?>
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
-            <?php } ?>
-        </div>
-        <?php
-        if (is_array($args['container_after']) && isset($args['container_after']) && is_callable($args['container_after'])) {
-            call_user_func($args['container_after']);
-        }
-        ?>
-    </div>
-    <script type="text/javascript">
-        if (null === window.pubjet_swipers || undefined === window.pubjet_swipers) {
-            window.pubjet_swipers = [];
-        }
-        window.pubjet_swipers.push(<?php echo json_encode($args); ?>);
-    </script>
-    <?php
-}
-
-/**
- * Wrap element with a tag
- *
- * @param $args
- *
- * @return string
- * @since 1.0
- */
-function pubjet_wrap_a($args) {
-    $args = wp_parse_args($args, [
-        'href'    => '',
-        'target'  => '_self',
-        'classes' => '',
-        'render'  => function () {
-        },
-        'elem'    => false,
-    ]);
-
-    ob_start();
-
-    if (trim($args['href'])) {
-        echo sprintf('<a href="%s" target="%s" class="%s">', $args['href'], $args['target'], $args['classes']);
-    } else {
-        if ($args['elem']) {
-            echo sprintf('<%s class="%s">', $args['elem'], $args['classes']);
-        }
-    }
-
-    call_user_func($args['render']);
-
-    if (trim($args['href'])) {
-        echo '</a>';
-    } else {
-        echo '</' . $args['elem'] . '>';
-    }
-
-    return ob_get_clean();
-}
-
-/**
  * @param $entry
  * @param $method
  * @param $line
@@ -747,7 +431,7 @@ function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
 
     $entry = pubjet_redact_for_log($entry);
     if (is_array($entry) || is_object($entry)) {
-        $entry = print_r($entry, true);
+        $entry = wp_json_encode($entry, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     $file = pubjet_debug_dir();
@@ -1450,57 +1134,6 @@ function pubjet_find_token_details($token) {
 }
 
 /**
- * @return bool
- */
-function pubjet_notify_version($version = false, $update = false) {
-    if (!function_exists('PUBJ')) {
-        return false;
-    }
-    $plugin_version = PUBJ()->getVersion();
-    if ($version) {
-        $plugin_version = $version;
-    }
-    if (empty($plugin_version)) {
-        return false;
-    }
-
-    /**
-     * The pubjet_should_notify_version filter.
-     *
-     * @since 1.0.0
-     */
-    if (!apply_filters('pubjet_should_notify_version', $version, $update)) {
-        return false;
-    }
-
-    /**
-     * The pubjet_notify_version_request_headers filter.
-     *
-     * @since 1.0.0
-     */
-    $headers = apply_filters('pubjet_notify_version_request_headers', [
-        'Content-Type'  => 'application/json',
-        'Authoriztaion' => 'Token ' . pubjet_token(),
-    ]);
-
-    /**
-     * The pubjet_notify_version_request_data filter.
-     *
-     * @since 1.0.0
-     */
-    $data = apply_filters('pubjet_notify_version_request_data', [
-        'version' => $plugin_version,
-        'update'  => $update,
-    ]);
-
-    $url = apply_filters('pubjet_notify_version_url', pubjet_api_root() . '/external/wp/pubjet/track');
-
-    pubjet_request($url, 'POST', $headers, json_encode($data), [
-        'data_format' => 'body',
-    ]);
-}
-
-/**
  * @param $url
  * @param $method
  * @param $headers
@@ -1529,18 +1162,6 @@ function pubjet_request($url, $method = 'GET', $headers = [], $body = [], $pargs
     $response_body = json_decode(wp_remote_retrieve_body($response));
 
     return ['code' => $response_code, 'body' => $response_body, 'content_type' => wp_remote_retrieve_header($response, 'content-type')];
-}
-
-/**
- * @param $post_md5
- *
- * @return boolean|integer
- */
-function pubjet_is_post_exists($post_md5) {
-    global $wpdb;
-    $query  = "SELECT `post_id` FROM {$wpdb->postmeta} WHERE `meta_key` = 'duplicate_guard' AND `meta_value` = %s";
-    $pquery = $wpdb->prepare($query, $post_md5);
-    return $wpdb->get_var($pquery);
 }
 
 /**
@@ -2248,7 +1869,6 @@ function pubjet_get_path($endpoint, $action, $settings)
  * @return void
  */
 function pubjet_delete_first_image_option() {
-    error_log("pubjet_delete_first_image_option");
     if (get_option('pubjet_migration_delete_first_image_v530') !== 'completed') {
         global $pubjet_settings;
         if (isset($pubjet_settings['deleteFirstImage'])) {
