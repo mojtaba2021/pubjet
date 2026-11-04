@@ -81,6 +81,7 @@ class ReportagePost extends Singleton
 
             $post_content = !empty($thereportage->content_file_html) ? $thereportage->content_file_html : self::get_content_file($thereportage);
             $post_content = self::get_post_content($post_content, $thereportage->title);
+            $post_content['content'] = Filters::filterReportageHtml($post_content['content'] ?? '', $thereportage->id);
 
             $args['post_title'] = $post_content['title'] ?? '';
             $args['post_content'] = $post_content['content'] ?? '';
@@ -92,7 +93,12 @@ class ReportagePost extends Singleton
 
         }
 
-        $update = wp_update_post($args);
+        add_filter('wp_kses_allowed_html', [Filters::class, "allowReportageIframe"], 10, 2);
+        try {
+            $update = wp_update_post($args);
+        } finally {
+            remove_filter('wp_kses_allowed_html', [Filters::class, "allowReportageIframe"], 10);
+        }
 
         return boolval($update);
     }
@@ -121,6 +127,7 @@ class ReportagePost extends Singleton
         }
 
         $post_content = self::get_post_content($post_content, $reportage->title);
+        $post_content['content'] = Filters::filterReportageHtml($post_content['content'] ?? '', $reportage->id);
         $post_date = self::get_post_date($reportage->preferred_publish_date);
         $post_status = self::get_post_status($post_date);
         $post_excerpt = self::normalize_html($reportage->lead_content ?? '');

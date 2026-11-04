@@ -355,24 +355,86 @@ class Filters extends Singleton {
      */
     public static function allowReportageIframe($tags, $context ) {
         if ( 'post' === $context ) {
-                $tags['iframe'] = [
-                    'id'                    => true,
-                    'src'                   => true,
-                    'width'                 => true,
-                    'height'                => true,
-                    'title'                 => true,
-                    'class'                 => true,
-                    'style'                 => true,
-                    "allow"                 => true,
-                    'loading'               => true,
-                    'frameborder'           => true,
-                    "referrerpolicy"        => true,
-                    'allowfullscreen'       => true,
-                    "mozallowfullscreen"    => true,
-                    "webkitallowfullscreen" => true,
-                ];
+                $tags['iframe'] = self::reportageIframeAttributes();
             }
         return $tags;
+    }
+
+    /**
+     * @return array
+     * @since 5.4.9
+     */
+    public static function reportageIframeAttributes() {
+        return [
+            'id'                    => true,
+            'src'                   => true,
+            'width'                 => true,
+            'height'                => true,
+            'title'                 => true,
+            'class'                 => true,
+            "allow"                 => true,
+            'loading'               => true,
+            'frameborder'           => true,
+            "referrerpolicy"        => true,
+            'allowfullscreen'       => true,
+            "mozallowfullscreen"    => true,
+            "webkitallowfullscreen" => true,
+        ];
+    }
+
+    /**
+     * Hosts allowed as iframe source in reportage content (https only).
+     *
+     * @return string[]
+     * @since 5.4.9
+     */
+    public static function allowedIframeHosts() {
+        /**
+         * The pubjet_allowed_iframe_hosts filter.
+         *
+         * @since 5.4.9
+         */
+        $hosts = apply_filters('pubjet_allowed_iframe_hosts', [
+            'aparat.com',
+            'www.aparat.com',
+            'youtube.com',
+            'www.youtube.com',
+            'youtube-nocookie.com',
+            'www.youtube-nocookie.com',
+        ]);
+        return array_map('strtolower', array_filter((array) $hosts, 'is_string'));
+    }
+
+    /**
+     * Filter newly received reportage HTML: remove iframes that are not https from an allowed
+     * host (each removal is logged with the reportage id), then apply the post HTML rules so
+     * scripts and other disallowed markup are removed.
+     *
+     * @param string     $html
+     * @param int|string $reportage_id
+     *
+     * @return string
+     * @since 5.4.9
+     */
+    public static function filterReportageHtml($html, $reportage_id) {
+        $allowed_hosts = self::allowedIframeHosts();
+        $html          = preg_replace_callback('#<iframe\b[^>]*>(?:.*?</iframe\s*>)?#is', function ($matches) use ($allowed_hosts, $reportage_id) {
+            $src = '';
+            if (preg_match('#\bsrc\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))#i', $matches[0], $src_match)) {
+                $src = html_entity_decode(end($src_match), ENT_QUOTES);
+            }
+            $scheme = strtolower((string) wp_parse_url($src, PHP_URL_SCHEME));
+            $host   = strtolower((string) wp_parse_url($src, PHP_URL_HOST));
+            if ('https' === $scheme && in_array($host, $allowed_hosts, true)) {
+                return $matches[0];
+            }
+            pubjet_log(sprintf('Removed iframe from "%s" in reportage %s', $host ? $host : '(no host)', $reportage_id));
+            return '';
+        }, (string) $html);
+
+        $allowed_tags           = wp_kses_allowed_html('post');
+        $allowed_tags['iframe'] = self::reportageIframeAttributes();
+        return wp_kses($html, $allowed_tags);
     }
 
     /**
