@@ -289,6 +289,9 @@ class Ajax extends Singleton
             $this->error(pubjet__('post-not-reportage'));
         }
 
+        // All error reports of this regeneration are sent as one report.
+        pubjet_sentry_batch_start('Regenerate images, post ' . (int) $post->ID);
+
         /**
          * The pubjet_regenerate_images action.
          */

@@ -1468,7 +1468,52 @@ function pubjet_log_sentry($message, $extra = []) {
     if ('' === $message) {
         return null;
     }
+    if (isset($GLOBALS['pubjet_sentry_batch'])) {
+        $GLOBALS['pubjet_sentry_batch']['messages'][] = $message;
+        return null;
+    }
     return pubjet_sentry_send($message);
+}
+
+/**
+ * Collect the error reports of one task (e.g. processing a reportage) into a single report,
+ * sent at the end of the request.
+ *
+ * @param string $context Short description of the task, e.g. "Reportage 123".
+ *
+ * @return void
+ */
+function pubjet_sentry_batch_start($context) {
+    if (isset($GLOBALS['pubjet_sentry_batch'])) {
+        return;
+    }
+    $GLOBALS['pubjet_sentry_batch'] = [
+        'context'  => pubjet_sentry_clean_text($context),
+        'messages' => [],
+    ];
+    add_action('shutdown', 'pubjet_sentry_batch_flush', 0);
+}
+
+/**
+ * Send the collected error reports as one report.
+ *
+ * @return void
+ */
+function pubjet_sentry_batch_flush() {
+    if (!isset($GLOBALS['pubjet_sentry_batch'])) {
+        return;
+    }
+    $batch = $GLOBALS['pubjet_sentry_batch'];
+    unset($GLOBALS['pubjet_sentry_batch']);
+    if (empty($batch['messages'])) {
+        return;
+    }
+    $unique = array_values(array_unique($batch['messages']));
+    $text   = sprintf('%s: %d error(s): %s', $batch['context'], count($batch['messages']), implode(' | ', array_slice($unique, 0, 20)));
+    if (count($unique) > 20) {
+        $text .= ' | …';
+    }
+    pubjet_sentry_send(pubjet_sentry_clean_text($text));
 }
 
 /**

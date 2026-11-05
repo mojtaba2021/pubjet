@@ -263,6 +263,9 @@ class RestApi extends Singleton
             $reportage->wp_post_id = $reportage_post->ID;
             pubjet_log($reportage);
 
+            // All error reports of this update are sent as one report.
+            pubjet_sentry_batch_start('Reportage ' . (int) pubjet_isset_value($reportage->id) . ' update');
+
             $wp_post_id = ReportagePost::update($reportage);
 
             if (!$wp_post_id || is_wp_error($wp_post_id)) {

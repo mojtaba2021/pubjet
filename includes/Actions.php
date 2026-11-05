@@ -197,6 +197,9 @@ class Actions extends Singleton
             return;
         }
 
+        // All error reports of this reportage are sent as one report.
+        pubjet_sentry_batch_start('Reportage ' . (int) pubjet_isset_value($reportage->id));
+
         try {
             set_transient($lock_key, time(), $lock_time);
             $wp_post_id = ReportagePost::insert($reportage);
