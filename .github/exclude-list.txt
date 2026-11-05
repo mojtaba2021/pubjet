@@ -1,6 +1,5 @@
 .git
 node_modules
-/composer.json
 /src/
 version
 debug.txt

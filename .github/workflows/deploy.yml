@@ -111,7 +111,6 @@ jobs:
             --exclude="/debug.txt" \
             --exclude="/.idea/" \
             --exclude="/.editorconfig" \
-            --exclude="/composer.json" \
             --exclude="/composer.lock" \
             --exclude="/package.json" \
             --exclude="/package-lock.json" \
