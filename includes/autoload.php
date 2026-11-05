@@ -1,4 +1,7 @@
 <?php
+
+defined('ABSPATH') || exit;
+
 spl_autoload_register(function ($classname) {
     $classname  = str_replace('triboon\\pubjet\\', '', $classname);
     $class_path = trailingslashit(dirname(dirname(__FILE__))) . $classname . '.php';

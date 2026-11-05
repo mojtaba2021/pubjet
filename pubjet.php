@@ -13,6 +13,8 @@ use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\Initializer;
 
+defined('ABSPATH') || exit;
+
 if (!class_exists('Pubjet')) {
     final class Pubjet {
 

@@ -8,6 +8,8 @@ use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 
+defined('ABSPATH') || exit;
+
 /**
  * @param $name
  * @param $args
