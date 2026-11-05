@@ -89,6 +89,9 @@ export const doCheckToken = () => {
                     },
                     pricingPlansChanged: false,
                 });
+                if (response.payload.errorReporting) {
+                    setStore('errorReporting', response.payload.errorReporting);
+                }
                 resolve(response);
             } else {
                 setStore(getStoreKey(), {
@@ -115,6 +118,25 @@ export const doCheckToken = () => {
                 },
             });
         });
+    });
+};
+
+/**
+ * Save the administrator's error reporting choice ('yes' or 'no').
+ *
+ * @since 5.4.9
+ */
+export const setErrorReporting = (choice) => {
+    return axios.post(getAdminAjaxUrl(), {
+        action: 'pubjet-set-error-reporting',
+        choice,
+        security: getSecurityNonce(),
+    }).then(response => {
+        if (response.success) {
+            setStore('errorReporting', {...response.payload, ask: false});
+            return response;
+        }
+        return Promise.reject(response.error);
     });
 };
 

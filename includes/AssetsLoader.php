@@ -69,6 +69,7 @@ class AssetsLoader extends Singleton {
             'siteurl'    => site_url(),
             'i18n'       => pubjet_strings(),
             'options'    => pubjet_is_admin() ? pubjet_options() : [],
+            'errorReporting' => pubjet_is_admin() ? pubjet_error_reporting_state() : [],
             'pversion'   => PUBJ()->getVersion(),
         ]);
     }

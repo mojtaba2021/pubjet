@@ -57,6 +57,8 @@ $pubjet_options = [
     'pubjet_token_reconnect_required',
     'pubjet_token_verify_attempts',
     'pubjet_token_verify_stopped',
+    'pubjet_error_reporting',
+    'pubjet_error_reporting_asked',
     'widget_pubjet_backlinks',
     // Options of older versions.
     'pubjet_token',

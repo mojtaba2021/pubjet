@@ -33,6 +33,7 @@ class Ajax extends Singleton
         $this->ajax('remind-admin-notice', [$this, 'remindAdminNotice'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('find-authors', [$this, 'findAuthors'], EnumAjaxPrivType::LoggedIn);
         $this->ajax('save-reportage-author', [$this, 'saveReportageAuthor'], EnumAjaxPrivType::LoggedIn);
+        $this->ajax('set-error-reporting', [$this, 'setErrorReporting'], EnumAjaxPrivType::LoggedIn);
 
         $this->endpointHandler('find-reportage-panel-data', [$this, 'findReportagePanelData']);
         $this->endpointHandler('find-reportage-options', [$this, 'findReportageOptions']);
@@ -599,7 +600,42 @@ class Ajax extends Singleton
         delete_option('pubjet_token_reconnect_required');
         pubjet_send_plugin_status_to_api('active');
 
+        // Ask about error reporting once, after the first successful connection.
+        $ask = pubjet_should_ask_error_reporting();
+        if ($ask) {
+            update_option('pubjet_error_reporting_asked', time(), false);
+        }
+        $response['errorReporting'] = pubjet_error_reporting_state($ask);
+
         $this->success($response);
+    }
+
+    /**
+     * Save the administrator's error reporting choice.
+     *
+     * @return void
+     */
+    public function setErrorReporting()
+    {
+        $this->checkAdminPermission();
+        $this->checkNonce();
+
+        $data = $this->check([EnumHttpMethods::POST]);
+        if (is_array($data) && isset($data['error'])) {
+            $this->error($data['message'], 405);
+        }
+
+        if (null !== pubjet_error_reporting_forced()) {
+            $this->error(pubjet__('error-reporting-forced'), 403);
+        }
+
+        $choice = sanitize_key($this->post('choice'));
+        if (!in_array($choice, ['yes', 'no'], true)) {
+            $this->error(pubjet__('missing-params'));
+        }
+
+        pubjet_set_error_reporting($choice);
+        $this->success(pubjet_error_reporting_state());
     }
 
     public function isValidHttpMethod($valid_methods = ['POST'])

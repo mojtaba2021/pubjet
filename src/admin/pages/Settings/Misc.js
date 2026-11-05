@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {Form, Space, Switch, Tooltip} from "antd";
-import {changeInput, saveOptions, toggleModal} from "./Actions";
+import {changeInput, saveOptions, setErrorReporting, toggleModal} from "./Actions";
 import {connect} from "trim-redux";
 import {pubjet__} from "../../../shared/scripts/utils";
 
@@ -20,6 +20,8 @@ const Misc = props => {
         metakeys = {},
         repauthor = {}
     } = props.options;
+    const {errorReporting = {}} = props;
+    const errorReportingForced = errorReporting.forced === true || errorReporting.forced === false;
 
     /**
      * @since 1.0.0
@@ -167,6 +169,23 @@ const Misc = props => {
                 </Space>}
                 />
                 <Form.Item className={styles.hideInput} label={<Space>
+                    <Switch
+                        size={'default'}
+                        checked={!!errorReporting.enabled}
+                        disabled={errorReportingForced}
+                        onChange={(checked) => {
+                            setErrorReporting(checked ? 'yes' : 'no').then(toggleSavedAlert).catch(() => {});
+                        }}
+                    />
+                    <Space>
+                        <span>{pubjet__('error-reporting')}</span>
+                        <Tooltip title={<div dangerouslySetInnerHTML={{__html: pubjet__(errorReportingForced ? 'error-reporting-forced' : 'error-reporting-hints')}}/>}>
+                            <QuestionCircleOutlined className={'ant-form-item-tooltip'}/>
+                        </Tooltip>
+                    </Space>
+                </Space>}
+                />
+                <Form.Item className={styles.hideInput} label={<Space>
                     <Switch checked={uninstallCleanup} onChange={(checked) => {
                         changeInput('uninstallCleanup', checked);
                         saveOptions();
@@ -186,7 +205,8 @@ const Misc = props => {
 };
 
 const mstp = (state) => ({
-    options: state.options
+    options: state.options,
+    errorReporting: state.errorReporting,
 });
 
 export default connect(mstp)(Misc);

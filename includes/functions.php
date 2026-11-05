@@ -938,6 +938,17 @@ function pubjet_strings() {
         'add-reportage-source-hints' => esc_html__('By activating this option, the link that is most frequently repeated in the report will be included as the root domain (main domain) as the news source at the end of the article.', 'pubjet'),
         'switch-rep-author-hints'    => esc_html__("By default, reportage articles are published on the site without the author's name. If you would like a specific author to be considered for these articles, you can specify the author's name in this field.", 'pubjet'),
         'uninstall-hints'            => esc_html__('By enabling this option, all Pubjet settings will be completely erased after uninstalling Pubjet.', 'pubjet'),
+        'error-reporting'               => esc_html__('Send error reports to Triboon', 'pubjet'),
+        'error-reporting-hints'         => esc_html__("When enabled, errors in Pubjet itself are sent to Triboon for faster support. Only the site address, the Pubjet, PHP and WordPress versions and the error text are sent; tokens and personal data are removed. To turn it off for good, add define( 'PUBJET_ERROR_REPORTING', false ); to wp-config.php.", 'pubjet'),
+        'error-reporting-question'      => esc_html__('Send Pubjet error reports to Triboon for faster support?', 'pubjet'),
+        'error-reporting-data-title'    => esc_html__('Only this data is sent:', 'pubjet'),
+        'error-reporting-data-site'     => esc_html__('Site address', 'pubjet'),
+        'error-reporting-data-versions' => esc_html__('Pubjet, PHP and WordPress versions', 'pubjet'),
+        'error-reporting-data-error'    => esc_html__('Error text, with tokens and personal data removed', 'pubjet'),
+        'error-reporting-change-later'  => esc_html__('You can change this later in the Advanced tab.', 'pubjet'),
+        'error-reporting-yes'           => esc_html__('Yes, send reports', 'pubjet'),
+        'error-reporting-no'            => esc_html__('No', 'pubjet'),
+        'error-reporting-forced'        => esc_html__('Error reporting is set with the PUBJET_ERROR_REPORTING constant in wp-config.php.', 'pubjet'),
         'add-reportage-tags'         => esc_html__('Publish advertorials without tags', 'pubjet'),
         'add-reportage-tags-hints'   => esc_html__('By default, advertorials are published with customer-suggested tags. By enabling this option, advertorials will be published without tags.', 'pubjet'),
         /* translators: %s: pricing plan title. */
@@ -1352,12 +1363,102 @@ function pubjet_update_setting($option_name, $option_value) {
 
 
 /**
+ * Error reporting choice made by the administrator.
+ *
+ * @return string 'yes', 'no', or '' when no choice has been made yet.
+ */
+function pubjet_error_reporting_choice() {
+    $choice = get_option('pubjet_error_reporting', '');
+    return in_array($choice, ['yes', 'no'], true) ? $choice : '';
+}
+
+/**
+ * Error reporting forced with the PUBJET_ERROR_REPORTING constant in wp-config.php.
+ *
+ * @return bool|null true or false when the constant is set to a boolean, null otherwise.
+ */
+function pubjet_error_reporting_forced() {
+    if (defined('PUBJET_ERROR_REPORTING') && is_bool(PUBJET_ERROR_REPORTING)) {
+        return PUBJET_ERROR_REPORTING;
+    }
+    return null;
+}
+
+/**
+ * Whether error reports may be sent to Triboon.
+ *
+ * Order: the PUBJET_ERROR_REPORTING constant, then the administrator's choice,
+ * then PUBJET_ERROR_REPORTING_DEFAULT.
+ *
+ * @return bool
+ */
+function pubjet_is_error_reporting_enabled() {
+    $forced = pubjet_error_reporting_forced();
+    if (null !== $forced) {
+        $enabled = $forced;
+    } else {
+        $choice  = pubjet_error_reporting_choice();
+        $enabled = '' === $choice ? (true === PUBJET_ERROR_REPORTING_DEFAULT) : 'yes' === $choice;
+    }
+    if (!$enabled) {
+        return false;
+    }
+    /**
+     * The pubjet_error_reporting_enabled filter. Can only turn error reporting off.
+     *
+     * @since 5.4.9
+     */
+    return true === apply_filters('pubjet_error_reporting_enabled', true);
+}
+
+/**
+ * Whether the administrator should be asked about error reporting (only once).
+ *
+ * @return bool
+ */
+function pubjet_should_ask_error_reporting() {
+    return null === pubjet_error_reporting_forced()
+        && true !== PUBJET_ERROR_REPORTING_DEFAULT
+        && '' === pubjet_error_reporting_choice()
+        && !get_option('pubjet_error_reporting_asked');
+}
+
+/**
+ * @param string $choice 'yes' or 'no'.
+ *
+ * @return void
+ */
+function pubjet_set_error_reporting($choice) {
+    update_option('pubjet_error_reporting', 'yes' === $choice ? 'yes' : 'no', false);
+    update_option('pubjet_error_reporting_asked', time(), false);
+}
+
+/**
+ * Error reporting state for the settings page.
+ *
+ * @param bool $ask Whether to show the question now.
+ *
+ * @return array
+ */
+function pubjet_error_reporting_state($ask = false) {
+    return [
+        'enabled' => pubjet_is_error_reporting_enabled(),
+        'choice'  => pubjet_error_reporting_choice(),
+        'forced'  => pubjet_error_reporting_forced(),
+        'ask'     => (bool) $ask,
+    ];
+}
+
+/**
  * @param $message
  * @param $extra
  *
  * @return \Sentry\EventId|null
  */
 function pubjet_log_sentry($message, $extra = []) {
+    if (!pubjet_is_error_reporting_enabled()) {
+        return null;
+    }
     $extra = pubjet_parse_args($extra, [
         'website_url'    => site_url(),
         'website_title'  => get_bloginfo('name'),

@@ -108,6 +108,9 @@ if (!class_exists('Pubjet')) {
             $this->defineConstant('PUBJET_JS_URL', PUBJET_ASSETS_URL . "js/");
             $this->defineConstant('PUBJET_VERSION', $this->getScriptsVersion());
             $this->defineConstant('PUBJET_DB_VERSION', '1.0.0');
+            // Error reporting when neither PUBJET_ERROR_REPORTING nor the administrator has decided. Keep false
+            // unless WordPress.org confirms it may be on by default; setting it to true also removes the question.
+            $this->defineConstant('PUBJET_ERROR_REPORTING_DEFAULT', false);
             $this->defineConstant('PUBJET_API_ROOT', 'https://api.triboon.net');
             $this->defineConstant('PUBJET_CDN_ROOT', 'https://cdn.triboon.net/media/reportage_images');
             $this->defineConstant('PUBJET_TBL_NAME', 'pubjet_reportages');
