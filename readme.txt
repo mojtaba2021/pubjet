@@ -60,11 +60,25 @@ Triboon is the platform that sends sponsored posts (reportages) and backlinks to
 * After a reportage is published, or its address changes: the reportage ID and the address of the post on your site.
 * After a backlink is published: the backlink ID and its status.
 
-Every request includes the connection token. Terms of use and privacy policy: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a>
+Every request includes the connection token. Terms of use: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a> Privacy policy: PRIVACY_URL_TBD
 
 **Triboon CDN (cdn.triboon.net)**
 
-When Triboon sends a reportage, the plugin downloads its content and images from the Triboon CDN. Only a standard WordPress HTTP request is sent, which includes your site address in the user agent. The same terms of use and privacy policy apply: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a>
+When Triboon sends a reportage, the plugin downloads its content and images from the Triboon CDN. Only a standard WordPress HTTP request is sent, which includes your site address in the user agent. Terms of use: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a> Privacy policy: PRIVACY_URL_TBD
+
+**Triboon error reports (Sentry)**
+
+Error reporting is opt-in. After the connection token is saved, the settings page asks the administrator whether Pubjet error reports may be sent to Triboon; nothing is preselected and nothing is sent until the administrator answers "Yes". The choice can be changed at any time in the Advanced tab of the Pubjet settings.
+
+When enabled, the plugin sends a report to Triboon's error-tracking server (a Sentry service) when Pubjet itself fails, for example when a token check, a reportage delivery or an image download fails. Errors of other plugins, themes or WordPress are never sent. Each report contains only:
+
+* the error text, with tokens, e-mail addresses, phone numbers and other personal data removed (it may name the Triboon ID of the reportage or post concerned);
+* the site address;
+* the Pubjet, PHP and WordPress versions.
+
+No request data, cookies, user data or file contents are sent.
+
+To turn error reporting off for good and hide the question, add this line to wp-config.php: `define( 'PUBJET_ERROR_REPORTING', false );` (with `true` it is turned on). Privacy policy: PRIVACY_URL_TBD
 
 **WordPress.org Plugin API (api.wordpress.org)**
 
