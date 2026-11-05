@@ -215,7 +215,7 @@ function pubjet_parse_args(&$a, $b) {
  *
  */
 function pubjet_is_ajax() {
-    return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+    return 'xmlhttprequest' === strtolower((string) pubjet_get_server_var('HTTP_X_REQUESTED_WITH', ''));
 }
 
 /**
@@ -1009,7 +1009,7 @@ function pubjet__($key) {
  * @return string
  */
 function pubjet_get_request_method() {
-    return strtoupper(pubjet_isset_value($_SERVER['REQUEST_METHOD']));
+    return strtoupper((string) pubjet_get_server_var('REQUEST_METHOD', ''));
 }
 
 /**

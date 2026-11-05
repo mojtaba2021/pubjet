@@ -176,24 +176,6 @@ class DbTable {
     }
 
     /**
-     * Count rows with specific condition
-     *
-     * @param string  $column_name  column name
-     * @param integer $column_value column value
-     *
-     * @return null|string
-     * @since  1.0
-     * @access public
-     *
-     */
-    public function countWhere($column_name, $column_value) {
-        global $wpdb;
-
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-        return $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$this->table_name} WHERE {$column_name} = %d", $column_value));
-    }
-
-    /**
      * Count total rows
      *
      * @return null|string
@@ -341,27 +323,6 @@ class DbTable {
         global $wpdb;
 
         return $wpdb->query("DELETE FROM {$this->table_name}");
-    }
-
-    /**
-     * Check if specific value exists or not
-     *
-     * @param $col_name  string name
-     * @param $col_value string value
-     *
-     * @since  1.0
-     * @access public
-     *
-     */
-    public function exists($col_name, $col_value) {
-        global $wpdb;
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
-        if ($wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$this->table_name} WHERE {$col_name} = %s", $col_value))) {
-            return true;
-        }
-
-        return false;
-
     }
 
     /**

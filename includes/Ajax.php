@@ -604,7 +604,7 @@ class Ajax extends Singleton
 
     public function isValidHttpMethod($valid_methods = ['POST'])
     {
-        return in_array($_SERVER['REQUEST_METHOD'], $valid_methods);
+        return in_array(pubjet_get_request_method(), $valid_methods, true);
     }
 
     /**
