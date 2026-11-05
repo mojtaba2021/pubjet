@@ -1450,8 +1450,13 @@ function pubjet_error_reporting_state($ask = false) {
 }
 
 /**
- * @param $message
- * @param $extra
+ * Send an error report to Triboon, only when error reporting is enabled.
+ *
+ * Only the cleaned error text (plus the error detail in $extra['error'], if any) and the data
+ * from pubjet_sentry_site_data() are sent. Other $extra values are not sent.
+ *
+ * @param string $message
+ * @param array  $extra
  *
  * @return \Sentry\EventId|null
  */
@@ -1459,18 +1464,156 @@ function pubjet_log_sentry($message, $extra = []) {
     if (!pubjet_is_error_reporting_enabled()) {
         return null;
     }
-    $extra = pubjet_parse_args($extra, [
-        'website_url'    => site_url(),
-        'website_title'  => get_bloginfo('name'),
-        'pubjet_version' => PUBJ()->getVersion(),
-    ]);
-    \Sentry\init(['dsn' => 'https://ea145de5084460f189b3bf2d66b6af06@sentry.hamravesh.com/6647',]);
-    \Sentry\configureScope(function (Scope $scope) use ($extra) {
-        foreach ($extra as $key => $value) {
-            $scope->setExtra($key, $value);
+    $message = pubjet_sentry_message($message, $extra);
+    if ('' === $message) {
+        return null;
+    }
+    return pubjet_sentry_send($message);
+}
+
+/**
+ * Build the cleaned error text of a report.
+ *
+ * @param string $message
+ * @param array  $extra
+ *
+ * @return string
+ */
+function pubjet_sentry_message($message, $extra = []) {
+    $message = is_scalar($message) ? (string) $message : '';
+    if (is_array($extra) && isset($extra['error']) && is_scalar($extra['error'])) {
+        $detail = trim((string) $extra['error']);
+        if ('' !== $detail && false === strpos($message, $detail)) {
+            $message .= ': ' . $detail;
         }
-    });
-    return \Sentry\captureException(new \Exception($message));
+    }
+    return pubjet_sentry_clean_text($message);
+}
+
+/**
+ * @param string $text
+ *
+ * @return string
+ */
+function pubjet_sentry_clean_text($text) {
+    $text = pubjet_redact_for_log((string) $text);
+    $text = is_string($text) ? trim($text) : '';
+    if (strlen($text) > 2000) {
+        $text = substr($text, 0, 2000) . '…';
+    }
+    return $text;
+}
+
+/**
+ * The only site data sent with an error report.
+ *
+ * @return array
+ */
+function pubjet_sentry_site_data() {
+    return [
+        'website_url'    => site_url(),
+        'pubjet_version' => PUBJ()->getVersion(),
+        'php_version'    => PHP_VERSION,
+        'wp_version'     => get_bloginfo('version'),
+    ];
+}
+
+/**
+ * @return string
+ */
+function pubjet_sentry_dsn() {
+    $dsn = defined('PUBJET_SENTRY_DSN') ? PUBJET_SENTRY_DSN : '';
+    /**
+     * The pubjet_sentry_dsn filter.
+     *
+     * @since 5.4.9
+     */
+    $dsn = apply_filters('pubjet_sentry_dsn', $dsn);
+    return is_string($dsn) ? trim($dsn) : '';
+}
+
+/**
+ * A Sentry hub used only by Pubjet. The global Sentry hub of the site is never changed, and no
+ * default integration is used: no global error handler, no request data, no module list.
+ *
+ * @return \Sentry\State\HubInterface|null
+ */
+function pubjet_sentry_hub() {
+    static $hub = false;
+    if (false !== $hub) {
+        return $hub;
+    }
+    $hub = null;
+    $dsn = pubjet_sentry_dsn();
+    if ('' === $dsn || !class_exists('\Sentry\ClientBuilder')) {
+        return null;
+    }
+    try {
+        $client = \Sentry\ClientBuilder::create([
+            'dsn'                   => $dsn,
+            'default_integrations'  => false,
+            'integrations'          => [],
+            'send_default_pii'      => false,
+            'max_request_body_size' => 'never',
+            'attach_stacktrace'     => false,
+            'context_lines'         => null,
+            'server_name'           => (string) wp_parse_url(home_url(), PHP_URL_HOST),
+            'release'               => 'pubjet@' . PUBJ()->getVersion(),
+            'http_connect_timeout'  => 2,
+            'http_timeout'          => 3,
+            'before_send'           => 'pubjet_sentry_before_send',
+        ])->getClient();
+        $hub = new \Sentry\State\Hub($client);
+    } catch (\Throwable $e) {
+        $hub = null;
+    }
+    return $hub;
+}
+
+/**
+ * Send a new event that holds only the cleaned message and pubjet_sentry_site_data(). Anything else,
+ * including data that event processors of another Sentry setup on the site may have added
+ * (request, user, contexts, breadcrumbs, tags), is left out.
+ *
+ * @param \Sentry\Event $event
+ *
+ * @return \Sentry\Event
+ */
+function pubjet_sentry_before_send(\Sentry\Event $event) {
+    $clean = \Sentry\Event::createEvent($event->getId());
+    $clean->setSdkIdentifier($event->getSdkIdentifier());
+    $clean->setSdkVersion($event->getSdkVersion());
+    $clean->setTimestamp($event->getTimestamp());
+    $clean->setLevel($event->getLevel());
+    $clean->setServerName($event->getServerName());
+    $clean->setRelease($event->getRelease());
+    $clean->setEnvironment($event->getEnvironment());
+    $clean->setExtra(array_intersect_key($event->getExtra(), pubjet_sentry_site_data()));
+    $clean->setMessage(pubjet_sentry_clean_text((string) $event->getMessage()));
+    return $clean;
+}
+
+/**
+ * @param string $message Cleaned error text.
+ *
+ * @return \Sentry\EventId|null
+ */
+function pubjet_sentry_send($message) {
+    $hub = pubjet_sentry_hub();
+    if (null === $hub) {
+        return null;
+    }
+    try {
+        return $hub->withScope(function (Scope $scope) use ($hub, $message) {
+            foreach (pubjet_sentry_site_data() as $key => $value) {
+                $scope->setExtra($key, $value);
+            }
+            return $hub->captureMessage($message, \Sentry\Severity::error());
+        });
+    } catch (\Throwable $e) {
+        // Sending a report must never break the request.
+        return null;
+    }
 }
 
 /**

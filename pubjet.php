@@ -111,6 +111,8 @@ if (!class_exists('Pubjet')) {
             // Error reporting when neither PUBJET_ERROR_REPORTING nor the administrator has decided. Keep false
             // unless WordPress.org confirms it may be on by default; setting it to true also removes the question.
             $this->defineConstant('PUBJET_ERROR_REPORTING_DEFAULT', false);
+            // Error reports go to Triboon's error tracker. Can be overridden in wp-config.php; an empty value turns reporting off.
+            $this->defineConstant('PUBJET_SENTRY_DSN', 'https://ea145de5084460f189b3bf2d66b6af06@sentry.hamravesh.com/6647');
             $this->defineConstant('PUBJET_API_ROOT', 'https://api.triboon.net');
             $this->defineConstant('PUBJET_CDN_ROOT', 'https://cdn.triboon.net/media/reportage_images');
             $this->defineConstant('PUBJET_TBL_NAME', 'pubjet_reportages');
