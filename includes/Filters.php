@@ -215,7 +215,7 @@ class Filters extends Singleton {
         $domain_counts = [];
 
         foreach ($valid_links as $link) {
-            $parsed_url = parse_url($link);
+            $parsed_url = wp_parse_url($link);
 
             if (isset($parsed_url['host'])) {
                 $base_domain = strtolower(preg_replace('/^www\./', '', $parsed_url['host']));

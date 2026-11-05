@@ -35,7 +35,7 @@ class ReportagePost extends Singleton
      */
     public static function get_post_status($post_date)
     {
-        $dt = new DateTime(date('Y-m-d H:i:s e'));
+        $dt = new DateTime('now', new DateTimeZone('UTC'));
         $dt->setTimezone(new DateTimeZone(wp_timezone_string()));
         $dt->modify('+3 minutes');
         $current_time = $dt->format('Y-m-d H:i:s');
@@ -396,7 +396,7 @@ class ReportagePost extends Singleton
 
         $data_attach = '';
         if (!empty($original_src)) {
-            $path = parse_url($original_src, PHP_URL_PATH);
+            $path = wp_parse_url($original_src, PHP_URL_PATH);
             if ($path !== null) {
                 $data_attach = rawurldecode(basename($path));
             }
@@ -605,7 +605,7 @@ class ReportagePost extends Singleton
         preg_match('/<h1\b[^>]*>(.*?)<\/h1>/i', $content, $matches);
 
         foreach ($matches as $index => $matche) {
-            $h1Tag = strip_tags($matche);
+            $h1Tag = wp_strip_all_tags($matche);
             if ($index == 0) {
                 $object_title = empty(trim($object_title)) ? trim($h1Tag) : $object_title;
                 $content = str_replace($matche, '', $content);

@@ -480,7 +480,7 @@ class Actions extends Singleton
             ],
             'data_format' => 'body',
             'method' => 'POST',
-            'body' => json_encode([]),
+            'body' => wp_json_encode([]),
         ]);
     }
 

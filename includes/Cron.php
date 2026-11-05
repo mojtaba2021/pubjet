@@ -149,7 +149,6 @@ class Cron extends Singleton
                 ],
             ],
             'no_found_rows'         => true,
-            'suppress_filters'      => true,
         ];
 
         $posts = get_posts($args);

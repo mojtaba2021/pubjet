@@ -413,7 +413,7 @@ class Ajax extends Singleton
             $this->success();
         }
 
-        if (is_writeable(pubjet_debug_dir())) {
+        if (wp_is_writable(pubjet_debug_dir())) {
             wp_delete_file(pubjet_debug_dir()); // Delete debug file
             wp_delete_file(pubjet_debug_dir() . '.1'); // Delete rotated copy
         } else {

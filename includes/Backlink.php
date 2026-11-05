@@ -44,7 +44,7 @@ class Backlink extends Singleton {
                 'data'         => maybe_serialize($backlink_json_data),
                 'created_at'   => pubjet_now_myql(),
                 'publish_date' => pubjet_now_myql(),
-                'expired_at'   => date('Y-m-d H:i:s', strtotime('+' . $duration . ' month', strtotime(pubjet_now_myql()))), // Default 1 month
+                'expired_at'   => gmdate('Y-m-d H:i:s', strtotime('+' . $duration . ' month', strtotime(pubjet_now_myql()))), // Default 1 month
             ];
 
             // Schedule publish date
@@ -54,7 +54,7 @@ class Backlink extends Singleton {
                 if (strtotime($prefered_publish_date_mysql) > pubjet_now_ts()) {
                     $new_backlink_args['status']       = EnumBacklinkStatus::Future;
                     $new_backlink_args['publish_date'] = $prefered_publish_date_mysql;
-                    $new_backlink_args['expired_at']   = date('Y-m-d H:i:s', strtotime('+' . $duration . ' month', strtotime($prefered_publish_date_mysql)));
+                    $new_backlink_args['expired_at']   = gmdate('Y-m-d H:i:s', strtotime('+' . $duration . ' month', strtotime($prefered_publish_date_mysql)));
                 }
             }
 

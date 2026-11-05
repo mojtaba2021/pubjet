@@ -924,8 +924,10 @@ function pubjet_strings() {
         'add-authorCategory'         => esc_html__('Add author for Category', 'pubjet'),
         'add-reportage-source'       => esc_html__('Add source domain at the bottom of the reportage', 'pubjet'),
         'add-authorCategory-hints'   => esc_html__('You can assign a specific author to each report category.', 'pubjet'),
+        /* translators: %s: plugin version number. */
         'pubjet-update-plugin-desc'  => esc_html__('Pubjet version %s has been released. This version includes performance improvements and fixes for previous issues. Please update to get the latest features.', 'pubjet'),
         'pubjet-update-plugin-title' => esc_html__('A new version of Pubjet has been released!', 'pubjet'),
+        /* translators: %s: maximum number of categories. */
         'max-sync-categories'        => esc_html__('The number of categories that can be selected for synchronization exceeds the allowed limit (%s items).', 'pubjet'),
         'empty-sync-categories'      => esc_html__('Sync categories cannot be empty.', 'pubjet'),
         'empty-default-category'     => esc_html__('Default category cannot be empty.', 'pubjet'),
@@ -936,7 +938,9 @@ function pubjet_strings() {
         'uninstall-hints'            => esc_html__('By enabling this option, all Pubjet settings will be completely erased after uninstalling Pubjet.', 'pubjet'),
         'add-reportage-tags'         => esc_html__('Publish advertorials without tags', 'pubjet'),
         'add-reportage-tags-hints'   => esc_html__('By default, advertorials are published with customer-suggested tags. By enabling this option, advertorials will be published without tags.', 'pubjet'),
+        /* translators: %s: pricing plan title. */
         'empty-pricingPlans-categories' => esc_html__("%s pricing plan category cannot be empty.", 'pubjet'),
+        /* translators: %s: maximum number of categories. */
         'max-pricingPlans-categories' => esc_html__('The number of categories that can be selected for pricing plans exceeds the allowed limit (%s items).', 'pubjet'),
         'no-pricing-plans-available' => esc_html__('No pricing plans available!', 'pubjet'),
         'pubjet-triboon-connection-desc' => esc_html__('To connect Pubjet to the platform, enter pricing plan categories.', 'pubjet'),
@@ -1428,7 +1432,7 @@ function pubjet_send_plugin_status_to_api($status) {
             'Authorization' => 'Token ' . pubjet_token(),
         ],
         'method'  => 'POST',
-        'body'    => json_encode($request_data),
+        'body'    => wp_json_encode($request_data),
         'timeout' => 30,
     ]);
     // بررسی پاسخ API برای اشکالات احتمالی
@@ -1499,7 +1503,7 @@ function pubjet_publish_reportage($post_id, $reportage_id) {
         ],
         'method'      => 'POST',
         'data_format' => 'body',
-        'body'        => json_encode(['url' => get_permalink($post_id)]),
+        'body'        => wp_json_encode(['url' => get_permalink($post_id)]),
     ];
 
     $response = wp_remote_post($url, $args);
@@ -1525,7 +1529,7 @@ function pubjet_publish_backlink_request($backlink_id) {
         return new WP_Error('development-mode', pubjet__('dev-mode'));
     }
 
-    $result = pubjet_request($url, 'POST', pubjet_http_json_request_headers(), json_encode(['id' => $backlink_id, 'status' => 'publisher_published',]), ['data_format' => 'body']);
+    $result = pubjet_request($url, 'POST', pubjet_http_json_request_headers(), wp_json_encode(['id' => $backlink_id, 'status' => 'publisher_published',]), ['data_format' => 'body']);
 
     pubjet_log(pubjet_redact_for_log($result, true));
 
@@ -1672,7 +1676,7 @@ function pubjet_send_pricing_plans_to_api($pricingPlans,$token)
     $url = pubjet_api_root() . '/external/wp/pricing-plan-relative-category/';
     $response = wp_remote_post($url, [
         'method'    => 'POST',
-        'body'      => json_encode($pricingPlansData),
+        'body'      => wp_json_encode($pricingPlansData),
         'headers'   => [
             'Authorization' => 'Token ' . trim($token),
             'Content-Type'  => 'application/json',
@@ -1780,7 +1784,7 @@ function pubjet_send_permalink_change_to_api($post_id, $reportage_id, $new_url) 
 
     $args = [
         'timeout' => 30,
-        'body' => json_encode($body),
+        'body' => wp_json_encode($body),
         'headers' => $headers,
         'method' => 'POST'
     ];
@@ -1839,7 +1843,7 @@ function pubjet_get_reportage_count(): int
 function pubjet_get_current_subdomain()
 {
     $site_url = home_url('/');
-    $parsed = parse_url($site_url);
+    $parsed = wp_parse_url($site_url);
     return isset($parsed['path']) ? trim($parsed['path'], '/') : '';
 }
 
