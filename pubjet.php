@@ -1,6 +1,6 @@
 <?php
 /*
-    Plugin Name: Pubjet
+    Plugin Name: Pubjet | پاب‌جت
     Description: Pubjet is your assistant in publishing advertisement reportage. In fact, Pubjet allows the automatic publication of reportage.
     Author: Triboon
     Author URI:  https://triboon.net
