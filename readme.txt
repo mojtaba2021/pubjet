@@ -7,6 +7,8 @@ Requires PHP: 7.4
 License: GPL v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
+Automatically publish Triboon sponsored posts (reportages) on your WordPress site, with images, SEO meta and scheduled publishing.
+
 == Description ==
 <p>پاب‌جت دستیار شما در انتشار رپورتاژ آگهی است. در واقع پاب‌جت امکان انتشار خودکار رپورتاژ را فراهم می‌آورد.</p>
 
@@ -39,8 +41,34 @@ To integrate the Pubjet plugin with your website and leverage the features of th
 </ul>
 For further details on Triboon's policies, refer to their official documentation, and contact their support for specific inquiries.
 
-== Short Description ==
-Pubjet is your assistant in publishing advertisement reportage. In fact, Pubjet allows the automatic publication of reportage.
+= Source code =
+
+The JavaScript and CSS files in the `assets` folder are compiled. The uncompiled source code and the build configuration are available at <a href="https://github.com/mojtaba2021/pubjet">github.com/mojtaba2021/pubjet</a>.
+
+= External services =
+
+This plugin connects to the following external services.
+
+**Triboon API (api.triboon.net)**
+
+Triboon is the platform that sends sponsored posts (reportages) and backlinks to your site. The plugin sends requests to the Triboon API:
+
+* When an administrator checks or saves the connection token: the token, to verify it.
+* After the plugin is updated, and if the verification fails, once an hour for a limited number of attempts: the stored token, to verify it.
+* When the plugin is activated or deactivated, when the token is checked or the settings are saved, and once a day: the plugin status (active or inactive), the plugin version, the addresses of the plugin's REST endpoints on your site, and the "manual approve" and "publish without tags" settings.
+* When the pricing plan settings are saved: the plan IDs and the ID, name and slug of the categories selected for each plan.
+* After a reportage is published, or its address changes: the reportage ID and the address of the post on your site.
+* After a backlink is published: the backlink ID and its status.
+
+Every request includes the connection token. Terms of use and privacy policy: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a>
+
+**Triboon CDN (cdn.triboon.net)**
+
+When Triboon sends a reportage, the plugin downloads its content and images from the Triboon CDN. Only a standard WordPress HTTP request is sent, which includes your site address in the user agent. The same terms of use and privacy policy apply: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a>
+
+**WordPress.org Plugin API (api.wordpress.org)**
+
+To show a notice in the dashboard when a new version of Pubjet is available, the plugin requests the public information of the Pubjet plugin from WordPress.org at most once every 12 hours. Only a standard WordPress HTTP request is sent, which includes your site address in the user agent. Privacy policy: <a href="https://wordpress.org/about/privacy/">https://wordpress.org/about/privacy/</a>
 
 == Installation ==
 After installing and activating the plugin, go to Pubjet settings menu and enter the connection token to your Triboon account and save the settings.
@@ -49,6 +77,9 @@ After installing and activating the plugin, go to Pubjet settings menu and enter
 لطفا اگه از نسخه های قبل از 2.7.1 استفاده می کنید، پس از بروزرسانی به نسخه جدید یکبار تنظیمات توکن را مجددا انجام دهید.
 
 == Changelog ==
+
+= 5.4.9 =
+* Security fix: hardened token verification.
 
 = 5.4.8 =
 * رفع خطای Composer روی سایت‌های با PHP 7.4 (سازگاری وابستگی‌ها با PHP 7.4)
