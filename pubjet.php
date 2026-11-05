@@ -97,7 +97,6 @@ if (!class_exists('Pubjet')) {
             $this->defineConstant('PUBJET_TPLS_DIR', trailingslashit(PUBJET_DIR) . 'templates/');
             $this->defineConstant('PUBJET_INC_DIR', PUBJET_DIR . 'includes/');
             $this->defineConstant('PUBJET_LIBS_DIR', PUBJET_DIR . 'includes/libs/');
-            $this->defineConstant('PUBJET_VERSION', '1.0');
             $this->defineConstant('PUBJET_PREFIX', 'pubjet_');
             $this->defineConstant('PUBJET_PREFIX_DASH', 'pubjet-');
             $this->defineConstant('PUBJET_MAIN_URL', trailingslashit(plugin_dir_url(__FILE__)));

@@ -21,7 +21,6 @@ class Initializer extends Singleton {
         AssetsLoader::getInstance();
         Ajax::getInstance();
         Metaboxes::getInstance();
-        RestApi::getInstance();
         Shortcodes::getInstance();
         \triboon\pubjet\includes\notices\Initializer::getInstance();
     }
