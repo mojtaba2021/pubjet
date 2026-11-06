@@ -204,8 +204,8 @@ class Actions extends Singleton
 
         if (get_transient($lock_key)) {
             $duplicate_error_message = 'در حال پردازش درخواست مشابه. لطفاً منتظر بمانید.';
-            pubjet_log(['Error' => ['message' => $duplicate_error_message] + $log_data]);
-            pubjet_log_sentry($duplicate_error_message, ['message' => $duplicate_error_message] + $log_data);
+            // Expected when the panel sends the same reportage again: local log only, not an error report
+            pubjet_log('[info] Duplicate request while reportage ' . $reportage_id . ' is being processed');
             $this->error($duplicate_error_message, 429);
             return;
         }
