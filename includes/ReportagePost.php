@@ -33,6 +33,51 @@ class ReportagePost extends Singleton
         add_action("transition_post_status", [$this, "afterPublishReportage"], 15, 3);
     }
 
+    /**
+     * Fill the optional fields of the panel data with default values, so a
+     * missing field does not cause PHP warnings.
+     *
+     * @param mixed $reportage Panel data.
+     *
+     * @return object
+     */
+    public static function normalize($reportage)
+    {
+        $reportage = is_object($reportage) ? $reportage : (object) (is_array($reportage) ? $reportage : []);
+
+        $defaults = [
+            'id'                             => 0,
+            'title'                          => '',
+            'content_file'                   => '',
+            'content_file_html'              => '',
+            'lead_content'                   => '',
+            'lead_image'                     => '',
+            'lead_image_obj'                 => [],
+            'meta_title'                     => '',
+            'meta_description'               => '',
+            'tags'                           => [],
+            'preferred_publish_date'         => '',
+            'is_publish_without_triboon_tag' => false,
+            'relative_category'              => null,
+            'pricing_plan_title'             => '',
+        ];
+        foreach ($defaults as $key => $default) {
+            if (!property_exists($reportage, $key) || (null === $reportage->$key && null !== $default)) {
+                $reportage->$key = $default;
+            }
+        }
+        foreach (['title', 'content_file', 'content_file_html', 'lead_content', 'meta_title', 'meta_description', 'preferred_publish_date', 'pricing_plan_title'] as $key) {
+            if (!is_scalar($reportage->$key)) {
+                $reportage->$key = '';
+            }
+        }
+        if (!is_array($reportage->tags)) {
+            $reportage->tags = [];
+        }
+
+        return $reportage;
+    }
+
     public static function get_post_date($prefrred_date)
     {
         $dt = new DateTime($prefrred_date);
@@ -62,6 +107,7 @@ class ReportagePost extends Singleton
      */
     public static function update($thereportage)
     {
+        $thereportage = self::normalize($thereportage);
 
         if (!isset($thereportage->wp_post_id) || !$thereportage->wp_post_id) {
             return false;
@@ -124,6 +170,7 @@ class ReportagePost extends Singleton
     public static function insert($reportage)
     {
 
+        $reportage = self::normalize($reportage);
         pubjet_log('================== Insert ===================');
         if ($reportage->wp_post_id = self::reportage_exists($reportage->id)) {
 //            pubjet_log('==================== Updating ===================');
@@ -162,8 +209,8 @@ class ReportagePost extends Singleton
                 EnumPostMetakeys::ReportageContentUrl => sanitize_url($reportage->content_file),
                 EnumPostMetakeys::PanelData => $reportage,
                 EnumPostMetakeys::Source => 'triboon',
-                EnumPostMetakeys::MetaTitle => sanitize_text_field($reportage->meta_title) ?? '',
-                EnumPostMetakeys::MetaDescription => sanitize_text_field($reportage->meta_description) ?? ''
+                EnumPostMetakeys::MetaTitle => sanitize_text_field($reportage->meta_title ?? ''),
+                EnumPostMetakeys::MetaDescription => sanitize_text_field($reportage->meta_description ?? '')
             ],
         ];
 

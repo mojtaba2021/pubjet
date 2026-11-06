@@ -259,7 +259,7 @@ class RestApi extends Singleton
             }
 
             $reportage_post = get_post($reportage_post_id);
-            $reportage = (object)$request->get_json_params();
+            $reportage = ReportagePost::normalize($request->get_json_params());
             $reportage->wp_post_id = $reportage_post->ID;
             pubjet_log($reportage);
 
