@@ -1456,10 +1456,11 @@ function pubjet_error_reporting_state($ask = false) {
  * @param string $message
  * @param array  $extra
  * @param string $level 'error' (default) or 'warning'.
+ * @param array  $tags  Only the keys in pubjet_sentry_tag_keys() are sent.
  *
  * @return \Sentry\EventId|null
  */
-function pubjet_log_sentry($message, $extra = [], $level = 'error') {
+function pubjet_log_sentry($message, $extra = [], $level = 'error', $tags = []) {
     if (!pubjet_is_error_reporting_enabled()) {
         return null;
     }
@@ -1468,14 +1469,16 @@ function pubjet_log_sentry($message, $extra = [], $level = 'error') {
         return null;
     }
     $level = 'warning' === $level ? 'warning' : 'error';
+    $tags  = pubjet_sentry_clean_tags($tags);
     if (isset($GLOBALS['pubjet_sentry_batch'])) {
         $GLOBALS['pubjet_sentry_batch']['messages'][] = $message;
+        $GLOBALS['pubjet_sentry_batch']['tags']       = $tags + $GLOBALS['pubjet_sentry_batch']['tags'];
         if ('error' === $level) {
             $GLOBALS['pubjet_sentry_batch']['level'] = 'error';
         }
         return null;
     }
-    return pubjet_sentry_send($message, $level);
+    return pubjet_sentry_send($message, $level, $tags);
 }
 
 /**
@@ -1494,6 +1497,7 @@ function pubjet_sentry_batch_start($context) {
         'context'  => pubjet_sentry_clean_text($context),
         'messages' => [],
         'level'    => 'warning',
+        'tags'     => [],
     ];
     add_action('shutdown', 'pubjet_sentry_batch_flush', 0);
 }
@@ -1527,7 +1531,39 @@ function pubjet_sentry_batch_flush() {
     if (count($unique) > 20) {
         $text .= ' | …';
     }
-    pubjet_sentry_send(pubjet_sentry_clean_text($text), $level);
+    pubjet_sentry_send(pubjet_sentry_clean_text($text), $level, $batch['tags']);
+}
+
+/**
+ * Tags that may be sent with a report.
+ *
+ * @return string[]
+ */
+function pubjet_sentry_tag_keys() {
+    return ['cause'];
+}
+
+/**
+ * Keep only the allowed tags with short plain values.
+ *
+ * @param array $tags
+ *
+ * @return array
+ */
+function pubjet_sentry_clean_tags($tags) {
+    $clean = [];
+    if (!is_array($tags)) {
+        return $clean;
+    }
+    foreach (pubjet_sentry_tag_keys() as $key) {
+        if (isset($tags[$key]) && is_scalar($tags[$key])) {
+            $value = sanitize_key((string) $tags[$key]);
+            if ('' !== $value) {
+                $clean[$key] = substr($value, 0, 32);
+            }
+        }
+    }
+    return $clean;
 }
 
 /**
@@ -1649,24 +1685,29 @@ function pubjet_sentry_before_send(\Sentry\Event $event) {
     $clean->setEnvironment($event->getEnvironment());
     $clean->setExtra(array_intersect_key($event->getExtra(), pubjet_sentry_site_data()));
     $clean->setMessage(pubjet_sentry_clean_text((string) $event->getMessage()));
+    $clean->setTags(pubjet_sentry_clean_tags($event->getTags()));
     return $clean;
 }
 
 /**
  * @param string $message Cleaned error text.
  * @param string $level   'error' or 'warning'.
+ * @param array  $tags    Cleaned tags (pubjet_sentry_clean_tags()).
  *
  * @return \Sentry\EventId|null
  */
-function pubjet_sentry_send($message, $level = 'error') {
+function pubjet_sentry_send($message, $level = 'error', $tags = []) {
     $hub = pubjet_sentry_hub();
     if (null === $hub) {
         return null;
     }
     try {
-        return $hub->withScope(function (Scope $scope) use ($hub, $message, $level) {
+        return $hub->withScope(function (Scope $scope) use ($hub, $message, $level, $tags) {
             foreach (pubjet_sentry_site_data() as $key => $value) {
                 $scope->setExtra($key, $value);
+            }
+            foreach (pubjet_sentry_clean_tags($tags) as $key => $value) {
+                $scope->setTag($key, $value);
             }
             return $hub->captureMessage($message, 'warning' === $level ? \Sentry\Severity::warning() : \Sentry\Severity::error());
         });
@@ -1731,7 +1772,13 @@ function pubjet_send_plugin_status_to_api($status) {
     ]);
     if (is_wp_error($response)) {
         pubjet_log('Status send failed: ' . $response->get_error_message());
-        pubjet_log_sentry('Error sending status to API: ' . $response->get_error_message());
+        // At most one report a day
+        if (!get_transient('pubjet_status_ping_logged')) {
+            set_transient('pubjet_status_ping_logged', 1, DAY_IN_SECONDS);
+            pubjet_log_sentry('Error sending status to API: ' . $response->get_error_message(), [], 'error', [
+                'cause' => pubjet_connection_error_cause($response->get_error_message()),
+            ]);
+        }
         return $response;
     }
     $result = wp_remote_retrieve_body($response);
@@ -1742,6 +1789,30 @@ function pubjet_send_plugin_status_to_api($status) {
         return new WP_Error('status-send-failed', 'HTTP ' . $code);
     }
     return $result;
+}
+
+/**
+ * Probable cause of a failed connection to Triboon, from the error text.
+ *
+ * @param string $message Error text of the request.
+ *
+ * @return string melli_block, timeout, zhaket_block, firewall_block or other.
+ */
+function pubjet_connection_error_cause($message) {
+    $message = strtolower((string) $message);
+    if (false !== strpos($message, 'internet melli') || false !== strpos($message, 'melli backend')) {
+        return 'melli_block';
+    }
+    if (false !== strpos($message, 'zhaket')) {
+        return 'zhaket_block';
+    }
+    if (false !== strpos($message, 'curl error 28') || false !== strpos($message, 'timed out')) {
+        return 'timeout';
+    }
+    if (false !== strpos($message, 'blocked') || false !== strpos($message, 'مسدود')) {
+        return 'firewall_block';
+    }
+    return 'other';
 }
 
 /**

@@ -55,7 +55,7 @@ Triboon is the platform that sends sponsored posts (reportages) and backlinks to
 
 * When an administrator checks or saves the connection token: the token, to verify it.
 * After the plugin is updated, and if the verification fails, once an hour for a limited number of attempts: the stored token, to verify it.
-* When the plugin is activated or deactivated, when the token is checked or the settings are saved, and once a day: the plugin status (active or inactive), the plugin version, the addresses of the plugin's REST endpoints on your site, and the "manual approve" and "publish without tags" settings.
+* When the plugin is activated, deactivated or updated, when the token is checked or the settings are saved, and otherwise at most once a day (sent in the background, not while a page loads): the plugin status (active or inactive), the plugin version, the addresses of the plugin's REST endpoints on your site, and the "manual approve" and "publish without tags" settings.
 * When the pricing plan settings are saved: the plan IDs and the ID, name and slug of the categories selected for each plan.
 * After a reportage is published, or its address changes: the reportage ID and the address of the post on your site.
 * After a backlink is published: the backlink ID and its status.
@@ -73,6 +73,7 @@ Error reporting is opt-in. After the connection token is saved, the settings pag
 When enabled, the plugin sends a report to Triboon's error-tracking server (a Sentry service) when Pubjet itself fails, for example when a token check, a reportage delivery or an image download fails. Errors of other plugins, themes or WordPress are never sent. Each report contains only:
 
 * the error text, with tokens, e-mail addresses, phone numbers and other personal data removed (it may name the Triboon ID of the reportage or post concerned);
+* for connection errors, the probable cause worked out from that error text (blocked by the national internet, timeout, blocked by Zhaket Booster, blocked by a firewall or another plugin, or other);
 * the site address;
 * the Pubjet, PHP and WordPress versions.
 
