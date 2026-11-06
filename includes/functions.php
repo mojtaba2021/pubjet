@@ -419,9 +419,11 @@ function pubjet_get_page_templates() {
 }
 
 /**
- * @param $entry
- * @param $method
- * @param $line
+ * Write to the Pubjet debug log (only while debug mode is on).
+ *
+ * @param mixed        $entry
+ * @param string|array $method Calling method, or an array of context data written after the entry.
+ * @param int          $line
  *
  * @return false|int|void
  */
@@ -431,20 +433,55 @@ function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
         return;
     }
 
+    // A failed write (full disk, no permission) is not tried again for an hour
+    if (get_transient('pubjet_log_write_failed')) {
+        return false;
+    }
+
+    $context = null;
+    if (is_array($method) || is_object($method)) {
+        $context = $method;
+        $method  = 'pubjet';
+    }
+
     $entry = pubjet_redact_for_log($entry);
     if (is_array($entry) || is_object($entry)) {
         $entry = wp_json_encode($entry, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+    if (null !== $context) {
+        $entry .= ' ' . wp_json_encode(pubjet_redact_for_log($context), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     $file = pubjet_debug_dir();
     if (!pubjet_prepare_log_dir(dirname($file))) {
         return false;
     }
-    pubjet_rotate_log_file($file);
 
     $entry = pubjet_redact_for_log($method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n");
 
-    return file_put_contents($file, $entry, FILE_APPEND | LOCK_EX);
+    // Writing the log must never add PHP warnings or error reports of its own
+    set_error_handler('pubjet_ignore_log_error');
+    try {
+        pubjet_rotate_log_file($file);
+        $written = file_put_contents($file, $entry, FILE_APPEND | LOCK_EX);
+    } finally {
+        restore_error_handler();
+    }
+    if (false === $written) {
+        set_transient('pubjet_log_write_failed', 1, HOUR_IN_SECONDS);
+    }
+
+    return $written;
+}
+
+/**
+ * Error handler used while the debug log is written: PHP warnings of the file
+ * functions (full disk, no permission) are ignored.
+ *
+ * @return bool
+ */
+function pubjet_ignore_log_error() {
+    return true;
 }
 
 /**
@@ -574,8 +611,14 @@ function pubjet_rotate_log_file($file) {
     if (!file_exists($file) || filesize($file) <= $max_size) {
         return;
     }
+    // Keep at most two rotated copies: debug.log.1 (newer) and debug.log.2 (older)
     $previous_file = $file . '.1';
+    $older_file    = $file . '.2';
+    if (file_exists($older_file)) {
+        wp_delete_file($older_file);
+    }
     if (file_exists($previous_file)) {
+        copy($previous_file, $older_file);
         wp_delete_file($previous_file);
     }
     copy($file, $previous_file);

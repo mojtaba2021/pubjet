@@ -419,7 +419,9 @@ class Ajax extends Singleton
 
         if (wp_is_writable(pubjet_debug_dir())) {
             wp_delete_file(pubjet_debug_dir()); // Delete debug file
-            wp_delete_file(pubjet_debug_dir() . '.1'); // Delete rotated copy
+            wp_delete_file(pubjet_debug_dir() . '.1'); // Delete rotated copies
+            wp_delete_file(pubjet_debug_dir() . '.2');
+            delete_transient('pubjet_log_write_failed');
         } else {
             $this->error(pubjet__('delete-permission-limit'));
         }
