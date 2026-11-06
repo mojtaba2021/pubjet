@@ -28,7 +28,6 @@ class Actions extends Singleton
 
         add_action('pubjet_new_reportage', [$this, 'reportageCustomFields'], 15, 2);
         add_action('upgrader_process_complete', [$this, 'syncSettingsAfterUpdate'], 15, 2);
-        add_action('init', [$this, 'checkAndSendVersion'], 15);
         // add_action('init', [$this, 'publishFutureBacklinks'], 25);
         // Change Reportage Author
         add_action('pubjet_new_reportage', [$this, 'changeReportageAuthor'], 15, 2);
@@ -350,20 +349,6 @@ class Actions extends Singleton
             }
             // تنظیم transient برای 1 دقیقه
             set_transient(EnumTransients::PublishFutureBacklinks, true, 60);
-        }
-    }
-
-    /**
-     * @return void
-     */
-    public function checkAndSendVersion()
-    {
-        // بررسی اگر transient وجود دارد یا نه
-        if (false === get_transient('pubjet_daily_plugin_status_check')) {
-            // ارسال ورژن افزونه به API
-            pubjet_send_plugin_status_to_api('active');
-            // تنظیم transient برای 24 ساعت
-            set_transient('pubjet_daily_plugin_status_check', true, DAY_IN_SECONDS);
         }
     }
 

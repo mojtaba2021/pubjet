@@ -521,10 +521,8 @@ class Ajax extends Singleton
         // Only update options if API call was successful
         update_option(EnumOptions::Settings, $newSettings);
 
-        pubjet_log('before pubjet_send_plugin_status_to_api');
         delete_option('pubjet_token_reconnect_required');
-        pubjet_send_plugin_status_to_api('active');
-        pubjet_log('after pubjet_send_plugin_status_to_api');
+        pubjet_schedule_plugin_status_send();
         /**
          * The pubjet_after_save_options filter.
          *
@@ -601,7 +599,7 @@ class Ajax extends Singleton
         update_option(EnumOptions::Settings, $newSettings);
 
         delete_option('pubjet_token_reconnect_required');
-        pubjet_send_plugin_status_to_api('active');
+        pubjet_schedule_plugin_status_send();
 
         // Keep asking about error reporting until the administrator answers.
         $response['errorReporting'] = pubjet_error_reporting_state(pubjet_should_ask_error_reporting());

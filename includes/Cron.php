@@ -23,6 +23,8 @@ class Cron extends Singleton
         add_action('pubjet_schedule_delete_logs', [$this, 'deletePubjetLogs'], 15);
         add_action('pubjet_check_missed_posts', [$this, 'publishMissedSchedulePosts']);
         add_action('pubjet_verify_stored_token', [$this, 'verifyStoredToken'], 15);
+        add_action('pubjet_send_status', [$this, 'sendStatusIfDue'], 15);
+        add_action('pubjet_send_status_now', [$this, 'sendStatusNow'], 15);
     }
 
     /**
@@ -117,6 +119,7 @@ class Cron extends Singleton
             'pubjet_sync_reportage_url'   => 'every_five_minutes',
             'pubjet_schedule_delete_logs' => 'daily',
             'pubjet_check_missed_posts'   => 'every_five_minutes',
+            'pubjet_send_status'          => 'hourly',
         ];
 
         $hooks = apply_filters('pubjet_cron_hooks', $hooks);
@@ -217,6 +220,28 @@ class Cron extends Singleton
         return $changed;
     }
 
+    /**
+     * Hourly: send the plugin status when it is due (see pubjet_send_plugin_status_if_due()).
+     *
+     * @return void
+     * @since  5.4.9
+     */
+    public function sendStatusIfDue()
+    {
+        pubjet_send_plugin_status_if_due();
+    }
+
+    /**
+     * Send the plugin status now (after settings were saved, the plugin was activated or updated).
+     *
+     * @return void
+     * @since  5.4.9
+     */
+    public function sendStatusNow()
+    {
+        pubjet_send_plugin_status_if_due(true);
+    }
+
     public function deactivateAllCronJobs()
     {
         $hooks = apply_filters(
@@ -227,6 +252,8 @@ class Cron extends Singleton
                 'pubjet_check_missed_posts',
                 'pubjet_verify_stored_token',
                 'pubjet_retry_thumbnail',
+                'pubjet_send_status',
+                'pubjet_send_status_now',
             ]
         );
 

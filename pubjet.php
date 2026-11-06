@@ -283,6 +283,8 @@ if (!class_exists('Pubjet')) {
 
             if ($stored_version !== $current_version) {
 
+                // The new version is sent to Triboon from cron
+                pubjet_schedule_plugin_status_send();
                 pubjet_sync_settings();
                 pubjet_delete_first_image_option();
 
@@ -306,6 +308,9 @@ if (!class_exists('Pubjet')) {
 
             pubjet_delete_legacy_debug_file();
 
+            // The status is sent from cron now (pubjet_send_status)
+            delete_transient('pubjet_daily_plugin_status_check');
+
             // Earlier versions stored the publisher's contact details from the token check
             if (is_array($pubjet_settings)) {
                 $pubjet_settings = pubjet_strip_token_details($pubjet_settings);
@@ -327,7 +332,7 @@ if (!class_exists('Pubjet')) {
          * @author Triboon
          */
         public function onActivation() {
-            pubjet_send_plugin_status_to_api('active');
+            pubjet_schedule_plugin_status_send();
             $this->migrate();
             \triboon\pubjet\includes\Actions::getInstance()->createDbTables();
             flush_rewrite_rules();
@@ -339,7 +344,9 @@ if (!class_exists('Pubjet')) {
          * @author Triboon
          */
         public function onDeactivation() {
+            // Sent right away: cron does not run for an inactive plugin
             pubjet_send_plugin_status_to_api('inactive');
+            delete_option('pubjet_status_state');
             $cron = \triboon\pubjet\includes\Cron::getInstance();
             $cron->deactivateAllCronJobs();
         }

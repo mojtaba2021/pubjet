@@ -1715,11 +1715,46 @@ function pubjet_send_plugin_status_to_api($status) {
     if (empty(trim(pubjet_token()))) { // Check if user enter token or not
         return;
     }
-    $settings     = pubjet_settings();
 
     $url = apply_filters('pubjet_send_plugin_status_url', pubjet_api_root() . '/external/wp/pubjet-info/', pubjet_token());
 
-    $request_data = [
+    $request_data = pubjet_plugin_status_data($status);
+    pubjet_log($request_data);
+    $response = wp_remote_post($url, [
+        'headers' => [
+            'Content-Type'  => 'application/json',
+            'Authorization' => 'Token ' . pubjet_token(),
+        ],
+        'method'  => 'POST',
+        'body'    => wp_json_encode($request_data),
+        'timeout' => 5,
+    ]);
+    if (is_wp_error($response)) {
+        pubjet_log('Status send failed: ' . $response->get_error_message());
+        pubjet_log_sentry('Error sending status to API: ' . $response->get_error_message());
+        return $response;
+    }
+    $result = wp_remote_retrieve_body($response);
+    pubjet_log(pubjet_redact_for_log($result, true));
+    $code = (int) wp_remote_retrieve_response_code($response);
+    if ($code < 200 || $code >= 300) {
+        pubjet_log('Status send failed: HTTP ' . $code);
+        return new WP_Error('status-send-failed', 'HTTP ' . $code);
+    }
+    return $result;
+}
+
+/**
+ * Data sent to Triboon with the plugin status.
+ *
+ * @param string $status 'active' or 'inactive'.
+ *
+ * @return array
+ */
+function pubjet_plugin_status_data($status) {
+    $settings = pubjet_settings();
+
+    return [
         'status' => $status,
         'pubjet_version' => PUBJ()->getVersion(),
         'backlink_recipient_path'   => pubjet_get_path('pubjet/v1/backlink',        EnumActions::CreateBacklink, $settings),
@@ -1731,23 +1766,46 @@ function pubjet_send_plugin_status_to_api($status) {
             'reportage_without_tags' => pubjet_isset_value($settings['addReportageTags'], 0),
         ]
     ];
-    pubjet_log($request_data);
-    $response = wp_remote_post($url, [
-        'headers' => [
-            'Content-Type'  => 'application/json',
-            'Authorization' => 'Token ' . pubjet_token(),
-        ],
-        'method'  => 'POST',
-        'body'    => wp_json_encode($request_data),
-        'timeout' => 30,
-    ]);
-    // بررسی پاسخ API برای اشکالات احتمالی
-    if (is_wp_error($response)) {
-        pubjet_log_sentry('Error sending status to API: ' . $response->get_error_message());
+}
+
+/**
+ * Send the plugin status from cron when it is due: when the status, version or
+ * settings changed, 24 hours after the last successful send (heartbeat), or
+ * 6 hours after a failed one. Never runs on a visitor page load.
+ *
+ * @param bool $force Send now, e.g. after settings were saved or the plugin was activated.
+ *
+ * @return void
+ */
+function pubjet_send_plugin_status_if_due($force = false) {
+    if (empty(trim(pubjet_token()))) {
+        return;
     }
-    $result = wp_remote_retrieve_body($response);
-    pubjet_log(pubjet_redact_for_log($result, true));
-    return $result;
+    $hash  = md5((string) wp_json_encode(pubjet_plugin_status_data('active')));
+    $state = get_option('pubjet_status_state');
+    $state = is_array($state) ? $state : [];
+    if (!$force && isset($state['hash']) && $hash === $state['hash'] && time() < (int) ($state['next_try'] ?? 0)) {
+        return;
+    }
+
+    $result = pubjet_send_plugin_status_to_api('active');
+    $sent   = !is_wp_error($result);
+    update_option('pubjet_status_state', [
+        'hash'     => $hash,
+        'next_try' => time() + ($sent ? DAY_IN_SECONDS : 6 * HOUR_IN_SECONDS),
+        'result'   => $sent ? 'sent' : 'failed',
+    ], false);
+}
+
+/**
+ * Send the plugin status soon from cron (the current request does not wait for it).
+ *
+ * @return void
+ */
+function pubjet_schedule_plugin_status_send() {
+    if (!wp_next_scheduled('pubjet_send_status_now')) {
+        wp_schedule_single_event(time(), 'pubjet_send_status_now');
+    }
 }
 
 
