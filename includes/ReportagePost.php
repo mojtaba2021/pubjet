@@ -13,6 +13,19 @@ class ReportagePost extends Singleton
 {
 
     /**
+     * No new image download starts later than this many seconds after the start of the
+     * request, so creating a reportage stays under the usual 30 second limit.
+     */
+    const IMAGE_DOWNLOAD_START_LIMIT = 13;
+
+    /**
+     * Number of images not downloaded in this request because of the time limit.
+     *
+     * @var int
+     */
+    private static $skipped_images = 0;
+
+    /**
      * @since 1.0.0
      */
     public function __construct()
@@ -203,6 +216,10 @@ class ReportagePost extends Singleton
             pubjet_log('No featured image for post ' . $post_id . ', retry scheduled');
             self::schedule_thumbnail_retry($post_id, 1);
         }
+        if (self::$skipped_images > 0) {
+            pubjet_log(self::$skipped_images . ' image(s) of post ' . $post_id . ' left for the retry (time limit)');
+            self::schedule_thumbnail_retry($post_id, 1);
+        }
 
         // Publish without Triboon tag
         if (isset($reportage->is_publish_without_triboon_tag) && $reportage->is_publish_without_triboon_tag) {
@@ -282,7 +299,15 @@ class ReportagePost extends Singleton
     }
 
 
-    public static function handle_images($html_content, $just_thumbnail = false, $use_cdn = false)
+    /**
+     * @param string        $html_content
+     * @param bool          $just_thumbnail Stop after the first image.
+     * @param bool          $use_cdn
+     * @param string[]|null $only_hosts     Only process images from these hosts.
+     *
+     * @return array
+     */
+    public static function handle_images($html_content, $just_thumbnail = false, $use_cdn = false, $only_hosts = null)
     {
         pubjet_log("Starting handle_images", [
             'just_thumbnail' => $just_thumbnail,
@@ -326,6 +351,10 @@ class ReportagePost extends Singleton
                     'image_index' => $index,
                     'src' => $src
                 ]);
+                continue;
+            }
+
+            if (is_array($only_hosts) && !self::url_on_hosts($src, $only_hosts)) {
                 continue;
             }
 
@@ -471,7 +500,7 @@ class ReportagePost extends Singleton
     }
 
     /**
-     * Hosts of the Triboon CDN.
+     * Hosts of the Triboon CDN ("host" or "host:port").
      *
      * @return string[]
      */
@@ -488,6 +517,25 @@ class ReportagePost extends Singleton
     }
 
     /**
+     * Whether the URL is on one of the given hosts ("host" or "host:port").
+     *
+     * @param string   $url
+     * @param string[] $hosts
+     *
+     * @return bool
+     */
+    public static function url_on_hosts($url, array $hosts)
+    {
+        $host = strtolower((string) wp_parse_url((string) $url, PHP_URL_HOST));
+        if ('' === $host) {
+            return false;
+        }
+        $port = wp_parse_url((string) $url, PHP_URL_PORT);
+
+        return in_array($host, $hosts, true) || ($port && in_array($host . ':' . $port, $hosts, true));
+    }
+
+    /**
      * The Triboon CDN may send "Content-Encoding: aws-chunked" with plain files.
      * cURL then fails with error 61, so automatic decoding is turned off for
      * the Triboon CDN hosts only. The body is the plain file.
@@ -500,8 +548,7 @@ class ReportagePost extends Singleton
      */
     public static function disableCurlDecodingForCdn($handle, $args, $url)
     {
-        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
-        if ('' === $host || !in_array($host, self::cdn_hosts(), true)) {
+        if (!self::url_on_hosts($url, self::cdn_hosts())) {
             return;
         }
         // PHP 7.4 treats null as an empty string here, which keeps decoding on,
@@ -562,6 +609,13 @@ class ReportagePost extends Singleton
         // under the usual 30 second limit; the background retry covers longer outages.
         $tmp = null;
         for ($attempt = 1; $attempt <= 2; $attempt++) {
+            if (!self::can_start_download()) {
+                if (1 === $attempt) {
+                    self::$skipped_images++;
+                }
+                pubjet_log('Download skipped (time limit): ' . $url);
+                return false;
+            }
             $tmp = download_url($url, 12);
             if (!is_wp_error($tmp)) {
                 break;
@@ -649,6 +703,48 @@ class ReportagePost extends Singleton
     }
 
     /**
+     * Whether a new download can start within the time limit of this request.
+     *
+     * @return bool
+     */
+    private static function can_start_download()
+    {
+        $start = isset($_SERVER['REQUEST_TIME_FLOAT']) ? (float) $_SERVER['REQUEST_TIME_FLOAT'] : 0.0;
+        if ($start <= 0) {
+            return true;
+        }
+        /**
+         * The pubjet_image_download_start_limit filter.
+         *
+         * @since 5.4.9
+         */
+        $limit = (float) apply_filters('pubjet_image_download_start_limit', self::IMAGE_DOWNLOAD_START_LIMIT);
+
+        return (microtime(true) - $start) <= $limit;
+    }
+
+    /**
+     * Whether the HTML has images that are still on the Triboon CDN.
+     *
+     * @param string $html
+     *
+     * @return bool
+     */
+    public static function has_cdn_images($html)
+    {
+        if (!preg_match_all('/<img\s+[^>]*src="([^"]+)"/i', (string) $html, $matches)) {
+            return false;
+        }
+        $hosts = self::cdn_hosts();
+        foreach ($matches[1] as $src) {
+            if (self::url_on_hosts($src, $hosts)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Schedule another try to set the featured image of a reportage post:
      * up to 5 tries, 5, 10, 15, 20 and 25 minutes apart.
      *
@@ -676,8 +772,9 @@ class ReportagePost extends Singleton
     }
 
     /**
-     * Try again to set the featured image of a reportage post (cron).
-     * The content is read from the saved panel data, not from the CDN.
+     * Try again to set the featured image of a reportage post and to store the
+     * content images left on the CDN (cron). The content is read from the post
+     * and the saved panel data; the HTML file is not downloaded again.
      *
      * @param int $post_id
      * @param int $attempt
@@ -688,7 +785,13 @@ class ReportagePost extends Singleton
     {
         $post_id = intval($post_id);
         $attempt = max(1, intval($attempt));
-        if ($post_id <= 0 || !get_post($post_id) || !pubjet_is_reportage($post_id) || has_post_thumbnail($post_id)) {
+        if ($post_id <= 0 || !get_post($post_id) || !pubjet_is_reportage($post_id)) {
+            return;
+        }
+        $content       = (string) get_post_field('post_content', $post_id);
+        $needs_thumb   = !has_post_thumbnail($post_id);
+        $needs_content = self::has_cdn_images($content);
+        if (!$needs_thumb && !$needs_content) {
             return;
         }
 
@@ -697,18 +800,41 @@ class ReportagePost extends Singleton
 
         $reportage = (object) ((array) get_post_meta($post_id, EnumPostMetakeys::PanelData, true));
 
-        list($lead_image, $lead_image_alt) = self::lead_image($reportage);
-
-        $thumb_id = $lead_image ? self::upload_from_url($lead_image, $lead_image_alt) : false;
-        if (!$thumb_id) {
-            $html     = !empty($reportage->content_file_html) ? $reportage->content_file_html : get_post_field('post_content', $post_id);
-            $thumb_id = intval(self::handle_images((string) $html, true)['featured_img_id'] ?? 0);
+        $thumb_id = 0;
+        if ($needs_thumb) {
+            list($lead_image, $lead_image_alt) = self::lead_image($reportage);
+            $thumb_id = $lead_image ? intval(self::upload_from_url($lead_image, $lead_image_alt)) : 0;
         }
 
-        if ($thumb_id) {
-            pubjet_sentry_batch_discard();
+        // Content images left on the CDN
+        if ($needs_content) {
+            $result = self::handle_images($content, false, false, self::cdn_hosts());
+            if (!empty($result['processed_urls']) && $result['html_file'] !== $content) {
+                add_filter('wp_kses_allowed_html', [Filters::class, "allowReportageIframe"], 10, 2);
+                try {
+                    wp_update_post(wp_slash(['ID' => $post_id, 'post_content' => $result['html_file']]));
+                } finally {
+                    remove_filter('wp_kses_allowed_html', [Filters::class, "allowReportageIframe"], 10);
+                }
+            }
+            $needs_content = self::has_cdn_images($result['html_file']);
+            if ($needs_thumb && !$thumb_id) {
+                $thumb_id = intval($result['featured_img_id'] ?? 0);
+            }
+        }
+
+        if ($needs_thumb && !$thumb_id && !empty($reportage->content_file_html)) {
+            $thumb_id = intval(self::handle_images((string) $reportage->content_file_html, true, false, self::cdn_hosts())['featured_img_id'] ?? 0);
+        }
+
+        if ($needs_thumb && $thumb_id) {
             set_post_thumbnail($post_id, $thumb_id);
             update_post_meta($post_id, 'pubjet_thumbnail_data_attach', basename((string) get_attached_file($thumb_id)));
+            $needs_thumb = false;
+        }
+
+        if (!$needs_thumb && !$needs_content) {
+            pubjet_sentry_batch_discard();
             pubjet_log('Thumbnail retry succeeded for post ' . $post_id . ' (attempt ' . $attempt . ')');
             return;
         }
