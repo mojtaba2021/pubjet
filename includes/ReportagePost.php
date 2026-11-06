@@ -576,7 +576,7 @@ class ReportagePost extends Singleton
         $lead_image     = is_string($lead_image) ? trim($lead_image) : '';
         $lead_image_alt = sanitize_text_field($lead_image_obj->alt_tag ?? '');
 
-        if ('' !== $lead_image && wp_http_validate_url($lead_image)) {
+        if (self::is_http_url($lead_image)) {
             return [$lead_image, $lead_image_alt];
         }
 
@@ -587,6 +587,24 @@ class ReportagePost extends Singleton
         }
 
         return ['', $lead_image_alt];
+    }
+
+    /**
+     * Whether the value is an http(s) URL with a host. Checked without a DNS lookup;
+     * download_url() checks the address again before connecting.
+     *
+     * @param mixed $url
+     *
+     * @return bool
+     */
+    public static function is_http_url($url)
+    {
+        if (!is_string($url) || '' === $url || !filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+        $scheme = strtolower((string) wp_parse_url($url, PHP_URL_SCHEME));
+
+        return in_array($scheme, ['http', 'https'], true) && '' !== (string) wp_parse_url($url, PHP_URL_HOST);
     }
 
     public static function upload_from_url($url, $alt_text = null)
