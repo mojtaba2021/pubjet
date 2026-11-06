@@ -555,9 +555,11 @@ class ReportagePost extends Singleton
         }
         // PHP 7.4 treats null as an empty string here, which keeps decoding on,
         // so content decoding is also turned off directly.
-        curl_setopt($handle, CURLOPT_ENCODING, null);
+        // The http_api_curl action gives the cURL handle of a WordPress HTTP API request;
+        // there is no request argument for this option.
+        curl_setopt($handle, CURLOPT_ENCODING, null); // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt -- handle of the WordPress HTTP API (http_api_curl).
         if (defined('CURLOPT_HTTP_CONTENT_DECODING')) {
-            curl_setopt($handle, CURLOPT_HTTP_CONTENT_DECODING, false);
+            curl_setopt($handle, CURLOPT_HTTP_CONTENT_DECODING, false); // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt -- handle of the WordPress HTTP API (http_api_curl).
         }
     }
 
