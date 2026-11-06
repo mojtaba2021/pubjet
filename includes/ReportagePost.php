@@ -132,9 +132,7 @@ class ReportagePost extends Singleton
         $post_status = self::get_post_status($post_date);
         $post_excerpt = self::normalize_html($reportage->lead_content ?? '');
 
-        $lead_image_obj = (object) ((array) ($reportage->lead_image_obj ?? []));
-        $lead_image     = $lead_image_obj->image ?? ($reportage->lead_image ?? '');
-        $lead_image_alt = sanitize_text_field($lead_image_obj->alt_tag ?? '');
+        list($lead_image, $lead_image_alt) = self::lead_image($reportage, true);
         $post_thumbnail = $lead_image ? self::upload_from_url($lead_image, $lead_image_alt) : null;
 
 
@@ -514,6 +512,36 @@ class ReportagePost extends Singleton
         }
     }
 
+    /**
+     * Featured image address and alt text from the panel data.
+     * A missing or invalid address gives an empty address, so the post is created
+     * without it and the first image of the content is used instead.
+     *
+     * @param object $reportage Panel data.
+     * @param bool   $report    Report a missing or invalid address (warning).
+     *
+     * @return array [address, alt text]
+     */
+    public static function lead_image($reportage, $report = false)
+    {
+        $lead_image_obj = (object) ((array) ($reportage->lead_image_obj ?? []));
+        $lead_image     = $lead_image_obj->image ?? ($reportage->lead_image ?? '');
+        $lead_image     = is_string($lead_image) ? trim($lead_image) : '';
+        $lead_image_alt = sanitize_text_field($lead_image_obj->alt_tag ?? '');
+
+        if ('' !== $lead_image && wp_http_validate_url($lead_image)) {
+            return [$lead_image, $lead_image_alt];
+        }
+
+        if ($report) {
+            $text = sprintf('%s featured image address for reportage %d', '' === $lead_image ? 'No' : 'Invalid', intval($reportage->id ?? 0));
+            pubjet_log($text);
+            pubjet_log_sentry($text, [], 'warning');
+        }
+
+        return ['', $lead_image_alt];
+    }
+
     public static function upload_from_url($url, $alt_text = null)
     {
         if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
@@ -669,9 +697,7 @@ class ReportagePost extends Singleton
 
         $reportage = (object) ((array) get_post_meta($post_id, EnumPostMetakeys::PanelData, true));
 
-        $lead_image_obj = (object) ((array) ($reportage->lead_image_obj ?? []));
-        $lead_image     = $lead_image_obj->image ?? ($reportage->lead_image ?? '');
-        $lead_image_alt = sanitize_text_field($lead_image_obj->alt_tag ?? '');
+        list($lead_image, $lead_image_alt) = self::lead_image($reportage);
 
         $thumb_id = $lead_image ? self::upload_from_url($lead_image, $lead_image_alt) : false;
         if (!$thumb_id) {

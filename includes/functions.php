@@ -1455,10 +1455,11 @@ function pubjet_error_reporting_state($ask = false) {
  *
  * @param string $message
  * @param array  $extra
+ * @param string $level 'error' (default) or 'warning'.
  *
  * @return \Sentry\EventId|null
  */
-function pubjet_log_sentry($message, $extra = []) {
+function pubjet_log_sentry($message, $extra = [], $level = 'error') {
     if (!pubjet_is_error_reporting_enabled()) {
         return null;
     }
@@ -1466,11 +1467,15 @@ function pubjet_log_sentry($message, $extra = []) {
     if ('' === $message) {
         return null;
     }
+    $level = 'warning' === $level ? 'warning' : 'error';
     if (isset($GLOBALS['pubjet_sentry_batch'])) {
         $GLOBALS['pubjet_sentry_batch']['messages'][] = $message;
+        if ('error' === $level) {
+            $GLOBALS['pubjet_sentry_batch']['level'] = 'error';
+        }
         return null;
     }
-    return pubjet_sentry_send($message);
+    return pubjet_sentry_send($message, $level);
 }
 
 /**
@@ -1488,6 +1493,7 @@ function pubjet_sentry_batch_start($context) {
     $GLOBALS['pubjet_sentry_batch'] = [
         'context'  => pubjet_sentry_clean_text($context),
         'messages' => [],
+        'level'    => 'warning',
     ];
     add_action('shutdown', 'pubjet_sentry_batch_flush', 0);
 }
@@ -1516,11 +1522,12 @@ function pubjet_sentry_batch_flush() {
         return;
     }
     $unique = array_values(array_unique($batch['messages']));
-    $text   = sprintf('%s: %d error(s): %s', $batch['context'], count($batch['messages']), implode(' | ', array_slice($unique, 0, 20)));
+    $level  = 'error' === $batch['level'] ? 'error' : 'warning';
+    $text   = sprintf('%s: %d %s(s): %s', $batch['context'], count($batch['messages']), $level, implode(' | ', array_slice($unique, 0, 20)));
     if (count($unique) > 20) {
         $text .= ' | …';
     }
-    pubjet_sentry_send(pubjet_sentry_clean_text($text));
+    pubjet_sentry_send(pubjet_sentry_clean_text($text), $level);
 }
 
 /**
@@ -1647,20 +1654,21 @@ function pubjet_sentry_before_send(\Sentry\Event $event) {
 
 /**
  * @param string $message Cleaned error text.
+ * @param string $level   'error' or 'warning'.
  *
  * @return \Sentry\EventId|null
  */
-function pubjet_sentry_send($message) {
+function pubjet_sentry_send($message, $level = 'error') {
     $hub = pubjet_sentry_hub();
     if (null === $hub) {
         return null;
     }
     try {
-        return $hub->withScope(function (Scope $scope) use ($hub, $message) {
+        return $hub->withScope(function (Scope $scope) use ($hub, $message, $level) {
             foreach (pubjet_sentry_site_data() as $key => $value) {
                 $scope->setExtra($key, $value);
             }
-            return $hub->captureMessage($message, \Sentry\Severity::error());
+            return $hub->captureMessage($message, 'warning' === $level ? \Sentry\Severity::warning() : \Sentry\Severity::error());
         });
     } catch (\Throwable $e) {
         // Sending a report must never break the request.

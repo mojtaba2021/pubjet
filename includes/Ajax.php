@@ -312,9 +312,7 @@ class Ajax extends Singleton
         ];
         $post_content = ReportagePost::get_content_file((object)$reportage);
 
-        $lead_image_obj = (object) ((array) ($triboon_panel_reportage_data->lead_image_obj ?? []));
-        $lead_image     = $lead_image_obj->image ?? ($triboon_panel_reportage_data->lead_image ?? '');
-        $lead_image_alt = sanitize_text_field($lead_image_obj->alt_tag ?? '');
+        list($lead_image, $lead_image_alt) = ReportagePost::lead_image($triboon_panel_reportage_data);
 
         $response = [];
 
@@ -334,9 +332,11 @@ class Ajax extends Singleton
 
     private function processThumbnail($post, $post_content, $lead_image , $lead_image_alt = null)
     {
-        $post_thumbnail = $lead_image
-            ? ReportagePost::upload_from_url($lead_image, $lead_image_alt)
-            : intval(ReportagePost::handle_images($post_content, true)['featured_img_id'] ?? 0);
+        $post_thumbnail = $lead_image ? ReportagePost::upload_from_url($lead_image, $lead_image_alt) : 0;
+        if (empty($post_thumbnail)) {
+            // Featured image address missing or not downloadable: use the first image of the content
+            $post_thumbnail = intval(ReportagePost::handle_images($post_content, true)['featured_img_id'] ?? 0);
+        }
 
         if (empty($post_thumbnail)) {
             pubjet_log('Error creating post thumbnail for post ID: ' . $post->ID);
