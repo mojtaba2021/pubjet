@@ -1875,10 +1875,11 @@ function pubjet_check_new_version() {
                 return PUBJ()->getVersion();
             }
 
-            set_site_transient( 'pubjet_update_plugin_info', $data, 12 * HOUR_IN_SECONDS );
+            // Only the version is needed
+            set_site_transient( 'pubjet_update_plugin_info', (object) ['version' => (string) $data->version], 12 * HOUR_IN_SECONDS );
             $new_version = $data->version ;
         } else {
-            $new_version = ($pubjet_update_info === 'error') ? PUBJ()->getVersion() : ($pubjet_update_info->new_version ?? 0);
+            $new_version = ($pubjet_update_info === 'error') ? PUBJ()->getVersion() : ($pubjet_update_info->version ?? PUBJ()->getVersion());
         }
     } else {
         $plugin = $plugin_updates->response['pubjet/pubjet.php'];
