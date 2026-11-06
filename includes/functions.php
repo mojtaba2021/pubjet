@@ -1412,15 +1412,14 @@ function pubjet_is_error_reporting_enabled() {
 }
 
 /**
- * Whether the administrator should be asked about error reporting (only once).
+ * Whether to ask the administrator about error reporting (until they answer).
  *
  * @return bool
  */
 function pubjet_should_ask_error_reporting() {
     return null === pubjet_error_reporting_forced()
         && true !== PUBJET_ERROR_REPORTING_DEFAULT
-        && '' === pubjet_error_reporting_choice()
-        && !get_option('pubjet_error_reporting_asked');
+        && '' === pubjet_error_reporting_choice();
 }
 
 /**
@@ -1430,7 +1429,6 @@ function pubjet_should_ask_error_reporting() {
  */
 function pubjet_set_error_reporting($choice) {
     update_option('pubjet_error_reporting', 'yes' === $choice ? 'yes' : 'no', false);
-    update_option('pubjet_error_reporting_asked', time(), false);
 }
 
 /**

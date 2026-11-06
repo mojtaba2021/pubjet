@@ -603,12 +603,8 @@ class Ajax extends Singleton
         delete_option('pubjet_token_reconnect_required');
         pubjet_send_plugin_status_to_api('active');
 
-        // Ask about error reporting once, after the first successful connection.
-        $ask = pubjet_should_ask_error_reporting();
-        if ($ask) {
-            update_option('pubjet_error_reporting_asked', time(), false);
-        }
-        $response['errorReporting'] = pubjet_error_reporting_state($ask);
+        // Keep asking about error reporting until the administrator answers.
+        $response['errorReporting'] = pubjet_error_reporting_state(pubjet_should_ask_error_reporting());
 
         $this->success($response);
     }

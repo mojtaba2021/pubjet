@@ -6,7 +6,7 @@ import {setErrorReporting} from "./Actions";
 import styles from "./ErrorReportingQuestion.module.scss";
 
 /**
- * Asks the administrator once whether Pubjet error reports may be sent to Triboon.
+ * Asks the administrator, until they answer, whether Pubjet error reports may be sent to Triboon.
  * Both answers have the same weight and nothing is preselected.
  *
  * @since 5.4.9
