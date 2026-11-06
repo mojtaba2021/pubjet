@@ -362,7 +362,7 @@ class Actions extends Singleton
             && isset($options['plugins'])) {
             foreach ($options['plugins'] as $plugin) {
                 if ($plugin === PUBJET_PLUGIN_BASE) {
-                    pubjet_sync_settings();
+                    pubjet_schedule_sync_settings();
                     pubjet_delete_first_image_option();
                 }
             }

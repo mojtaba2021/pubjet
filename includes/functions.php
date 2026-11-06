@@ -1270,6 +1270,18 @@ function pubjet_find_wp_tags() {
 
 
 /**
+ * Run pubjet_sync_settings() soon from cron, so the request that notices an
+ * update does not wait for the token check with Triboon.
+ *
+ * @return void
+ */
+function pubjet_schedule_sync_settings() {
+    if (!wp_next_scheduled('pubjet_sync_settings')) {
+        wp_schedule_single_event(time(), 'pubjet_sync_settings');
+    }
+}
+
+/**
  * @return void
  */
 function pubjet_sync_settings() {

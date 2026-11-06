@@ -25,6 +25,7 @@ class Cron extends Singleton
         add_action('pubjet_verify_stored_token', [$this, 'verifyStoredToken'], 15);
         add_action('pubjet_send_status', [$this, 'sendStatusIfDue'], 15);
         add_action('pubjet_send_status_now', [$this, 'sendStatusNow'], 15);
+        add_action('pubjet_sync_settings', 'pubjet_sync_settings', 15);
     }
 
     /**
@@ -254,6 +255,7 @@ class Cron extends Singleton
                 'pubjet_retry_thumbnail',
                 'pubjet_send_status',
                 'pubjet_send_status_now',
+                'pubjet_sync_settings',
             ]
         );
 

@@ -285,7 +285,7 @@ if (!class_exists('Pubjet')) {
 
                 // The new version is sent to Triboon from cron
                 pubjet_schedule_plugin_status_send();
-                pubjet_sync_settings();
+                pubjet_schedule_sync_settings();
                 pubjet_delete_first_image_option();
 
                 if (empty($stored_version) || version_compare($stored_version, '5.4.9', '<')) {
