@@ -2017,8 +2017,45 @@ function pubjet_prepare_settings_to_save(array $settings, int $publisherCategory
         $settings['manualApprove'] = 0;
     }
 
+    return pubjet_strip_token_details($settings);
+}
+
+/**
+ * Keep only the token check fields the settings page needs.
+ *
+ * The publisher's name, phone, email and username from the token check
+ * are shown in the browser only and are never stored.
+ *
+ * @param array $settings Settings about to be saved.
+ *
+ * @return array
+ */
+function pubjet_strip_token_details(array $settings): array
+{
+    if (!array_key_exists('checkToken', $settings)) {
+        return $settings;
+    }
+
+    $check   = is_array($settings['checkToken']) ? $settings['checkToken'] : [];
+    $payload = isset($check['payload']) && is_array($check['payload']) ? $check['payload'] : [];
+
+    $clean = [
+        'checked' => !empty($check['checked']),
+        'valid'   => !empty($check['valid']),
+        'error'   => false,
+        'payload' => [],
+    ];
+    foreach (['website_id', 'website_url', 'publisherCategory'] as $key) {
+        if (isset($payload[$key]) && is_scalar($payload[$key])) {
+            $clean['payload'][$key] = $payload[$key];
+        }
+    }
+
+    $settings['checkToken'] = $clean;
+
     return $settings;
 }
+
 
 
 /**

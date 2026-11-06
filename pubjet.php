@@ -306,6 +306,11 @@ if (!class_exists('Pubjet')) {
 
             pubjet_delete_legacy_debug_file();
 
+            // Earlier versions stored the publisher's contact details from the token check
+            if (is_array($pubjet_settings)) {
+                $pubjet_settings = pubjet_strip_token_details($pubjet_settings);
+            }
+
             // Debug mode that is already on expires one day after the update
             if (!empty($pubjet_settings[EnumOptions::DebugMode]) && empty($pubjet_settings[EnumOptions::DebugModeEnabledAt])) {
                 $pubjet_settings[EnumOptions::DebugModeEnabledAt] = time();
