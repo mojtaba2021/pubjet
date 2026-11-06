@@ -212,9 +212,11 @@ class ReportagePost extends Singleton
             $file_path = get_attached_file($final_thumbnail_id);
             $data_attach = basename($file_path);
             update_post_meta($post_id, 'pubjet_thumbnail_data_attach', $data_attach);
-        } else {
+        } elseif (self::has_retry_source($reportage, $post_content['content'] ?? '')) {
             pubjet_log('No featured image for post ' . $post_id . ', retry scheduled');
             self::schedule_thumbnail_retry($post_id, 1);
+        } else {
+            pubjet_log('No featured image for post ' . $post_id . ' and no image to try');
         }
         if (self::$skipped_images > 0) {
             pubjet_log(self::$skipped_images . ' image(s) of post ' . $post_id . ' left for the retry (time limit)');
@@ -763,6 +765,24 @@ class ReportagePost extends Singleton
     }
 
     /**
+     * Whether a later try could find an image: a valid featured image address,
+     * or images on the Triboon CDN in the post content or the saved panel HTML.
+     *
+     * @param object $reportage Panel data.
+     * @param string $content   Post content.
+     *
+     * @return bool
+     */
+    public static function has_retry_source($reportage, $content)
+    {
+        list($lead_image) = self::lead_image($reportage);
+
+        return '' !== $lead_image
+            || self::has_cdn_images($content)
+            || (!empty($reportage->content_file_html) && self::has_cdn_images((string) $reportage->content_file_html));
+    }
+
+    /**
      * Schedule another try to set the featured image of a reportage post:
      * up to 5 tries, 5, 10, 15, 20 and 25 minutes apart.
      *
@@ -813,10 +833,14 @@ class ReportagePost extends Singleton
             return;
         }
 
+        $reportage = (object) ((array) get_post_meta($post_id, EnumPostMetakeys::PanelData, true));
+        if (!$needs_content && !self::has_retry_source($reportage, $content)) {
+            pubjet_log('Thumbnail retry stopped for post ' . $post_id . ': no image to try');
+            return;
+        }
+
         // Errors of a try are reported only when the last try fails.
         pubjet_sentry_batch_start('Featured image retry ' . $attempt . '/5, post ' . $post_id);
-
-        $reportage = (object) ((array) get_post_meta($post_id, EnumPostMetakeys::PanelData, true));
 
         $thumb_id = 0;
         if ($needs_thumb) {
