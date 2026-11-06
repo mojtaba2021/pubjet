@@ -184,13 +184,23 @@ class Actions extends Singleton
      */
     public function processCreateReportage($reportage)
     {
-        $lock_key = 'pubjet_reportage_creation_lock_' . $reportage->id;
-        $lock_time = 30;
+        // The id and title are read from the request, not from the result of the insert
+        $reportage    = ReportagePost::normalize($reportage);
+        $reportage_id = intval($reportage->id);
 
         $log_data = [
-            'reportage_id' => pubjet_isset_value($reportage->id),
-            'reportage_title' => pubjet_isset_value($reportage->title),
+            'reportage_id' => $reportage_id,
+            'reportage_title' => $reportage->title,
         ];
+
+        if ($reportage_id <= 0) {
+            pubjet_log(['Error' => 'Reportage request without an id'] + $log_data);
+            $this->error(pubjet__('missing-params'), 400);
+            return;
+        }
+
+        $lock_key = 'pubjet_reportage_creation_lock_' . $reportage_id;
+        $lock_time = 30;
 
         if (get_transient($lock_key)) {
             $duplicate_error_message = 'در حال پردازش درخواست مشابه. لطفاً منتظر بمانید.';
@@ -201,34 +211,34 @@ class Actions extends Singleton
         }
 
         // All error reports of this reportage are sent as one report.
-        pubjet_sentry_batch_start('Reportage ' . (int) pubjet_isset_value($reportage->id));
+        pubjet_sentry_batch_start('Reportage ' . $reportage_id);
 
+        set_transient($lock_key, time(), $lock_time);
         try {
-            set_transient($lock_key, time(), $lock_time);
             $wp_post_id = ReportagePost::insert($reportage);
-
-            if (!$wp_post_id || is_wp_error($wp_post_id)) {
-                if (is_wp_error($wp_post_id) && $wp_post_id->get_error_code() === 'reportage-exists') {
-                    throw new \Exception($wp_post_id->get_error_message(), 409); // 409 for duplicate reportage
-                }
-                throw new \Exception(is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در ثبت نوشته رپورتاژ.');
-            }
-
-            pubjet_log($reportage->wp_post_id ? 'Post updated: ' . $reportage->wp_post_id : 'Post created: ' . $wp_post_id);
-
-            $this->success([
-                'postId' => $wp_post_id,
-                'postStatus' => get_post_status($wp_post_id) ?: 'Unknown',
-                'reportageId' => $reportage->id,
-            ]);
         } catch (\Exception $e) {
-            pubjet_log(['Error' => $e->getMessage()] + $log_data);
-            pubjet_log_sentry($e->getMessage(), ["message" => $e->getMessage()] + $log_data);
-            $status_code = $e->getCode() ?: 400;
-            $this->error($e->getMessage(), $status_code);
-        } finally {
-            delete_transient($lock_key);
+            $wp_post_id = new \WP_Error('insert-exception', $e->getMessage());
         }
+        // success() and error() end the request, so the lock is released first
+        delete_transient($lock_key);
+
+        if (!$wp_post_id || is_wp_error($wp_post_id)) {
+            $error = is_wp_error($wp_post_id) ? $wp_post_id : new \WP_Error('insert-reportage', 'خطای نامشخصی در ثبت نوشته رپورتاژ.');
+            $code  = (string) $error->get_error_code();
+            pubjet_log(['Error' => $error->get_error_message(), 'code' => $code] + $log_data);
+            pubjet_log_sentry(sprintf('Create failed (%s): %s', $code, $error->get_error_message()));
+            // 409 for a duplicate reportage, 400 for other errors (unchanged)
+            $this->error($error->get_error_message(), 'reportage-exists' === $code ? 409 : 400);
+            return;
+        }
+
+        pubjet_log($reportage->wp_post_id ? 'Post updated: ' . $reportage->wp_post_id : 'Post created: ' . $wp_post_id);
+
+        $this->success([
+            'postId' => $wp_post_id,
+            'postStatus' => get_post_status($wp_post_id) ?: 'Unknown',
+            'reportageId' => $reportage->id,
+        ]);
     }
 
     /**

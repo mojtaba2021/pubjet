@@ -233,7 +233,7 @@ class ReportagePost extends Singleton
 
         add_filter('wp_kses_allowed_html', [Filters::class, "allowReportageIframe"], 10, 2);
         try {
-            $post_id = wp_insert_post($args);
+            $post_id = wp_insert_post($args, true);
         } finally {
             remove_filter('wp_kses_allowed_html', [Filters::class, "allowReportageIframe"], 10);
         }
@@ -241,12 +241,9 @@ class ReportagePost extends Singleton
         pubjet_log('======= New Post Result =======');
         pubjet_log($post_id);
 
-        if (is_wp_error($post_id)) {
-            pubjet_log_sentry(sprintf('%s: %s', 'خطا در ایجاد نوشته رپورتاژ', $post_id->get_error_message()), [
-                'reportage_id' => $reportage->id,
-                'reportage_title' => $reportage->title,
-            ]);
-            return new \WP_Error('insert-reportage', $post_id->get_error_message());
+        if (is_wp_error($post_id) || !$post_id) {
+            // Reported by the caller with the WordPress error code
+            return is_wp_error($post_id) ? $post_id : new \WP_Error('insert-reportage', 'wp_insert_post returned 0');
         }
 
         // =================== Success ===================
