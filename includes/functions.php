@@ -1493,6 +1493,15 @@ function pubjet_sentry_batch_start($context) {
 }
 
 /**
+ * Drop the collected error reports without sending them.
+ *
+ * @return void
+ */
+function pubjet_sentry_batch_discard() {
+    unset($GLOBALS['pubjet_sentry_batch']);
+}
+
+/**
  * Send the collected error reports as one report.
  *
  * @return void

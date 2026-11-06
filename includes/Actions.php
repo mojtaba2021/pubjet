@@ -49,6 +49,8 @@ class Actions extends Singleton
         add_action('pubjet_create_reportage', [$this, 'processCreateReportage'], 15);
         // Files of the Triboon CDN are downloaded without automatic decoding
         add_action('http_api_curl', [ReportagePost::class, 'disableCurlDecodingForCdn'], 10, 3);
+        // Try again to set a missing featured image
+        add_action('pubjet_retry_thumbnail', [ReportagePost::class, 'retry_thumbnail'], 10, 2);
         add_action('save_post', [$this, 'savePubjetMetaData']);
         add_action('wp_head', [$this, 'addMetaDataToFrontPages'], 15);
 

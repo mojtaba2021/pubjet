@@ -226,6 +226,7 @@ class Cron extends Singleton
                 'pubjet_schedule_delete_logs',
                 'pubjet_check_missed_posts',
                 'pubjet_verify_stored_token',
+                'pubjet_retry_thumbnail',
             ]
         );
 

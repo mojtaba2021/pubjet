@@ -201,6 +201,9 @@ class ReportagePost extends Singleton
             $file_path = get_attached_file($final_thumbnail_id);
             $data_attach = basename($file_path);
             update_post_meta($post_id, 'pubjet_thumbnail_data_attach', $data_attach);
+        } else {
+            pubjet_log('No featured image for post ' . $post_id . ', retry scheduled');
+            self::schedule_thumbnail_retry($post_id, 1);
         }
 
         // Publish without Triboon tag
@@ -615,6 +618,80 @@ class ReportagePost extends Singleton
         ]);
 
         return (int)$attachment_id;
+    }
+
+    /**
+     * Schedule another try to set the featured image of a reportage post:
+     * up to 5 tries, 5, 10, 15, 20 and 25 minutes apart.
+     *
+     * @param int $post_id
+     * @param int $attempt 1 to 5.
+     *
+     * @return void
+     */
+    public static function schedule_thumbnail_retry($post_id, $attempt)
+    {
+        $post_id = intval($post_id);
+        $attempt = intval($attempt);
+        if ($post_id <= 0) {
+            return;
+        }
+        if ($attempt > 5) {
+            pubjet_log('Thumbnail retry gave up for post ' . $post_id);
+            return;
+        }
+        $args = [$post_id, $attempt];
+        if (wp_next_scheduled('pubjet_retry_thumbnail', $args)) {
+            return;
+        }
+        wp_schedule_single_event(time() + 5 * MINUTE_IN_SECONDS * $attempt, 'pubjet_retry_thumbnail', $args);
+    }
+
+    /**
+     * Try again to set the featured image of a reportage post (cron).
+     * The content is read from the saved panel data, not from the CDN.
+     *
+     * @param int $post_id
+     * @param int $attempt
+     *
+     * @return void
+     */
+    public static function retry_thumbnail($post_id, $attempt = 1)
+    {
+        $post_id = intval($post_id);
+        $attempt = max(1, intval($attempt));
+        if ($post_id <= 0 || !get_post($post_id) || !pubjet_is_reportage($post_id) || has_post_thumbnail($post_id)) {
+            return;
+        }
+
+        // Errors of a try are reported only when the last try fails.
+        pubjet_sentry_batch_start('Featured image retry ' . $attempt . '/5, post ' . $post_id);
+
+        $reportage = (object) ((array) get_post_meta($post_id, EnumPostMetakeys::PanelData, true));
+
+        $lead_image_obj = (object) ((array) ($reportage->lead_image_obj ?? []));
+        $lead_image     = $lead_image_obj->image ?? ($reportage->lead_image ?? '');
+        $lead_image_alt = sanitize_text_field($lead_image_obj->alt_tag ?? '');
+
+        $thumb_id = $lead_image ? self::upload_from_url($lead_image, $lead_image_alt) : false;
+        if (!$thumb_id) {
+            $html     = !empty($reportage->content_file_html) ? $reportage->content_file_html : get_post_field('post_content', $post_id);
+            $thumb_id = intval(self::handle_images((string) $html, true)['featured_img_id'] ?? 0);
+        }
+
+        if ($thumb_id) {
+            pubjet_sentry_batch_discard();
+            set_post_thumbnail($post_id, $thumb_id);
+            update_post_meta($post_id, 'pubjet_thumbnail_data_attach', basename((string) get_attached_file($thumb_id)));
+            pubjet_log('Thumbnail retry succeeded for post ' . $post_id . ' (attempt ' . $attempt . ')');
+            return;
+        }
+
+        pubjet_log('Thumbnail retry failed for post ' . $post_id . ' (attempt ' . $attempt . ')');
+        if ($attempt < 5) {
+            pubjet_sentry_batch_discard();
+        }
+        self::schedule_thumbnail_retry($post_id, $attempt + 1);
     }
 
     public static function get_content_file($reportage)
