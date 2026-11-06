@@ -103,7 +103,7 @@ class ReportagePost extends Singleton
     /**
      * @param $thereportage
      *
-     * @return bool
+     * @return bool|\WP_Error
      */
     public static function update($thereportage)
     {
@@ -139,6 +139,10 @@ class ReportagePost extends Singleton
         if ($reportage_url !== $thereportage->content_file) {
 
             $post_content = !empty($thereportage->content_file_html) ? $thereportage->content_file_html : self::get_content_file($thereportage);
+            if ('' === trim((string) $post_content)) {
+                // The current content is kept
+                return new \WP_Error('empty-content', pubjet__('empty-reportage-content'));
+            }
             $post_content = self::get_post_content($post_content, $thereportage->title);
             $post_content['content'] = Filters::filterReportageHtml($post_content['content'] ?? '', $thereportage->id);
 
@@ -184,6 +188,11 @@ class ReportagePost extends Singleton
         // Check if we have gateway error
         if (pubjet_gateway_error($post_content)) {
             return new \WP_Error('gateway-error', pubjet__('gateway-error'));
+        }
+
+        // Content not received from the CDN or empty: no post is published, the panel can send it again
+        if ('' === trim((string) $post_content)) {
+            return new \WP_Error('empty-content', pubjet__('empty-reportage-content'));
         }
 
         $post_content = self::get_post_content($post_content, $reportage->title);
@@ -934,6 +943,28 @@ class ReportagePost extends Singleton
         self::schedule_thumbnail_retry($post_id, $attempt + 1);
     }
 
+    /**
+     * Body of a content file response; empty unless the request succeeded (HTTP 200),
+     * so an error page of the CDN is never published as content.
+     *
+     * @param array|\WP_Error $response
+     *
+     * @return string
+     */
+    private static function content_file_body($response)
+    {
+        if (is_wp_error($response)) {
+            pubjet_log('Content file download failed: ' . $response->get_error_message());
+            return '';
+        }
+        $code = (int) wp_remote_retrieve_response_code($response);
+        if (200 !== $code) {
+            pubjet_log('Content file download failed: HTTP ' . $code);
+            return '';
+        }
+        return (string) wp_remote_retrieve_body($response);
+    }
+
     public static function get_content_file($reportage)
     {
 
@@ -946,7 +977,7 @@ class ReportagePost extends Singleton
             'redirection' => 5,
             'blocking' => true,
         ]);
-        $body = wp_remote_retrieve_body($response);
+        $body = self::content_file_body($response);
 
         pubjet_log(':: First ::');
         pubjet_log($body);
@@ -954,7 +985,7 @@ class ReportagePost extends Singleton
         // Check gateway error
         if (pubjet_gateway_error($body) || empty($body)) {
             $response = wp_remote_get($reportage->content_file);
-            $body = wp_remote_retrieve_body($response);
+            $body = self::content_file_body($response);
 
             pubjet_log(':: Second ::');
             pubjet_log($body);
