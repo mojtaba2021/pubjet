@@ -527,8 +527,16 @@ class ReportagePost extends Singleton
             require_once(ABSPATH . 'wp-admin/includes/media.php');
         }
 
-        // Download file to temp location
-        $tmp = download_url($url);
+        // Download file to temp location. Two tries of 12 seconds keep the request
+        // under the usual 30 second limit; the background retry covers longer outages.
+        $tmp = null;
+        for ($attempt = 1; $attempt <= 2; $attempt++) {
+            $tmp = download_url($url, 12);
+            if (!is_wp_error($tmp)) {
+                break;
+            }
+            pubjet_log(sprintf('Download failed (attempt %d/2): %s => %s', $attempt, $url, $tmp->get_error_message()));
+        }
         if (is_wp_error($tmp)) {
             pubjet_log_sentry('Failed to download file from URL', [
                 'url' => $url,
@@ -586,6 +594,7 @@ class ReportagePost extends Singleton
 
         // Check for upload errors
         if (is_wp_error($attachment_id)) {
+            pubjet_log('Sideload failed: ' . $url . ' => ' . $attachment_id->get_error_message());
             pubjet_log_sentry('Failed to upload file to media library', [
                 'url' => $url,
                 'filename' => "$filename.$extension",
