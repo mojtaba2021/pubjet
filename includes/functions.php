@@ -1827,8 +1827,8 @@ function pubjet_send_plugin_status_to_api($status) {
     ]);
     if (is_wp_error($response)) {
         pubjet_log('Status send failed: ' . $response->get_error_message());
-        // At most one report a day
-        if (!get_transient('pubjet_status_ping_logged')) {
+        // At most one report a day; the day counts only from a report that is actually sent
+        if (pubjet_is_error_reporting_enabled() && !get_transient('pubjet_status_ping_logged')) {
             set_transient('pubjet_status_ping_logged', 1, DAY_IN_SECONDS);
             pubjet_log_sentry('Error sending status to API: ' . $response->get_error_message(), [], 'error', [
                 'cause' => pubjet_connection_error_cause($response->get_error_message()),
