@@ -469,6 +469,48 @@ class ReportagePost extends Singleton
         return $new_tag;
     }
 
+    /**
+     * Hosts of the Triboon CDN.
+     *
+     * @return string[]
+     */
+    public static function cdn_hosts()
+    {
+        /**
+         * The pubjet_cdn_hosts filter.
+         *
+         * @since 5.4.9
+         */
+        $hosts = apply_filters('pubjet_cdn_hosts', ['cdn.triboon.net', 'cdn.pubjet.ir']);
+
+        return array_map('strtolower', array_filter((array) $hosts, 'is_string'));
+    }
+
+    /**
+     * The Triboon CDN may send "Content-Encoding: aws-chunked" with plain files.
+     * cURL then fails with error 61, so automatic decoding is turned off for
+     * the Triboon CDN hosts only. The body is the plain file.
+     *
+     * @param resource|\CurlHandle $handle
+     * @param array                $args
+     * @param string               $url
+     *
+     * @return void
+     */
+    public static function disableCurlDecodingForCdn($handle, $args, $url)
+    {
+        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        if ('' === $host || !in_array($host, self::cdn_hosts(), true)) {
+            return;
+        }
+        // PHP 7.4 treats null as an empty string here, which keeps decoding on,
+        // so content decoding is also turned off directly.
+        curl_setopt($handle, CURLOPT_ENCODING, null);
+        if (defined('CURLOPT_HTTP_CONTENT_DECODING')) {
+            curl_setopt($handle, CURLOPT_HTTP_CONTENT_DECODING, false);
+        }
+    }
+
     public static function upload_from_url($url, $alt_text = null)
     {
         if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
