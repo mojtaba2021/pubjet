@@ -200,7 +200,8 @@ class Actions extends Singleton
         }
 
         $lock_key = 'pubjet_reportage_creation_lock_' . $reportage_id;
-        $lock_time = 30;
+        // Covers the whole processing (content, images); released before the response, expires after a fatal error
+        $lock_time = 180;
 
         if (get_transient($lock_key)) {
             $duplicate_error_message = 'در حال پردازش درخواست مشابه. لطفاً منتظر بمانید.';
