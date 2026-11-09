@@ -2098,6 +2098,24 @@ function pubjet_queue_publish_link($post_id) {
     if (!wp_next_scheduled('pubjet_sync_reportage_url_now')) {
         wp_schedule_single_event(time(), 'pubjet_sync_reportage_url_now');
     }
+    if (pubjet_wp_cron_disabled()) {
+        // Without WP-Cron the link is sent on the next administrator dashboard load
+        delete_transient('pubjet_sync_fallback_check');
+    }
+}
+
+/**
+ * Whether at least one post waits for its publish link (one indexed, limited query).
+ *
+ * @return bool
+ * @since  5.4.9
+ */
+function pubjet_has_pending_publish_link() {
+    global $wpdb;
+    return (bool) $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- at most once every 5 minutes, dashboard only
+        "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s LIMIT 1",
+        EnumPostMetakeys::FailedSyncUrl
+    ));
 }
 
 /**

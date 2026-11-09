@@ -19,6 +19,8 @@ class Cron extends Singleton
         add_filter('cron_schedules', [$this, 'registerInterval'], 10);
         // Events are registered on activation and update; the dashboard only restores a missing one
         add_action('admin_init', [$this, 'ensureCronEvents'], 20);
+        // Without a working WP-Cron the publish links are sent from the administrator dashboard
+        add_action('admin_init', [$this, 'sendPublishLinksFromDashboard'], 25);
 
         add_action('pubjet_sync_reportage_url', [$this, 'runSyncReportageUrl'], 15);
         add_action('pubjet_sync_reportage_url_now', [$this, 'runSyncReportageUrl'], 15);
@@ -193,42 +195,150 @@ class Cron extends Singleton
     }
 
     /**
+     * Cron: send the publish links that are waiting (see syncPublishLinks()).
+     *
      * @return void
      */
     public function runSyncReportageUrl()
     {
-        $batch_size = (int) apply_filters('pubjet_sync_batch_size', 10);
-        if ($batch_size <= 0) return;
+        $this->syncPublishLinks((int) apply_filters('pubjet_sync_batch_size', 10));
+    }
 
-        $args = [
-            'post_type'             => 'post',
-            'posts_per_page'        => $batch_size,
-            'orderby'               => 'date',
-            'order'                 => 'ASC',
-            'meta_query'          => [
-                [
-                    'key'     => EnumPostMetakeys::FailedSyncUrl,
-                    'compare' => 'EXISTS',
-                ],
-            ],
-            'no_found_rows'         => true,
-        ];
+    /**
+     * Send the publish links of published reportages marked for it. One run at a time; a run
+     * stops at the first connection error, the rest waits for the next run. The mark is removed
+     * only when Triboon accepted the link. After 3 failed tries of a post, one warning is reported.
+     *
+     * @param int $limit Number of posts in this run.
+     *
+     * @return int Number of links sent.
+     * @since  5.4.9
+     */
+    public function syncPublishLinks($limit)
+    {
+        $limit = (int) $limit;
+        if ($limit <= 0) {
+            return 0;
+        }
+        if (get_transient('pubjet_sync_url_lock')) {
+            pubjet_log('[info] Publish link sending is already running');
+            return 0;
+        }
+        set_transient('pubjet_sync_url_lock', time(), 5 * MINUTE_IN_SECONDS);
 
-        $posts = get_posts($args);
+        $sent = 0;
+        try {
+            $post_ids = get_posts([
+                'post_type'        => pubjet_post_type(),
+                'post_status'      => 'publish',
+                'posts_per_page'   => $limit,
+                'orderby'          => 'date',
+                'order'            => 'ASC',
+                'fields'           => 'ids',
+                'meta_key'         => EnumPostMetakeys::FailedSyncUrl, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- cron, small batch
+                'no_found_rows'    => true,
+                'suppress_filters' => true,
+            ]);
 
-        if (empty($posts)) return;
+            foreach ($post_ids as $post_id) {
+                $reportage_id = pubjet_find_reportage_id($post_id);
+                if (!$reportage_id) {
+                    // Not a reportage, nothing can be sent
+                    delete_post_meta($post_id, EnumPostMetakeys::FailedSyncUrl);
+                    continue;
+                }
 
-        foreach ($posts as $post) {
-            $reportage_id = pubjet_find_reportage_id($post->ID);
-            if (!$reportage_id) {
-                continue;
+                $result = pubjet_publish_reportage($post_id, $reportage_id);
+                if (pubjet_publish_reportage_succeeded($result)) {
+                    delete_post_meta($post_id, EnumPostMetakeys::FailedSyncUrl);
+                    delete_post_meta($post_id, EnumPostMetakeys::SyncUrlAttempts);
+                    pubjet_log('Publish link of reportage ' . $reportage_id . ' (post ' . $post_id . ') sent');
+                    $sent++;
+                    continue;
+                }
+
+                $code     = is_array($result) && isset($result['code']) ? (int) $result['code'] : 0;
+                $error    = is_array($result) && !empty($result['error']) ? (string) $result['error'] : '';
+                $attempts = (int) get_post_meta($post_id, EnumPostMetakeys::SyncUrlAttempts, true) + 1;
+                update_post_meta($post_id, EnumPostMetakeys::SyncUrlAttempts, $attempts);
+                pubjet_log([
+                    'Error'        => 'Publish link not sent',
+                    'reportage_id' => $reportage_id,
+                    'post_id'      => $post_id,
+                    'code'         => $code,
+                    'error'        => $error,
+                    'attempts'     => $attempts,
+                ]);
+                if (3 === $attempts) {
+                    pubjet_log_sentry(
+                        sprintf('Publish link of reportage %d (post %d) not sent after %d tries (HTTP %d)', $reportage_id, $post_id, $attempts, $code),
+                        [],
+                        'warning',
+                        0 === $code ? ['cause' => pubjet_connection_error_cause($error)] : []
+                    );
+                }
+                if (0 === $code) {
+                    break;
+                }
             }
-            $result = pubjet_publish_reportage($post->ID, $reportage_id);
+        } finally {
+            delete_transient('pubjet_sync_url_lock');
+        }
 
-            if (pubjet_publish_reportage_succeeded($result)) {
-                delete_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl);
+        return $sent;
+    }
+
+    /**
+     * Whether WP-Cron does not run: turned off on page loads, or the publish link events are
+     * more than 15 minutes late. Reads the cron option only (no query).
+     *
+     * @return bool
+     * @since  5.4.9
+     */
+    public static function cronLooksStopped()
+    {
+        if (pubjet_wp_cron_disabled()) {
+            return true;
+        }
+        $late = time() - 15 * MINUTE_IN_SECONDS;
+        foreach (['pubjet_sync_reportage_url', 'pubjet_sync_reportage_url_now'] as $hook) {
+            $next = wp_next_scheduled($hook);
+            if ($next && $next < $late) {
+                return true;
             }
         }
+        return false;
+    }
+
+    /**
+     * Send waiting publish links from the administrator dashboard when WP-Cron does not run.
+     * Only for administrators, not in AJAX or cron requests, at most once every 5 minutes,
+     * and only when a post waits for its link. Never on visitor pages.
+     *
+     * @return void
+     * @since  5.4.9
+     */
+    public function sendPublishLinksFromDashboard()
+    {
+        if (wp_doing_ajax() || wp_doing_cron() || !current_user_can('manage_options')) {
+            return;
+        }
+        if (!self::cronLooksStopped() || get_transient('pubjet_sync_fallback_check')) {
+            return;
+        }
+        /**
+         * Seconds between two checks from the dashboard.
+         *
+         * @since 5.4.9
+         */
+        $interval = max(MINUTE_IN_SECONDS, (int) apply_filters('pubjet_sync_fallback_interval', 5 * MINUTE_IN_SECONDS));
+        set_transient('pubjet_sync_fallback_check', 1, $interval);
+
+        if (!pubjet_has_pending_publish_link()) {
+            return;
+        }
+        pubjet_log('[info] WP-Cron does not run, publish links are sent from the dashboard');
+        $this->syncPublishLinks((int) apply_filters('pubjet_sync_fallback_batch_size', 3));
     }
 
     /**

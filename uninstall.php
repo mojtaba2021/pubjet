@@ -81,7 +81,7 @@ foreach ($pubjet_options as $pubjet_option) {
 }
 
 // Transients with a fixed name.
-foreach (['pubjet_daily_plugin_status_check', 'pubjet_log_write_failed', 'pubjet_status_ping_logged', 'pubjet_cron_check', 'pubjet_register_cron_lock', 'pubjet_reportage_count', 'pubjet_publish_future_backlinks'] as $pubjet_transient) {
+foreach (['pubjet_daily_plugin_status_check', 'pubjet_log_write_failed', 'pubjet_status_ping_logged', 'pubjet_cron_check', 'pubjet_sync_url_lock', 'pubjet_sync_fallback_check', 'pubjet_register_cron_lock', 'pubjet_reportage_count', 'pubjet_publish_future_backlinks'] as $pubjet_transient) {
     delete_transient($pubjet_transient);
 }
 delete_site_transient('pubjet_update_plugin_info');
