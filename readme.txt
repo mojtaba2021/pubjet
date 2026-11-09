@@ -1,7 +1,7 @@
 === Pubjet | پاب‌جت ===
 Contributors: mojtabam2021
 Tags: seo,reportage
-Stable tag: 5.4.8
+Stable tag: 5.4.9
 Tested up to: 7.1
 Requires PHP: 7.4
 License: GPL v2 or later
@@ -95,6 +95,12 @@ After installing and activating the plugin, go to Pubjet settings menu and enter
 
 = 5.4.9 =
 * Security fix: hardened token verification.
+* Error reports to Triboon are sent only with the site administrator's consent.
+* Fixed: featured image and content images from the Triboon CDN on some servers.
+* Fixed: scheduled reportages now use the correct GMT date.
+* Fixed: the publish link is sent again when it did not reach Triboon.
+* Improved: no background work or database writes on visitor page loads.
+* Improved: compatibility with WordPress.org plugin guidelines.
 
 = 5.4.8 =
 * رفع خطای Composer روی سایت‌های با PHP 7.4 (سازگاری وابستگی‌ها با PHP 7.4)
