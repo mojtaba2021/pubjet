@@ -132,7 +132,8 @@ class ReportagePost extends Singleton
 
         if ($post_status !== 'publish') {
             $args['post_date'] = $post_date;
-            $args['post_date_gmt'] = $post_date;
+            // post_date is the site's local time
+            $args['post_date_gmt'] = get_gmt_from_date($post_date);
         }
 
         $reportage_url = get_post_meta($post_id, EnumPostMetakeys::ReportageContentUrl, true);
@@ -225,7 +226,8 @@ class ReportagePost extends Singleton
 
         if ($post_status != EnumPostStatus::Publish) {
             $args['post_date'] = sanitize_text_field($post_date);
-            $args['post_date_gmt'] = sanitize_text_field($post_date);
+            // post_date is the site's local time
+            $args['post_date_gmt'] = get_gmt_from_date(sanitize_text_field($post_date));
         }
 
         /**
