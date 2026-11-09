@@ -237,7 +237,6 @@ class Cron extends Singleton
                 'fields'           => 'ids',
                 'meta_key'         => EnumPostMetakeys::FailedSyncUrl, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- cron, small batch
                 'no_found_rows'    => true,
-                'suppress_filters' => true,
             ]);
 
             foreach ($post_ids as $post_id) {
