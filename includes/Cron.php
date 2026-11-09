@@ -17,7 +17,8 @@ class Cron extends Singleton
     public function init()
     {
         add_filter('cron_schedules', [$this, 'registerInterval'], 10);
-        add_action('wp', [$this, 'registerCron'], 15);
+        // Events are registered on activation and update; the dashboard only restores a missing one
+        add_action('admin_init', [$this, 'ensureCronEvents'], 20);
 
         add_action('pubjet_sync_reportage_url', [$this, 'runSyncReportageUrl'], 15);
         add_action('pubjet_schedule_delete_logs', [$this, 'deletePubjetLogs'], 15);
@@ -107,15 +108,12 @@ class Cron extends Singleton
     }
 
     /**
-     * @return void
+     * Recurring Pubjet events and their schedules.
+     *
+     * @return array
      */
-    public function registerCron()
+    public static function cronHooks()
     {
-        if (get_transient('pubjet_register_cron_lock')) {
-            return;
-        }
-        set_transient('pubjet_register_cron_lock', 1, 30);
-
         $hooks = [
             'pubjet_sync_reportage_url'   => 'every_five_minutes',
             'pubjet_schedule_delete_logs' => 'daily',
@@ -123,14 +121,74 @@ class Cron extends Singleton
             'pubjet_send_status'          => 'hourly',
         ];
 
-        $hooks = apply_filters('pubjet_cron_hooks', $hooks);
+        return (array) apply_filters('pubjet_cron_hooks', $hooks);
+    }
+
+    /**
+     * Register the recurring events once (on activation and update): an event
+     * registered more than once is removed and registered again, a missing one is added.
+     *
+     * @return void
+     * @since  5.4.9
+     */
+    public static function scheduleAll()
+    {
+        // On activation plugins_loaded has already run: make sure the custom interval is registered
+        self::getInstance();
+
+        $hooks = self::cronHooks();
+        $crons = _get_cron_array();
+        $crons = is_array($crons) ? $crons : [];
 
         foreach ($hooks as $hook => $schedule) {
+            $count = 0;
+            foreach ($crons as $events) {
+                if (isset($events[$hook]) && is_array($events[$hook])) {
+                    $count += count($events[$hook]);
+                }
+            }
+            if ($count > 1) {
+                wp_clear_scheduled_hook($hook);
+            }
             if (!wp_next_scheduled($hook)) {
                 wp_schedule_event(time(), $schedule, $hook);
             }
         }
         do_action('pubjet_after_register_cron', $hooks);
+    }
+
+    /**
+     * Restore a missing recurring event from the dashboard: only for administrators,
+     * not in AJAX or cron requests, and at most once an hour. Nothing is written
+     * when no event is missing, apart from the hourly marker.
+     *
+     * @return void
+     * @since  5.4.9
+     */
+    public function ensureCronEvents()
+    {
+        if (wp_doing_ajax() || wp_doing_cron() || !current_user_can('manage_options')) {
+            return;
+        }
+        if (get_transient('pubjet_cron_check')) {
+            return;
+        }
+        set_transient('pubjet_cron_check', 1, HOUR_IN_SECONDS);
+
+        foreach (self::cronHooks() as $hook => $schedule) {
+            if (!wp_next_scheduled($hook)) {
+                wp_schedule_event(time(), $schedule, $hook);
+            }
+        }
+    }
+
+    /**
+     * @return void
+     * @deprecated 5.4.9 Use Cron::scheduleAll(); no longer runs on page loads.
+     */
+    public function registerCron()
+    {
+        self::scheduleAll();
     }
 
     /**

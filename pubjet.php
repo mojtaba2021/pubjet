@@ -286,6 +286,7 @@ if (!class_exists('Pubjet')) {
                 // The new version is sent to Triboon from cron
                 pubjet_schedule_plugin_status_send();
                 pubjet_schedule_rewrite_flush();
+                \triboon\pubjet\includes\Cron::scheduleAll();
                 pubjet_schedule_sync_settings();
                 pubjet_delete_first_image_option();
 
@@ -311,6 +312,8 @@ if (!class_exists('Pubjet')) {
 
             // The status is sent from cron now (pubjet_send_status)
             delete_transient('pubjet_daily_plugin_status_check');
+            // Cron events are no longer registered on page loads
+            delete_transient('pubjet_register_cron_lock');
 
             // Scheduled reportages of earlier versions have the local time as GMT date
             pubjet_fix_scheduled_reportage_gmt_dates();
@@ -339,6 +342,7 @@ if (!class_exists('Pubjet')) {
             pubjet_schedule_plugin_status_send();
             $this->migrate();
             \triboon\pubjet\includes\Actions::getInstance()->createDbTables();
+            \triboon\pubjet\includes\Cron::scheduleAll();
             pubjet_schedule_rewrite_flush();
         }
 
