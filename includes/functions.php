@@ -1313,6 +1313,47 @@ function pubjet_find_wp_tags() {
 
 
 /**
+ * Versions before 5.4.9 stored the site's local time as the GMT date of scheduled
+ * reportages. Work out the GMT date again from the local date (with the current
+ * time zone of the site) for reportages that are scheduled and not yet published.
+ * Published reportages are not changed. Running it again changes nothing, as a
+ * correct GMT date is skipped.
+ *
+ * @return int Number of reportages fixed.
+ */
+function pubjet_fix_scheduled_reportage_gmt_dates() {
+    global $wpdb;
+
+    // Runs on plugins_loaded (before post statuses are registered), so a direct query is used
+    $ids = $wpdb->get_col($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- runs once, on update
+        "SELECT DISTINCT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID WHERE p.post_type = %s AND p.post_status = 'future' AND m.meta_key = %s",
+        pubjet_post_type(),
+        EnumPostMetakeys::ReportageId
+    ));
+
+    $fixed = 0;
+    foreach ($ids as $id) {
+        $post = get_post($id);
+        if (!$post || 'future' !== $post->post_status) {
+            continue;
+        }
+        $gmt = get_gmt_from_date($post->post_date);
+        if ($gmt === $post->post_date_gmt) {
+            continue;
+        }
+        $wpdb->update($wpdb->posts, ['post_date_gmt' => $gmt], ['ID' => $post->ID]); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-time fix of the date column only, without the hooks of wp_update_post(); the cache is cleaned below
+        clean_post_cache($post->ID);
+        // The publishing event of WordPress uses the GMT date
+        wp_clear_scheduled_hook('publish_future_post', [(int) $post->ID]);
+        wp_schedule_single_event(strtotime($gmt . ' GMT'), 'publish_future_post', [(int) $post->ID]);
+        $fixed++;
+    }
+    pubjet_log('Fixed the GMT date of ' . $fixed . ' scheduled reportage(s)');
+
+    return $fixed;
+}
+
+/**
  * Run pubjet_sync_settings() soon from cron, so the request that notices an
  * update does not wait for the token check with Triboon.
  *

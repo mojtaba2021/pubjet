@@ -311,6 +311,9 @@ if (!class_exists('Pubjet')) {
             // The status is sent from cron now (pubjet_send_status)
             delete_transient('pubjet_daily_plugin_status_check');
 
+            // Scheduled reportages of earlier versions have the local time as GMT date
+            pubjet_fix_scheduled_reportage_gmt_dates();
+
             // Earlier versions stored the publisher's contact details from the token check
             if (is_array($pubjet_settings)) {
                 $pubjet_settings = pubjet_strip_token_details($pubjet_settings);
