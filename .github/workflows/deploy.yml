@@ -168,7 +168,7 @@ jobs:
       matrix:
         php: ['7.4', '8.0', '8.2', '8.3']
     env:
-      # Version currently live on wordpress.org that customers update FROM.
+      # Version currently live on wordpress.org that customers update FROM (read from its SVN tag).
       # Change this after every release.
       PREV_VERSION: '5.4.8'
     services:
@@ -210,9 +210,14 @@ jobs:
             --admin_user=admin --admin_password=admin --admin_email=admin@example.com --skip-email
           echo "WordPress $(wp core version) on PHP $(php -r 'echo PHP_VERSION;')"
 
-      - name: Install previous release from wordpress.org
+      - name: Install previous release from the WordPress.org SVN tag
         working-directory: wp
-        run: wp plugin install pubjet --version="$PREV_VERSION" --activate
+        # Read-only export of the published tag; it stays available while the plugin page is closed
+        run: |
+          command -v svn >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq subversion; }
+          svn export --quiet --non-interactive "https://plugins.svn.wordpress.org/pubjet/tags/$PREV_VERSION" wp-content/plugins/pubjet
+          grep -qiE "^[[:space:]]*\*?[[:space:]]*Version:[[:space:]]*$PREV_VERSION" wp-content/plugins/pubjet/pubjet.php || { echo "::error::SVN tag $PREV_VERSION has another version"; exit 1; }
+          wp plugin activate pubjet
 
       - name: Update to the new build (same as a customer update)
         working-directory: wp
