@@ -285,6 +285,7 @@ if (!class_exists('Pubjet')) {
 
                 // The new version is sent to Triboon from cron
                 pubjet_schedule_plugin_status_send();
+                pubjet_schedule_rewrite_flush();
                 pubjet_schedule_sync_settings();
                 pubjet_delete_first_image_option();
 
@@ -338,7 +339,7 @@ if (!class_exists('Pubjet')) {
             pubjet_schedule_plugin_status_send();
             $this->migrate();
             \triboon\pubjet\includes\Actions::getInstance()->createDbTables();
-            flush_rewrite_rules();
+            pubjet_schedule_rewrite_flush();
         }
 
         /**

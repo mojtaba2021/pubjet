@@ -1313,6 +1313,15 @@ function pubjet_find_wp_tags() {
 
 
 /**
+ * Flush the rewrite rules on the next init, after the Pubjet rule is added.
+ *
+ * @return void
+ */
+function pubjet_schedule_rewrite_flush() {
+    update_option('pubjet_flush_rewrite_rules', '1', true);
+}
+
+/**
  * Versions before 5.4.9 stored the site's local time as the GMT date of scheduled
  * reportages. Work out the GMT date again from the local date (with the current
  * time zone of the site) for reportages that are scheduled and not yet published.

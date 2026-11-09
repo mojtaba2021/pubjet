@@ -59,6 +59,7 @@ $pubjet_options = [
     'pubjet_token_verify_stopped',
     'pubjet_error_reporting',
     'pubjet_status_state',
+    'pubjet_flush_rewrite_rules',
     'widget_pubjet_backlinks',
     // Options of older versions.
     'pubjet_token',
