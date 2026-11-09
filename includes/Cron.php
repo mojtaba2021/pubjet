@@ -21,6 +21,7 @@ class Cron extends Singleton
         add_action('admin_init', [$this, 'ensureCronEvents'], 20);
 
         add_action('pubjet_sync_reportage_url', [$this, 'runSyncReportageUrl'], 15);
+        add_action('pubjet_sync_reportage_url_now', [$this, 'runSyncReportageUrl'], 15);
         add_action('pubjet_schedule_delete_logs', [$this, 'deletePubjetLogs'], 15);
         add_action('pubjet_check_missed_posts', [$this, 'publishMissedSchedulePosts']);
         add_action('pubjet_verify_stored_token', [$this, 'verifyStoredToken'], 15);
@@ -306,6 +307,7 @@ class Cron extends Singleton
             'pubjet_cron_cleanup_hooks',
             [
                 'pubjet_sync_reportage_url',
+                'pubjet_sync_reportage_url_now',
                 'pubjet_schedule_delete_logs',
                 'pubjet_check_missed_posts',
                 'pubjet_verify_stored_token',

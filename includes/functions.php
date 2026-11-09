@@ -2085,6 +2085,44 @@ function pubjet_publish_reportage_succeeded($result) {
 }
 
 /**
+ * Send the publish link of a post from cron instead of the current request: the post is
+ * marked for the retry task and a one-off event is scheduled for now.
+ *
+ * @param int $post_id
+ *
+ * @return void
+ * @since  5.4.9
+ */
+function pubjet_queue_publish_link($post_id) {
+    update_post_meta($post_id, EnumPostMetakeys::FailedSyncUrl, true);
+    if (!wp_next_scheduled('pubjet_sync_reportage_url_now')) {
+        wp_schedule_single_event(time(), 'pubjet_sync_reportage_url_now');
+    }
+}
+
+/**
+ * @return bool Whether WP-Cron is turned off on page loads (DISABLE_WP_CRON).
+ * @since  5.4.9
+ */
+function pubjet_wp_cron_disabled() {
+    return defined('DISABLE_WP_CRON') && DISABLE_WP_CRON;
+}
+
+/**
+ * Start WP-Cron now (in the background) so a queued event does not wait for the next visit.
+ * Nothing is started when WP-Cron is turned off on page loads.
+ *
+ * @return bool
+ * @since  5.4.9
+ */
+function pubjet_run_cron_now() {
+    if (pubjet_wp_cron_disabled()) {
+        return false;
+    }
+    return (bool) spawn_cron();
+}
+
+/**
  * @param $backlink_id
  *
  * @return array|WP_Error

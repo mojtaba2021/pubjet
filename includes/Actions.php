@@ -214,11 +214,14 @@ class Actions extends Singleton
         pubjet_sentry_batch_start('Reportage ' . $reportage_id);
 
         set_transient($lock_key, time(), $lock_time);
+        // The publish link is sent from cron, the response does not wait for it
+        ReportagePost::$queue_publish_link = true;
         try {
             $wp_post_id = ReportagePost::insert($reportage);
         } catch (\Exception $e) {
             $wp_post_id = new \WP_Error('insert-exception', $e->getMessage());
         }
+        ReportagePost::$queue_publish_link = false;
         // success() and error() end the request, so the lock is released first
         delete_transient($lock_key);
 
@@ -227,6 +230,9 @@ class Actions extends Singleton
             $code  = (string) $error->get_error_code();
             pubjet_log(['Error' => $error->get_error_message(), 'code' => $code] + $log_data);
             pubjet_log_sentry(sprintf('Create failed (%s): %s', $code, $error->get_error_message()));
+            if ('reportage-exists' === $code) {
+                $this->queuePublishLinkOfDuplicate($reportage_id);
+            }
             // 409 for a duplicate reportage, 400 for other errors (unchanged)
             $this->error($error->get_error_message(), 'reportage-exists' === $code ? 409 : 400);
             return;
@@ -234,11 +240,36 @@ class Actions extends Singleton
 
         pubjet_log($reportage->wp_post_id ? 'Post updated: ' . $reportage->wp_post_id : 'Post created: ' . $wp_post_id);
 
+        // A published reportage queued its publish link: start cron now instead of waiting for a visit
+        if (wp_next_scheduled('pubjet_sync_reportage_url_now')) {
+            pubjet_run_cron_now();
+        }
+
         $this->success([
             'postId' => $wp_post_id,
             'postStatus' => get_post_status($wp_post_id) ?: 'Unknown',
             'reportageId' => $reportage->id,
         ]);
+    }
+
+    /**
+     * Triboon sent a reportage that is already published here, so its publish link is sent
+     * again from cron. Scheduled, draft and trashed posts are left alone. The response stays the same.
+     *
+     * @param int $reportage_id
+     *
+     * @return void
+     * @since  5.4.9
+     */
+    private function queuePublishLinkOfDuplicate($reportage_id)
+    {
+        $post_id = (int) ReportagePost::reportage_exists($reportage_id);
+        if ($post_id <= 0 || 'publish' !== get_post_status($post_id) || pubjet_post_type() !== get_post_type($post_id)) {
+            return;
+        }
+        pubjet_log('[info] Reportage ' . $reportage_id . ' is already published as post ' . $post_id . ', its publish link is sent again');
+        pubjet_queue_publish_link($post_id);
+        pubjet_run_cron_now();
     }
 
     /**

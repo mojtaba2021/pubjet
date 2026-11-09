@@ -19,6 +19,14 @@ class ReportagePost extends Singleton
     const IMAGE_DOWNLOAD_START_LIMIT = 13;
 
     /**
+     * True while a reportage sent by Triboon is created: its publish link is then sent
+     * from cron, so the response to Triboon does not wait for it.
+     *
+     * @var bool
+     */
+    public static $queue_publish_link = false;
+
+    /**
      * Number of images not downloaded in this request because of the time limit.
      *
      * @var int
@@ -1046,6 +1054,10 @@ class ReportagePost extends Singleton
         // Marked before the request: if the request ends with a fatal error or the time limit,
         // the retry task still sends the link. The mark is removed only when Triboon accepted it.
         update_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl, true);
+        if (self::$queue_publish_link) {
+            pubjet_queue_publish_link($post->ID);
+            return;
+        }
         $result = $this->publishReportageRequest($post->ID, $reportage_id);
         if (pubjet_publish_reportage_succeeded($result)) {
             delete_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl);

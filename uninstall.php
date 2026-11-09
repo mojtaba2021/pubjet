@@ -24,7 +24,7 @@ if (!pubjet_isset_value($pubjet_uninstall_settings[EnumOptions::UninstallCleanup
 }
 
 // Scheduled events.
-foreach (['pubjet_sync_reportage_url', 'pubjet_schedule_delete_logs', 'pubjet_check_missed_posts', 'pubjet_verify_stored_token', 'pubjet_retry_thumbnail', 'pubjet_send_status', 'pubjet_send_status_now', 'pubjet_sync_settings'] as $pubjet_hook) {
+foreach (['pubjet_sync_reportage_url', 'pubjet_sync_reportage_url_now', 'pubjet_schedule_delete_logs', 'pubjet_check_missed_posts', 'pubjet_verify_stored_token', 'pubjet_retry_thumbnail', 'pubjet_send_status', 'pubjet_send_status_now', 'pubjet_sync_settings'] as $pubjet_hook) {
     wp_clear_scheduled_hook($pubjet_hook);
 }
 
