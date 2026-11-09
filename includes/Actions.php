@@ -229,10 +229,13 @@ class Actions extends Singleton
         if (!$wp_post_id || is_wp_error($wp_post_id)) {
             $error = is_wp_error($wp_post_id) ? $wp_post_id : new \WP_Error('insert-reportage', 'خطای نامشخصی در ثبت نوشته رپورتاژ.');
             $code  = (string) $error->get_error_code();
-            pubjet_log(['Error' => $error->get_error_message(), 'code' => $code] + $log_data);
-            pubjet_log_sentry(sprintf('Create failed (%s): %s', $code, $error->get_error_message()));
             if ('reportage-exists' === $code) {
+                // Expected when Triboon sends a reportage that is already here: local log only
+                pubjet_log('[info] Reportage ' . $reportage_id . ' already exists (reportage-exists)');
                 $this->queuePublishLinkOfDuplicate($reportage_id);
+            } else {
+                pubjet_log(['Error' => $error->get_error_message(), 'code' => $code] + $log_data);
+                pubjet_log_sentry(sprintf('Create failed (%s): %s', $code, $error->get_error_message()));
             }
             // 409 for a duplicate reportage, 400 for other errors (unchanged)
             $this->error($error->get_error_message(), 'reportage-exists' === $code ? 409 : 400);
