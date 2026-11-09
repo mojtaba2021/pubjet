@@ -104,7 +104,9 @@ class Cron extends Singleton
 
         $schedules['every_five_minutes'] = [
             'interval' => 5 * MINUTE_IN_SECONDS,
-            'display' => pubjet__('every-five-minutes'),
+            // Same label as before (the key has no translation); pubjet__() is not called because events
+            // are also scheduled on plugins_loaded (update), before translations may be loaded
+            'display' => 'every-five-minutes',
         ];
 
         return $schedules;
