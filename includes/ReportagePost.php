@@ -1058,6 +1058,15 @@ class ReportagePost extends Singleton
             pubjet_queue_publish_link($post->ID);
             return;
         }
+        if (EnumPostStatus::Publish === $old_status) {
+            // An already published reportage was saved again: the link is sent from cron,
+            // started at the end of the request, so the editor does not wait for Triboon
+            pubjet_queue_publish_link($post->ID);
+            if (!has_action('shutdown', 'pubjet_run_cron_now')) {
+                add_action('shutdown', 'pubjet_run_cron_now');
+            }
+            return;
+        }
         $result = $this->publishReportageRequest($post->ID, $reportage_id);
         if (pubjet_publish_reportage_succeeded($result)) {
             delete_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl);
