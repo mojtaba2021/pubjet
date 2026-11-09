@@ -67,7 +67,9 @@ class Actions extends Singleton
         add_action('save_post', [$this, 'save_cdn_checkbox'],9);
         add_action('save_post', [$this, 'clearMetaCacheOnSave'], 10, 3);
 
-        add_action('pubjet_after_register_cron',[$this, 'cleanupPubjetRegisteredCrons'], 99, 1);
+        // The one-time cleanup of earlier versions is not hooked any more: events are registered only on
+        // activation and update, where Cron::scheduleAll() already removes duplicates. Run after them, the
+        // cleanup removed the events it had just been given (sites without pubjet_cron_cleanup_done).
 
 
     }
@@ -683,6 +685,7 @@ class Actions extends Singleton
      *
      * @param array $registered_hooks [hook_name => schedule]
      * @return void
+     * @deprecated 5.4.9 Not hooked any more; Cron::scheduleAll() removes duplicate events.
      */
     public function cleanupPubjetRegisteredCrons($registered_hooks)
     {
