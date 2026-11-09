@@ -1044,7 +1044,7 @@ class ReportagePost extends Singleton
             return;
         }
         $result = $this->publishReportageRequest($post->ID, $reportage_id);
-        if (isset($result['code']) && !in_array($result['code'], [200, 429])) {
+        if (!pubjet_publish_reportage_succeeded($result)) {
             update_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl, true);
         }
     }

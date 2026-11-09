@@ -2023,10 +2023,12 @@ function pubjet_http_json_request_headers() {
 }
 
 /**
+ * Send the link of a published reportage to Triboon.
+ *
  * @param $post_ID
  * @param $reportage_ID
  *
- * @return array|void
+ * @return array|void ['code' => int HTTP code (0 on a connection error), 'body' => mixed, 'error' => string]
  */
 function pubjet_publish_reportage($post_id, $reportage_id) {
     $url = pubjet_api_root() . '/external/wp/reportages/' . $reportage_id . '/publish';
@@ -2044,16 +2046,42 @@ function pubjet_publish_reportage($post_id, $reportage_id) {
         'method'      => 'POST',
         'data_format' => 'body',
         'body'        => wp_json_encode(['url' => get_permalink($post_id)]),
+        /**
+         * Seconds to wait for Triboon to answer the publish link request.
+         *
+         * @since 5.4.9
+         */
+        'timeout'     => max(1, (int) apply_filters('pubjet_publish_link_timeout', 20)),
     ];
 
     $response = wp_remote_post($url, $args);
 
     pubjet_log(['url' => $url, 'response' => pubjet_redact_for_log($response, true)]);
 
+    if (is_wp_error($response)) {
+        return [
+            'code'  => 0,
+            'body'  => null,
+            'error' => $response->get_error_message(),
+        ];
+    }
+
     return [
-        'code' => wp_remote_retrieve_response_code($response),
+        'code' => (int) wp_remote_retrieve_response_code($response),
         'body' => json_decode(wp_remote_retrieve_body($response), true),
     ];
+}
+
+/**
+ * Whether Triboon accepted the publish link: 200, or 429 when it is already registered.
+ *
+ * @param mixed $result Result of pubjet_publish_reportage().
+ *
+ * @return bool
+ * @since  5.4.9
+ */
+function pubjet_publish_reportage_succeeded($result) {
+    return is_array($result) && isset($result['code']) && in_array((int) $result['code'], [200, 429], true);
 }
 
 /**
