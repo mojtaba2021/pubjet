@@ -1043,9 +1043,12 @@ class ReportagePost extends Singleton
         if (empty($reportage_id)) {
             return;
         }
+        // Marked before the request: if the request ends with a fatal error or the time limit,
+        // the retry task still sends the link. The mark is removed only when Triboon accepted it.
+        update_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl, true);
         $result = $this->publishReportageRequest($post->ID, $reportage_id);
-        if (!pubjet_publish_reportage_succeeded($result)) {
-            update_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl, true);
+        if (pubjet_publish_reportage_succeeded($result)) {
+            delete_post_meta($post->ID, EnumPostMetakeys::FailedSyncUrl);
         }
     }
 
