@@ -460,7 +460,7 @@ function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
     $entry = pubjet_redact_for_log($method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n");
 
     // Writing the log must never add PHP warnings or error reports of its own
-    set_error_handler('pubjet_ignore_log_error');
+    set_error_handler('pubjet_ignore_log_error'); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- not debug code: keeps a failed log write (full disk, no permission) from adding PHP warnings; restored right after.
     try {
         pubjet_rotate_log_file($file);
         $written = file_put_contents($file, $entry, FILE_APPEND | LOCK_EX);
