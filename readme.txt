@@ -71,7 +71,7 @@ When Triboon sends a reportage, the plugin downloads its content and images from
 
 Error reporting is opt-in. After the connection token is saved, the settings page asks the administrator whether Pubjet error reports may be sent to Triboon; nothing is preselected and nothing is sent until the administrator answers "Yes". The choice can be changed at any time in the Advanced tab of the Pubjet settings.
 
-When enabled, the plugin sends a report to Triboon's error-tracking server (a Sentry service) when Pubjet itself fails, for example when a token check, a reportage delivery or an image download fails. Errors of other plugins, themes or WordPress are never sent. Each report contains only:
+When enabled, the plugin sends a report to Triboon's Sentry error-tracking service at sentry.hamravesh.com (hosted by Hamravesh) when Pubjet itself fails, for example when a token check, a reportage delivery or an image download fails. Errors of other plugins, themes or WordPress are never sent. Each report contains only:
 
 * the error text, with tokens, e-mail addresses, phone numbers and other personal data removed (it may name the Triboon ID of the reportage or post concerned);
 * for connection errors, the probable cause worked out from that error text (blocked by the national internet, timeout, blocked by Zhaket Booster, blocked by a firewall or another plugin, or other);
