@@ -1759,6 +1759,8 @@ function pubjet_sentry_hub() {
             'context_lines'         => null,
             'server_name'           => (string) wp_parse_url(home_url(), PHP_URL_HOST),
             'release'               => 'pubjet@' . PUBJ()->getVersion(),
+            // Set explicitly, so the SDK's own default is not sent
+            'environment'           => 'production',
             'http_connect_timeout'  => 2,
             'http_timeout'          => 3,
             'before_send'           => 'pubjet_sentry_before_send',

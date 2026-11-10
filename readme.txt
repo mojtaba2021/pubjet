@@ -75,8 +75,11 @@ When enabled, the plugin sends a report to Triboon's Sentry error-tracking servi
 
 * the error text, with tokens, e-mail addresses, phone numbers and other personal data removed (it may name the Triboon ID of the reportage or post concerned);
 * for connection errors, the probable cause worked out from that error text (blocked by the national internet, timeout, blocked by Zhaket Booster, blocked by a firewall or another plugin, or other);
-* the site address;
-* the Pubjet, PHP and WordPress versions.
+* the site address and the site's domain;
+* the Pubjet, PHP and WordPress versions, and the Pubjet release name (for example "pubjet@5.4.9");
+* the error level (for example error or warning) and the time of the error;
+* the name and version of the Sentry SDK;
+* the environment name ("production").
 
 No request data, cookies, user data or file contents are sent.
 
