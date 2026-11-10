@@ -115,9 +115,7 @@ msgstr "بک لینک پابجت"
 #: includes/functions.php:895
 msgid ""
 "Using this widget, you can display backlinks in different parts of your website"
-msgstr ""
-"با استفاده از این ابزارک شما می توانید بک لینک های را در قسمت های مختلف وب سایت "
-"خود نمایش دهید"
+msgstr "با این ابزارک می‌توانید بک‌لینک‌ها را در بخش‌های مختلف سایت نمایش دهید"
 
 #: includes/functions.php:896
 #, fuzzy
