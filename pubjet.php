@@ -7,6 +7,7 @@
     License: GPL v2 or later
     License URI: http://www.gnu.org/licenses/gpl-2.0.txt
     Version: 5.4.9
+    Requires at least: 5.6
 */
 
 use triboon\pubjet\includes\enums\EnumOldOptions;
