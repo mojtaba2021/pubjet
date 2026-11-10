@@ -576,7 +576,7 @@ class ReportagePost extends Singleton
          *
          * @since 5.4.9
          */
-        $hosts = apply_filters('pubjet_cdn_hosts', ['cdn.triboon.net', 'cdn.pubjet.ir']);
+        $hosts = apply_filters('pubjet_cdn_hosts', ['cdn.triboon.net']);
 
         return array_map('strtolower', array_filter((array) $hosts, 'is_string'));
     }
@@ -977,9 +977,6 @@ class ReportagePost extends Singleton
 
     public static function get_content_file($reportage)
     {
-
-        //$content_file = str_replace("https://cdn.triboon.net", "https://cdn.pubjet.ir", $reportage->content_file);
-
         pubjet_log(':: Content File ::');
         pubjet_log($reportage->content_file);
         $response = wp_remote_get($reportage->content_file, [
@@ -1002,8 +999,6 @@ class ReportagePost extends Singleton
         }
 
         pubjet_log($body);
-
-        //$body = str_replace("https://cdn.triboon.net", "https://cdn.pubjet.ir", $body);
 
         return $body;
     }
