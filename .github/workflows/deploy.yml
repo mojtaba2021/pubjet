@@ -119,7 +119,10 @@ jobs:
             --exclude="/webpack.prod.js" \
             --exclude="/AGENTS.md" \
             --exclude="/START-PROMPT.md" \
-            --exclude="/agent/"
+            --exclude="/agent/" \
+            --exclude="/vendor/psr/log/Psr/Log/Test/DummyTest.php" \
+            --exclude="/vendor/psr/log/Psr/Log/Test/LoggerInterfaceTest.php" \
+            --exclude="/vendor/psr/log/Psr/Log/Test/TestLogger.php"
 
           cd build
           zip -qr "$ZIP_FILE" pubjet
@@ -136,6 +139,24 @@ jobs:
           for p in AGENTS.md START-PROMPT.md agent; do
             test ! -e "$p" || { echo "::error::$p must not be in the ZIP"; exit 1; }
           done
+          for p in \
+            vendor/psr/log/Psr/Log/Test/DummyTest.php \
+            vendor/psr/log/Psr/Log/Test/LoggerInterfaceTest.php \
+            vendor/psr/log/Psr/Log/Test/TestLogger.php; do
+            test ! -e "$p" && test ! -L "$p" || { echo "::error::$p must not be in the ZIP"; exit 1; }
+          done
+          for p in \
+            vendor/autoload.php \
+            vendor/composer/autoload_classmap.php \
+            vendor/composer/autoload_files.php \
+            vendor/composer/autoload_real.php \
+            vendor/composer/autoload_static.php \
+            vendor/composer/platform_check.php \
+            vendor/sentry/sentry/src/Client.php \
+            vendor/sentry/sentry/src/ClientBuilder.php \
+            vendor/sentry/sentry/src/SentrySdk.php; do
+            test -f "$p" || { echo "::error::$p is missing from the ZIP"; exit 1; }
+          done
           # every file Composer loads on startup must exist
           php -r '
             require "vendor/autoload.php";
@@ -146,7 +167,9 @@ jobs:
             echo "ZIP autoload OK on PHP " . PHP_VERSION . PHP_EOL;
           '
           find . -name "*.php" -print0 | xargs -0 -n1 -P4 php -l > /dev/null
-          echo "Files in ZIP: $(find . -type f | wc -l)"
+          file_count=$(find /tmp/zipcheck -type f | wc -l)
+          test "$file_count" -eq 389 || { echo "::error::Expected 389 files in the ZIP, found $file_count"; exit 1; }
+          echo "Files in ZIP: $file_count"
 
       - name: Upload ZIP as Artifact
         uses: actions/upload-artifact@v5
