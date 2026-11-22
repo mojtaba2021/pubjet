@@ -30,7 +30,7 @@ By using the Pubjet plugin, data may be transmitted between your website and the
 </ul>
 Legal Compliance
 
-To ensure legal compliance regarding data transmissions, please review and adhere to the terms and conditions outlined in Triboon's<a href="https://panel.triboon.net/terms/publisher"> Terms of Use</a> and<a href="https://panel.triboon.net/terms/publisher"> Privacy Policy</a>. By using the Pubjet plugin, you acknowledge and accept any legal responsibilities associated with data transmissions between your website and the Triboon platform.
+To ensure legal compliance regarding data transmissions, please review and adhere to the terms and conditions outlined in Triboon's<a href="https://panel.triboon.net/terms/publisher"> Terms of Use</a> and<a href="https://www.triboon.net/pubjet/#privacy-en"> Privacy Policy</a>. By using the Pubjet plugin, you acknowledge and accept any legal responsibilities associated with data transmissions between your website and the Triboon platform.
 
 <strong>Getting Started</strong>
 
@@ -61,11 +61,11 @@ Triboon is the platform that sends sponsored posts (reportages) and backlinks to
 * After a reportage is published, or its address changes: the reportage ID and the address of the post on your site.
 * After a backlink is published: the backlink ID and its status.
 
-Every request includes the connection token. Terms of use: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a> Privacy policy: PRIVACY_URL_TBD
+Every request includes the connection token. Terms of use: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a> Privacy policy: https://www.triboon.net/pubjet/#privacy-en
 
 **Triboon CDN (cdn.triboon.net)**
 
-When Triboon sends a reportage, the plugin downloads its content and images from the Triboon CDN. Only a standard WordPress HTTP request is sent, which includes your site address in the user agent. Terms of use: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a> Privacy policy: PRIVACY_URL_TBD
+When Triboon sends a reportage, the plugin downloads its content and images from the Triboon CDN. Only a standard WordPress HTTP request is sent, which includes your site address in the user agent. Terms of use: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a> Privacy policy: https://www.triboon.net/pubjet/#privacy-en
 
 **Triboon error reports (Sentry)**
 
@@ -83,7 +83,7 @@ When enabled, the plugin sends a report to Triboon's Sentry error-tracking servi
 
 No request data, cookies, user data or file contents are sent.
 
-To turn error reporting off for good and hide the question, add this line to wp-config.php: `define( 'PUBJET_ERROR_REPORTING', false );` (with `true` it is turned on). Privacy policy: PRIVACY_URL_TBD
+To turn error reporting off for good and hide the question, add this line to wp-config.php: `define( 'PUBJET_ERROR_REPORTING', false );` (with `true` it is turned on). Privacy policy: https://www.triboon.net/pubjet/#privacy-en
 
 **WordPress.org Plugin API (api.wordpress.org)**
 
