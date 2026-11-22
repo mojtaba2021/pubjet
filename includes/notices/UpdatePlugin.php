@@ -19,7 +19,7 @@ class UpdatePlugin extends BaseNotice {
      * @return mixed|void
      */
     protected function getId() {
-        return 'pubjet-enter-token';
+        return 'pubjet-update-plugin';
     }
 
     /**

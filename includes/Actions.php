@@ -23,14 +23,11 @@ class Actions extends Singleton
     public function init()
     {
         add_action("admin_menu", [$this, "registerMenu"], 15);
-//        add_action("admin_footer", [$this, "adminFooterScripts"], 15);
-//        add_action("wp_footer", [$this, "addScriptToReportage"], 15);
         add_action("admin_head", [$this, "pluginFont"], 15);
         add_action("wp_head", [$this, "alignReportageImagesCenter"], 15);
 
         add_action('pubjet_new_reportage', [$this, 'reportageCustomFields'], 15, 2);
         add_action('upgrader_process_complete', [$this, 'syncSettingsAfterUpdate'], 15, 2);
-        add_action('init', [$this, 'checkAndSendVersion'], 15);
         // add_action('init', [$this, 'publishFutureBacklinks'], 25);
         // Change Reportage Author
         add_action('pubjet_new_reportage', [$this, 'changeReportageAuthor'], 15, 2);
@@ -49,6 +46,10 @@ class Actions extends Singleton
 
         add_action('init', [$this, 'showSiteCategories'], 15);
         add_action('pubjet_create_reportage', [$this, 'processCreateReportage'], 15);
+        // Files of the Triboon CDN are downloaded without automatic decoding
+        add_action('http_api_curl', [ReportagePost::class, 'disableCurlDecodingForCdn'], 10, 3);
+        // Try again to set a missing featured image
+        add_action('pubjet_retry_thumbnail', [ReportagePost::class, 'retry_thumbnail'], 10, 2);
         add_action('save_post', [$this, 'savePubjetMetaData']);
         add_action('wp_head', [$this, 'addMetaDataToFrontPages'], 15);
 
@@ -66,7 +67,9 @@ class Actions extends Singleton
         add_action('save_post', [$this, 'save_cdn_checkbox'],9);
         add_action('save_post', [$this, 'clearMetaCacheOnSave'], 10, 3);
 
-        add_action('pubjet_after_register_cron',[$this, 'cleanupPubjetRegisteredCrons'], 99, 1);
+        // The one-time cleanup of earlier versions is not hooked any more: events are registered only on
+        // activation and update, where Cron::scheduleAll() already removes duplicates. Run after them, the
+        // cleanup removed the events it had just been given (sites without pubjet_cron_cleanup_done).
 
 
     }
@@ -183,48 +186,96 @@ class Actions extends Singleton
      */
     public function processCreateReportage($reportage)
     {
-        $lock_key = 'pubjet_reportage_creation_lock_' . $reportage->id;
-        $lock_time = 30;
+        // The id and title are read from the request, not from the result of the insert
+        $reportage    = ReportagePost::normalize($reportage);
+        $reportage_id = intval($reportage->id);
 
         $log_data = [
-            'reportage_id' => pubjet_isset_value($reportage->id),
-            'reportage_title' => pubjet_isset_value($reportage->title),
+            'reportage_id' => $reportage_id,
+            'reportage_title' => $reportage->title,
         ];
+
+        if ($reportage_id <= 0) {
+            pubjet_log(['Error' => 'Reportage request without an id'] + $log_data);
+            $this->error(pubjet__('missing-params'), 400);
+            return;
+        }
+
+        $lock_key = 'pubjet_reportage_creation_lock_' . $reportage_id;
+        // Covers the whole processing (content, images); released before the response, expires after a fatal error
+        $lock_time = 180;
 
         if (get_transient($lock_key)) {
             $duplicate_error_message = 'در حال پردازش درخواست مشابه. لطفاً منتظر بمانید.';
-            pubjet_log(['Error' => ['message' => $duplicate_error_message] + $log_data]);
-            pubjet_log_sentry($duplicate_error_message, ['message' => $duplicate_error_message] + $log_data);
+            // Expected when the panel sends the same reportage again: local log only, not an error report
+            pubjet_log('[info] Duplicate request while reportage ' . $reportage_id . ' is being processed');
             $this->error($duplicate_error_message, 429);
             return;
         }
 
+        // All error reports of this reportage are sent as one report.
+        pubjet_sentry_batch_start('Reportage ' . $reportage_id);
+
+        set_transient($lock_key, time(), $lock_time);
+        // The publish link is sent from cron, the response does not wait for it
+        ReportagePost::$queue_publish_link = true;
         try {
-            set_transient($lock_key, time(), $lock_time);
             $wp_post_id = ReportagePost::insert($reportage);
-
-            if (!$wp_post_id || is_wp_error($wp_post_id)) {
-                if (is_wp_error($wp_post_id) && $wp_post_id->get_error_code() === 'reportage-exists') {
-                    throw new \Exception($wp_post_id->get_error_message(), 409); // 409 for duplicate reportage
-                }
-                throw new \Exception(is_wp_error($wp_post_id) ? $wp_post_id->get_error_message() : 'خطای نامشخصی در ثبت نوشته رپورتاژ.');
-            }
-
-            pubjet_log($reportage->wp_post_id ? 'Post updated: ' . $reportage->wp_post_id : 'Post created: ' . $wp_post_id);
-
-            $this->success([
-                'postId' => $wp_post_id,
-                'postStatus' => get_post_status($wp_post_id) ?: 'Unknown',
-                'reportageId' => $reportage->id,
-            ]);
         } catch (\Exception $e) {
-            pubjet_log(['Error' => $e->getMessage()] + $log_data);
-            pubjet_log_sentry($e->getMessage(), ["message" => $e->getMessage()] + $log_data);
-            $status_code = $e->getCode() ?: 400;
-            $this->error($e->getMessage(), $status_code);
-        } finally {
-            delete_transient($lock_key);
+            $wp_post_id = new \WP_Error('insert-exception', $e->getMessage());
         }
+        ReportagePost::$queue_publish_link = false;
+        // success() and error() end the request, so the lock is released first
+        delete_transient($lock_key);
+
+        if (!$wp_post_id || is_wp_error($wp_post_id)) {
+            $error = is_wp_error($wp_post_id) ? $wp_post_id : new \WP_Error('insert-reportage', 'خطای نامشخصی در ثبت نوشته رپورتاژ.');
+            $code  = (string) $error->get_error_code();
+            if ('reportage-exists' === $code) {
+                // Expected when Triboon sends a reportage that is already here: local log only
+                pubjet_log('[info] Reportage ' . $reportage_id . ' already exists (reportage-exists)');
+                $this->queuePublishLinkOfDuplicate($reportage_id);
+            } else {
+                pubjet_log(['Error' => $error->get_error_message(), 'code' => $code] + $log_data);
+                pubjet_log_sentry(sprintf('Create failed (%s): %s', $code, $error->get_error_message()));
+            }
+            // 409 for a duplicate reportage, 400 for other errors (unchanged)
+            $this->error($error->get_error_message(), 'reportage-exists' === $code ? 409 : 400);
+            return;
+        }
+
+        pubjet_log($reportage->wp_post_id ? 'Post updated: ' . $reportage->wp_post_id : 'Post created: ' . $wp_post_id);
+
+        // A published reportage queued its publish link: start cron now instead of waiting for a visit
+        if (wp_next_scheduled('pubjet_sync_reportage_url_now')) {
+            pubjet_run_cron_now();
+        }
+
+        $this->success([
+            'postId' => $wp_post_id,
+            'postStatus' => get_post_status($wp_post_id) ?: 'Unknown',
+            'reportageId' => $reportage->id,
+        ]);
+    }
+
+    /**
+     * Triboon sent a reportage that is already published here, so its publish link is sent
+     * again from cron. Scheduled, draft and trashed posts are left alone. The response stays the same.
+     *
+     * @param int $reportage_id
+     *
+     * @return void
+     * @since  5.4.9
+     */
+    private function queuePublishLinkOfDuplicate($reportage_id)
+    {
+        $post_id = (int) ReportagePost::reportage_exists($reportage_id);
+        if ($post_id <= 0 || 'publish' !== get_post_status($post_id) || pubjet_post_type() !== get_post_type($post_id)) {
+            return;
+        }
+        pubjet_log('[info] Reportage ' . $reportage_id . ' is already published as post ' . $post_id . ', its publish link is sent again');
+        pubjet_queue_publish_link($post_id);
+        pubjet_run_cron_now();
     }
 
     /**
@@ -351,29 +402,14 @@ class Actions extends Singleton
     /**
      * @return void
      */
-    public function checkAndSendVersion()
-    {
-        // بررسی اگر transient وجود دارد یا نه
-        if (false === get_transient('pubjet_daily_plugin_status_check')) {
-            // ارسال ورژن افزونه به API
-            pubjet_send_plugin_status_to_api('active');
-            // تنظیم transient برای 24 ساعت
-            set_transient('pubjet_daily_plugin_status_check', true, DAY_IN_SECONDS);
-        }
-    }
-
-    /**
-     * @return void
-     */
     public function syncSettingsAfterUpdate($upgrader_object, $options)
     {
-        error_log("begin syncSettingsAfterUpdate");
         if (in_array($options['action'], ['update', 'install'], true)
             && $options['type'] === 'plugin'
             && isset($options['plugins'])) {
             foreach ($options['plugins'] as $plugin) {
                 if ($plugin === PUBJET_PLUGIN_BASE) {
-                    pubjet_sync_settings();
+                    pubjet_schedule_sync_settings();
                     pubjet_delete_first_image_option();
                 }
             }
@@ -439,8 +475,8 @@ class Actions extends Singleton
         <style>
             @font-face {
                 font-family: 'Vazirmatn';
-                src: url(<?php echo PUBJET_ASSETS_URL; ?>/fonts/Vazirmatn[wght].woff2) format('woff2 supports variations'),
-                url(<?php echo PUBJET_ASSETS_URL; ?>/fonts/Vazirmatn[wght].woff2) format('woff2-variations');
+                src: url(<?php echo esc_url(PUBJET_ASSETS_URL . 'fonts/Vazirmatn-wght.woff2'); ?>) format('woff2 supports variations'),
+                url(<?php echo esc_url(PUBJET_ASSETS_URL . 'fonts/Vazirmatn-wght.woff2'); ?>) format('woff2-variations');
                 font-weight: 100 900;
                 font-style: normal;
                 font-display: swap;
@@ -483,59 +519,8 @@ class Actions extends Singleton
             ],
             'data_format' => 'body',
             'method' => 'POST',
-            'body' => json_encode([]),
+            'body' => wp_json_encode([]),
         ]);
-    }
-
-    /**
-     * @return void
-     */
-    public function addScriptToReportage()
-    {
-
-        if (!is_singular() || !pubjet_is_reportage(get_the_ID())) {
-            return;
-        }
-
-        ?>
-        <style>
-            body .pubjet-copyright p {
-                display: inline-flex !important;
-                align-items: center !important;
-                background: #eee !important;
-                padding: 12px 16px !important;
-                border-radius: 8px !important;
-                margin: 12px 0 !important;
-                font-size: 14px !important;
-            }
-
-            body .pubjet-copyright p img {
-                width: 64px !important;
-                margin: 0 8px !important;
-            }
-        </style>
-        <?php
-    }
-
-    /**
-     * @return void
-     */
-    public function adminFooterScripts()
-    {
-        global $wpdb;
-
-        if (get_current_screen()->id != 'edit-post') {
-            return;
-        }
-        $posts = "SELECT COUNT(*) FROM {$wpdb->posts} as posts JOIN {$wpdb->postmeta} as meta ON meta.post_id = posts.ID where posts.post_type = 'post' AND posts.post_status IN ('publish' , 'future' ,'draft' , 'pending') AND meta.meta_key = 'pubjet_reportage_id' ";
-        $count_post = $wpdb->get_var($posts);
-        ?>
-        <script>
-            jQuery(document).ready(function ($) {
-                jQuery(".subsubsub").append("<li class='reportages'><a href='edit.php?post_type=post&reportage=true'> | <?php echo pubjet__('reportage'); ?> <span class='count'>(<?= intval($count_post) ?>)</span></a></li>")
-            });
-        </script>
-        <?php
     }
 
     /**
@@ -568,19 +553,23 @@ class Actions extends Singleton
      */
     public function savePubjetMetaData($post_id)
     {
-        if (!isset($_POST['pubjet_reportage_nonce']) || !wp_verify_nonce($_POST['pubjet_reportage_nonce'], 'pubjet_reportage_nonce_action')) {
+        if (!isset($_POST['pubjet_reportage_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['pubjet_reportage_nonce'])), 'pubjet_reportage_nonce_action')) {
             return;
         }
 
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return $post_id;
 
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
         if (pubjet_is_reportage($post_id)) {
             if (isset($_POST['pubjet_meta_title'])) {
-                update_post_meta($post_id, 'pubjet_meta_title', sanitize_text_field($_POST['pubjet_meta_title']));
+                update_post_meta($post_id, 'pubjet_meta_title', sanitize_text_field(wp_unslash($_POST['pubjet_meta_title'])));
             }
 
             if (isset($_POST['pubjet_meta_description'])) {
-                update_post_meta($post_id, 'pubjet_meta_description', sanitize_textarea_field($_POST['pubjet_meta_description']));
+                update_post_meta($post_id, 'pubjet_meta_description', sanitize_textarea_field(wp_unslash($_POST['pubjet_meta_description'])));
             }
         }
     }
@@ -623,7 +612,7 @@ class Actions extends Singleton
 
         if ($old_slug !== $new_slug) {
             $new_url = get_permalink($post_id);
-            send_permalink_change_to_api($post_id, $reportage_id, $new_url);
+            pubjet_send_permalink_change_to_api($post_id, $reportage_id, $new_url);
         }
     }
 
@@ -665,7 +654,7 @@ class Actions extends Singleton
     }
     public function save_cdn_checkbox($post_id) {
 
-        if (!isset($_POST['pubjet_cdn_nonce']) || !wp_verify_nonce($_POST['pubjet_cdn_nonce'], 'pubjet_cdn_nonce_action')) {
+        if (!isset($_POST['pubjet_cdn_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['pubjet_cdn_nonce'])), 'pubjet_cdn_nonce_action')) {
             return;
         }
 
@@ -677,7 +666,7 @@ class Actions extends Singleton
             return;
         }
 
-        if (isset($_POST['pubjet_use_cdn']) && $_POST['pubjet_use_cdn'] == '1') {
+        if (isset($_POST['pubjet_use_cdn']) && '1' === sanitize_text_field(wp_unslash($_POST['pubjet_use_cdn']))) {
             update_post_meta($post_id, 'pubjet_use_cdn', true);
         } else {
             delete_post_meta($post_id, 'pubjet_use_cdn');
@@ -696,6 +685,7 @@ class Actions extends Singleton
      *
      * @param array $registered_hooks [hook_name => schedule]
      * @return void
+     * @deprecated 5.4.9 Not hooked any more; Cron::scheduleAll() removes duplicate events.
      */
     public function cleanupPubjetRegisteredCrons($registered_hooks)
     {

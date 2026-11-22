@@ -111,13 +111,18 @@ jobs:
             --exclude="/debug.txt" \
             --exclude="/.idea/" \
             --exclude="/.editorconfig" \
-            --exclude="/composer.json" \
             --exclude="/composer.lock" \
             --exclude="/package.json" \
             --exclude="/package-lock.json" \
             --exclude="/.babelrc" \
             --exclude="/webpack.dev.js" \
-            --exclude="/webpack.prod.js"
+            --exclude="/webpack.prod.js" \
+            --exclude="/AGENTS.md" \
+            --exclude="/START-PROMPT.md" \
+            --exclude="/agent/" \
+            --exclude="/vendor/psr/log/Psr/Log/Test/DummyTest.php" \
+            --exclude="/vendor/psr/log/Psr/Log/Test/LoggerInterfaceTest.php" \
+            --exclude="/vendor/psr/log/Psr/Log/Test/TestLogger.php"
 
           cd build
           zip -qr "$ZIP_FILE" pubjet
@@ -131,6 +136,27 @@ jobs:
           unzip -q "${{ steps.create-zip.outputs.zip_file }}" -d /tmp/zipcheck
           cd /tmp/zipcheck/pubjet
           test -f pubjet.php || { echo "::error::pubjet.php not at pubjet/ root"; exit 1; }
+          for p in AGENTS.md START-PROMPT.md agent; do
+            test ! -e "$p" || { echo "::error::$p must not be in the ZIP"; exit 1; }
+          done
+          for p in \
+            vendor/psr/log/Psr/Log/Test/DummyTest.php \
+            vendor/psr/log/Psr/Log/Test/LoggerInterfaceTest.php \
+            vendor/psr/log/Psr/Log/Test/TestLogger.php; do
+            test ! -e "$p" && test ! -L "$p" || { echo "::error::$p must not be in the ZIP"; exit 1; }
+          done
+          for p in \
+            vendor/autoload.php \
+            vendor/composer/autoload_classmap.php \
+            vendor/composer/autoload_files.php \
+            vendor/composer/autoload_real.php \
+            vendor/composer/autoload_static.php \
+            vendor/composer/platform_check.php \
+            vendor/sentry/sentry/src/Client.php \
+            vendor/sentry/sentry/src/ClientBuilder.php \
+            vendor/sentry/sentry/src/SentrySdk.php; do
+            test -f "$p" || { echo "::error::$p is missing from the ZIP"; exit 1; }
+          done
           # every file Composer loads on startup must exist
           php -r '
             require "vendor/autoload.php";
@@ -141,7 +167,9 @@ jobs:
             echo "ZIP autoload OK on PHP " . PHP_VERSION . PHP_EOL;
           '
           find . -name "*.php" -print0 | xargs -0 -n1 -P4 php -l > /dev/null
-          echo "Files in ZIP: $(find . -type f | wc -l)"
+          file_count=$(find /tmp/zipcheck -type f | wc -l)
+          test "$file_count" -eq 389 || { echo "::error::Expected 389 files in the ZIP, found $file_count"; exit 1; }
+          echo "Files in ZIP: $file_count"
 
       - name: Upload ZIP as Artifact
         uses: actions/upload-artifact@v5
@@ -163,7 +191,7 @@ jobs:
       matrix:
         php: ['7.4', '8.0', '8.2', '8.3']
     env:
-      # Version currently live on wordpress.org that customers update FROM.
+      # Version currently live on wordpress.org that customers update FROM (read from its SVN tag).
       # Change this after every release.
       PREV_VERSION: '5.4.8'
     services:
@@ -205,9 +233,14 @@ jobs:
             --admin_user=admin --admin_password=admin --admin_email=admin@example.com --skip-email
           echo "WordPress $(wp core version) on PHP $(php -r 'echo PHP_VERSION;')"
 
-      - name: Install previous release from wordpress.org
+      - name: Install previous release from the WordPress.org SVN tag
         working-directory: wp
-        run: wp plugin install pubjet --version="$PREV_VERSION" --activate
+        # Read-only export of the published tag; it stays available while the plugin page is closed
+        run: |
+          command -v svn >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq subversion; }
+          svn export --quiet --non-interactive "https://plugins.svn.wordpress.org/pubjet/tags/$PREV_VERSION" wp-content/plugins/pubjet
+          grep -qiE "^[[:space:]]*\*?[[:space:]]*Version:[[:space:]]*$PREV_VERSION" wp-content/plugins/pubjet/pubjet.php || { echo "::error::SVN tag $PREV_VERSION has another version"; exit 1; }
+          wp plugin activate pubjet
 
       - name: Update to the new build (same as a customer update)
         working-directory: wp

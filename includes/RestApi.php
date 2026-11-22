@@ -74,8 +74,8 @@ class RestApi extends Singleton
     {
         global $wpdb;
 
-        $dt = new DateTime('now', new DateTimeZone(wp_timezone_string()));
-        $now = $dt->format('Y-m-d H:i:s');
+        // post_date_gmt is compared with the current GMT time
+        $now = current_time('mysql', true);
 
         $posts = $wpdb->get_results($wpdb->prepare(
             "SELECT `ID`, `post_status`, `post_title`, `post_type` FROM $wpdb->posts 
@@ -95,17 +95,13 @@ class RestApi extends Singleton
             $reportageId = pubjet_find_reportage_id($post->ID);
             $beforeStatus = $post->post_status;
 
-            $result = wp_publish_post($post->ID);
-
-            if (is_wp_error($result)) {
-                pubjet_log([
-                    'error_message' => $result->get_error_message(),
-                    'post_ID'       => $post->ID,
-                    'reportage_id'  => $reportageId
-                ]);
-            }
+            // wp_publish_post() returns nothing; the status is checked afterwards
+            wp_publish_post($post->ID);
 
             $after_status = get_post_status($post->ID);
+            if ('publish' !== $after_status) {
+                pubjet_log_sentry(sprintf('Scheduled reportage %d (post %d) was not published, status: %s', intval($reportageId), $post->ID, (string) $after_status));
+            }
             pubjet_log([
                 'function'       => 'processCheckMissedReportage',
                 'post_ID'        => $post->ID,
@@ -259,9 +255,12 @@ class RestApi extends Singleton
             }
 
             $reportage_post = get_post($reportage_post_id);
-            $reportage = (object)$request->get_json_params();
+            $reportage = ReportagePost::normalize($request->get_json_params());
             $reportage->wp_post_id = $reportage_post->ID;
             pubjet_log($reportage);
+
+            // All error reports of this update are sent as one report.
+            pubjet_sentry_batch_start('Reportage ' . (int) pubjet_isset_value($reportage->id) . ' update');
 
             $wp_post_id = ReportagePost::update($reportage);
 
@@ -381,7 +380,7 @@ class RestApi extends Singleton
         }
         $authorization_token = $request->get_header('authorization');
         $authorization_token = is_array($authorization_token) ? reset($authorization_token) : $authorization_token;
-        return pubjet_token() == $authorization_token;
+        return pubjet_token_matches($authorization_token);
     }
 
     /**

@@ -8,6 +8,8 @@ use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\enums\EnumPostMetakeys;
 
+defined('ABSPATH') || exit;
+
 /**
  * @param $name
  * @param $args
@@ -30,16 +32,19 @@ function pubjet_shortcode($name, $args) {
  * @since  1.0
  */
 function pubjet_is_prod_mode() {
-    return !defined('WP_ENVIRONMENT') || "production" === WP_ENVIRONMENT;
+    return !pubjet_is_dev_mode();
 }
 
 /**
+ * Development mode is only for local development: it needs the PUBJET_DEV_MODE constant
+ * and a "local" environment type.
+ *
  * @return boolean
  * @author Triboon
  * @since  1.0
  */
 function pubjet_is_dev_mode() {
-    return defined('WP_ENVIRONMENT') && "development" === WP_ENVIRONMENT;
+    return defined('PUBJET_DEV_MODE') && true === PUBJET_DEV_MODE && 'local' === wp_get_environment_type();
 }
 
 /**
@@ -142,43 +147,6 @@ function pubjet_ajax_success($data = []) {
 }
 
 /**
- * @return array|null|object
- * @since  1.0
- * @access public
- *
- */
-function pubjet_get_site_admins() {
-    global $wpdb;
-    $query = "
-		SELECT 
-			u.ID, u.user_login, u.user_nicename, u.user_email, um2.meta_value as `mobile`
-		    	FROM {$wpdb->users} u
-		    INNER JOIN {$wpdb->usermeta} m ON m.user_id = u.ID
-		    LEFT OUTER JOIN {$wpdb->usermeta} um2 ON um2.user_id = u.ID AND um2.meta_key = 'mobile'
-		    WHERE m.meta_key = 'wp_capabilities'
-		    AND m.meta_value LIKE '%administrator%'
-		    ORDER BY u.user_registered
-	";
-
-    return $wpdb->get_results($query);
-}
-
-/**
- * @return array
- * @since 1.0
- */
-function pubjet_get_site_admins_user_ids() {
-    $admins = chapar_get_site_admins();
-    if (!$admins) {
-        return false;
-    }
-
-    return array_map(function ($admin) {
-        return $admin->ID;
-    }, $admins);
-}
-
-/**
  * @return integer
  * @since  1.0
  * @author Triboon
@@ -247,7 +215,7 @@ function pubjet_parse_args(&$a, $b) {
  *
  */
 function pubjet_is_ajax() {
-    return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+    return 'xmlhttprequest' === strtolower((string) pubjet_get_server_var('HTTP_X_REQUESTED_WITH', ''));
 }
 
 /**
@@ -261,86 +229,6 @@ function pubjet_is_admin($user_id = '') {
     }
 
     return user_can($user_id, 'manage_options');
-}
-
-/**
- * Get user ip address
- *
- * @return mixed|string
- * @since 1.0
- */
-function pubjet_get_ip_address() {
-    if (isset($_SERVER['HTTP_CLIENT_IP'])) {
-        $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-    } else if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } else if (isset($_SERVER['HTTP_X_FORWARDED'])) {
-        $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-    } else if (isset($_SERVER['HTTP_X_CLUSTER_CLIENT_IP'])) {
-        $ipaddress = $_SERVER['HTTP_X_CLUSTER_CLIENT_IP'];
-    } else if (isset($_SERVER['HTTP_FORWARDED_FOR'])) {
-        $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-    } else if (isset($_SERVER['HTTP_FORWARDED'])) {
-        $ipaddress = $_SERVER['HTTP_FORWARDED'];
-    } else if (isset($_SERVER['REMOTE_ADDR'])) {
-        $ipaddress = $_SERVER['REMOTE_ADDR'];
-    } else {
-        $ipaddress = 'UNKNOWN';
-    }
-
-    return apply_filters('pubjet_user_ip', $ipaddress);
-}
-
-/**
- * @return void
- * @author Triboon
- * @since  1.0
- */
-function pubjet_wp_log($data) {
-    if (is_array($data) || is_object($data)) {
-        error_log(print_r($data, true));
-
-        return;
-    }
-    error_log($data);
-}
-
-/**
- * Get woocommerce checkout page url
- *
- * @return string
- * @author Triboon
- * @since  1.0
- */
-function pubjet_find_woo_checkout_page_url() {
-    return get_permalink(wc_get_page_id('checkout'));
-}
-
-/**
- * Get woocommerce shop page url
- *
- * @return string
- * @author Triboon
- * @since  1.0
- */
-function pubjet_find_woo_shop_page_url() {
-    return get_permalink(wc_get_page_id('shop'));
-}
-
-/**
- * @param       $item
- * @param array $args
- */
-function pubjet_echo_or_call($item, $args = []) {
-    if (is_callable($item)) {
-        call_user_func($item, $args);
-
-        return;
-    }
-    if (isset($args['return']) && $args['return']) {
-        return $item;
-    }
-    echo is_array($item) ? implode(' ', $item) : $item;
 }
 
 /**
@@ -374,15 +262,16 @@ function pubjet_html_tag_atts($attributes, $echo = true) {
     foreach ($attributes as $key => $value) {
         if ($value) {
             if (true === $value) {
-                $result .= sprintf(' %s ', $key);
+                $result .= sprintf(' %s ', esc_attr($key));
             } else {
                 if (!empty(trim($value))) {
-                    $result .= sprintf(' %s = "%s" ', $key, $value);
+                    $result .= sprintf(' %s = "%s" ', esc_attr($key), esc_attr($value));
                 }
             }
         }
     }
     if ($echo) {
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- names and values are escaped above
         echo $result;
     }
 
@@ -390,27 +279,21 @@ function pubjet_html_tag_atts($attributes, $echo = true) {
 }
 
 /**
- * Conditionally render markup
+ * Allowed tags and attributes for inline SVG icons in admin notices.
  *
- * @param         $condition
- * @param Closure $render
- *
- * @since 1.0
+ * @return array
  */
-function pubjet_condition_render($condition, $render) {
-    if (is_callable($condition)) {
-        $condition = call_user_func($condition);
-    }
-    if ($condition) {
-        if (is_callable($render)) {
-            ob_start();
-            call_user_func($render);
-            $output = ob_get_clean();
-        } else {
-            $output = $render;
-        }
-        echo $output;
-    }
+function pubjet_allowed_svg_tags() {
+    $shape = ['d' => true, 'cx' => true, 'cy' => true, 'r' => true, 'x' => true, 'y' => true, 'width' => true, 'height' => true, 'points' => true, 'fill' => true, 'stroke' => true];
+    return [
+        'svg'      => ['xmlns' => true, 'width' => true, 'height' => true, 'viewbox' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'class' => true, 'aria-hidden' => true],
+        'path'     => $shape,
+        'circle'   => $shape,
+        'rect'     => $shape,
+        'line'     => ['x1' => true, 'y1' => true, 'x2' => true, 'y2' => true],
+        'polyline' => $shape,
+        'g'        => ['fill' => true, 'stroke' => true],
+    ];
 }
 
 /**
@@ -492,7 +375,7 @@ function pubjet_template($name, $extend = false, $include = true, $data = []) {
     $template = apply_filters('pubjet_load_template', $template, $name);
 
     if (!$template || !file_exists($template)) {
-        _doing_it_wrong(__FUNCTION__, sprintf("<strong>%s</strong> does not exists in <code>%s</code>.", $name, $template), '1.4.0');
+        _doing_it_wrong(__FUNCTION__, sprintf('<strong>%s</strong> does not exists in <code>%s</code>.', esc_html($name), esc_html($template)), '1.4.0');
 
         return false;
     }
@@ -536,184 +419,11 @@ function pubjet_get_page_templates() {
 }
 
 /**
- * @param      $args
- * @param bool $echo
+ * Write to the Pubjet debug log (only while debug mode is on).
  *
- * @since 1.0
- */
-function pubjet_swiper($args, $echo = true) {
-    $defaults = [
-        'loop'             => true,
-        'spaceBetween'     => 0,
-        'slidesPerView'    => 1,
-        'lazy'             => true,
-        'autoHeight'       => false,
-        'show_timebar'     => false,
-        'autoPlay'         => [
-            'delay'                => 3000,
-            'disableOnInteraction' => true,
-        ],
-        'navigation'       => [
-            'display' => true,
-            'nextEl'  => '.swiper-button-next',
-            'prevEl'  => '.swiper-button-prev',
-        ],
-        'pagination'       => [
-            'display'   => true,
-            'clickable' => true,
-            'classes'   => '',
-            'el'        => '.swiper-pagination',
-        ],
-        'scrollbar'        => [
-            'display' => true,
-            'el'      => '.swiper-scrollbar',
-        ],
-        'breakpoints'      => [
-            '0'    => [
-                'slidesPerView' => 1,
-            ],
-            '576'  => [
-                'slidesPerView' => 2,
-            ],
-            '768'  => [
-                'slidesPerView' => 3,
-            ],
-            '992'  => [
-                'slidesPerView' => 4,
-            ],
-            '1200' => [
-                'slidesPerView' => 5,
-            ],
-            '1400' => [
-                'slidesPerView' => 6,
-            ],
-        ],
-        'thumbs'           => [
-            'show' => false,
-            'data' => [],
-        ],
-        'data'             => [],
-        'callback'         => [],
-        'container_after'  => function () {
-        },
-        'container_before' => function () {
-        },
-    ];
-    $args     = pubjet_parse_args($args, $defaults);
-    if (isset ($args['id']) && $args['id']) {
-        $args['id'] = str_replace("-", "_", $args['id']);
-    } else {
-        $args['id'] = 'carousel_' . uniqid(rand());
-    }
-    // Check if data is an array and is not empty
-    if (!isset($args['data']) || empty($args['data']) || !is_array($args['data'])) {
-        return;
-    }
-    // We need callbcak
-    if (!isset($args['callback']) || empty($args['callback'])) {
-        return;
-    }
-    ?>
-    <div class="triboon-swiper-container">
-        <?php
-        if (isset($args['container_before']) && is_callable($args['container_before'])) {
-            call_user_func($args['container_before']);
-        }
-        ?>
-        <?php if (isset($args['thumbs']['show']) && $args['thumbs']['show']) { ?>
-            <div class="thumbs thumbs-<?php echo esc_attr($args['id']) ?>">
-                <div class="swiper-wrapper">
-                    <?php
-                    if (isset($args['thumbs']['data']) && $args['thumbs']['data'] && is_array($args['thumbs']['data'])) {
-                        foreach ($args['thumbs']['data'] as $item) {
-                            ?>
-                            <div class="swiper-slide">
-                                <span class="thumbs__title"><?php echo $item; ?></span>
-                            </div>
-                            <?php
-                        }
-                    }
-                    ?>
-                </div>
-            </div>
-        <?php } ?>
-        <div id="<?php echo esc_attr($args['id']); ?>" class="swiper slides">
-            <div class="swiper-wrapper">
-                <?php foreach ($args['data'] as $index => $item) { ?>
-                    <div class="swiper-slide">
-                        <?php call_user_func($args['callback'], $item, $index); ?>
-                    </div>
-                <?php } ?>
-            </div>
-            <?php if (is_array($args['pagination']) && isset($args['pagination']['display']) && $args['pagination']['display']) { ?>
-                <div class="swiper-pagination <?php echo esc_attr($args['pagination']['classes']); ?>"></div>
-            <?php } ?>
-            <?php if (is_array($args['scrollbar']) && $args['scrollbar'] && isset($args['scrollbar']['display']) && $args['scrollbar']['display']) { ?>
-                <div class="swiper-scrollbar"></div>
-            <?php } ?>
-            <?php if (is_array($args['navigation']) && $args['navigation'] && isset($args['navigation']['display']) && $args['navigation']['display']) { ?>
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
-            <?php } ?>
-        </div>
-        <?php
-        if (is_array($args['container_after']) && isset($args['container_after']) && is_callable($args['container_after'])) {
-            call_user_func($args['container_after']);
-        }
-        ?>
-    </div>
-    <script type="text/javascript">
-        if (null === window.pubjet_swipers || undefined === window.pubjet_swipers) {
-            window.pubjet_swipers = [];
-        }
-        window.pubjet_swipers.push(<?php echo json_encode($args); ?>);
-    </script>
-    <?php
-}
-
-/**
- * Wrap element with a tag
- *
- * @param $args
- *
- * @return string
- * @since 1.0
- */
-function pubjet_wrap_a($args) {
-    $args = wp_parse_args($args, [
-        'href'    => '',
-        'target'  => '_self',
-        'classes' => '',
-        'render'  => function () {
-        },
-        'elem'    => false,
-    ]);
-
-    ob_start();
-
-    if (trim($args['href'])) {
-        echo sprintf('<a href="%s" target="%s" class="%s">', $args['href'], $args['target'], $args['classes']);
-    } else {
-        if ($args['elem']) {
-            echo sprintf('<%s class="%s">', $args['elem'], $args['classes']);
-        }
-    }
-
-    call_user_func($args['render']);
-
-    if (trim($args['href'])) {
-        echo '</a>';
-    } else {
-        echo '</' . $args['elem'] . '>';
-    }
-
-    return ob_get_clean();
-}
-
-/**
- * @param $entry
- * @param $method
- * @param $line
+ * @param mixed        $entry
+ * @param string|array $method Calling method, or an array of context data written after the entry.
+ * @param int          $line
  *
  * @return false|int|void
  */
@@ -723,16 +433,251 @@ function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
         return;
     }
 
-    if (is_array($entry) || is_object($entry)) {
-        $entry = print_r($entry, true);
+    // A failed write (full disk, no permission) is not tried again for an hour
+    if (get_transient('pubjet_log_write_failed')) {
+        return false;
     }
 
-    $file  = pubjet_debug_dir();
-    $file  = fopen($file, 'a');
-    $bytes = fwrite($file, $method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n");
-    fclose($file);
+    $context = null;
+    if (is_array($method) || is_object($method)) {
+        $context = $method;
+        $method  = 'pubjet';
+    }
 
-    return $bytes;
+    $entry = pubjet_redact_for_log($entry);
+    if (is_array($entry) || is_object($entry)) {
+        $entry = wp_json_encode($entry, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+    if (null !== $context) {
+        $entry .= ' ' . wp_json_encode(pubjet_redact_for_log($context), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    $file = pubjet_debug_dir();
+    if (!pubjet_prepare_log_dir(dirname($file))) {
+        return false;
+    }
+
+    $entry = pubjet_redact_for_log($method . "::" . current_time('mysql') . ":: line " . $line . "::" . $entry . "\n");
+
+    // Writing the log must never add PHP warnings or error reports of its own
+    set_error_handler('pubjet_ignore_log_error'); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- not debug code: keeps a failed log write (full disk, no permission) from adding PHP warnings; restored right after.
+    try {
+        pubjet_rotate_log_file($file);
+        $written = file_put_contents($file, $entry, FILE_APPEND | LOCK_EX);
+    } finally {
+        restore_error_handler();
+    }
+    if (false === $written) {
+        set_transient('pubjet_log_write_failed', 1, HOUR_IN_SECONDS);
+    }
+
+    return $written;
+}
+
+/**
+ * Error handler used while the debug log is written: PHP warnings of the file
+ * functions (full disk, no permission) are ignored.
+ *
+ * @return bool
+ */
+function pubjet_ignore_log_error() {
+    return true;
+}
+
+/**
+ * Remove credentials and personal data from a value before it is written to the debug log.
+ * Credential fields are masked, personal fields are removed, and e-mail addresses, phone
+ * numbers and tokens inside text are masked. JSON text is decoded, cleaned and encoded again.
+ *
+ * @param mixed   $value
+ * @param boolean $api_response Keep only status codes, is_valid and technical ids (for API responses).
+ *
+ * @return mixed
+ */
+function pubjet_redact_for_log($value, $api_response = false) {
+    if (is_string($value)) {
+        $trimmed = ltrim($value);
+        if ('' !== $trimmed && ('{' === $trimmed[0] || '[' === $trimmed[0])) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                return wp_json_encode(pubjet_redact_for_log($decoded, $api_response));
+            }
+        }
+        if ($api_response) {
+            return '[response body, ' . strlen($value) . ' bytes]';
+        }
+        return pubjet_mask_secrets($value);
+    }
+
+    if ($value instanceof \WP_Error) {
+        return ['wp_error' => $value->get_error_code(), 'message' => pubjet_mask_secrets($value->get_error_message())];
+    }
+
+    if (is_object($value)) {
+        // Only plain data objects are logged; other objects (e.g. HTTP response objects) may hold raw bodies
+        if (!$value instanceof \stdClass) {
+            return '[' . get_class($value) . ']';
+        }
+        $value = get_object_vars($value);
+    }
+
+    if (!is_array($value)) {
+        return $value;
+    }
+
+    $secret_key   = '/token|authori|api[-_]?key|password|secret|nonce|cookie/i';
+    $personal_key = '/^(first_?name|last_?name|full_?name|display_?name|phone|mobile|tel|email|e_?mail|user_?email|user_?name|yn_username|user_?login|nickname|address|national_?code|postal_?code)$/i';
+    $api_key      = '/^(code|status|status_?code|success|is_?valid|id|ids|[a-z_]+_id|[a-z_]+_ids)$/i';
+
+    $result = [];
+    foreach ($value as $key => $item) {
+        $key_text = (string) $key;
+        if (preg_match($secret_key, $key_text)) {
+            $result[$key] = is_string($item) && '' !== $item ? pubjet_mask_secret($item) : '[redacted]';
+            continue;
+        }
+        if (preg_match($personal_key, $key_text)) {
+            $result[$key] = '[redacted]';
+            continue;
+        }
+        $is_json_text = is_string($item) && preg_match('/^\s*[\[{]/', $item) && is_array(json_decode($item, true));
+        if (is_array($item) || is_object($item) || $is_json_text) {
+            $clean = pubjet_redact_for_log($item, $api_response);
+            if (!$api_response || !in_array($clean, [[], '[]', '{}'], true)) {
+                $result[$key] = $clean;
+            }
+            continue;
+        }
+        if ($api_response && (is_int($key) || !preg_match($api_key, $key_text))) {
+            continue;
+        }
+        $result[$key] = is_string($item) ? pubjet_mask_secrets($item) : $item;
+    }
+    return $result;
+}
+
+/**
+ * @param string $value
+ *
+ * @return string Only the last four characters of the value are kept.
+ */
+function pubjet_mask_secret($value) {
+    $value = (string) $value;
+    return '****' . (strlen($value) > 4 ? substr($value, -4) : '');
+}
+
+/**
+ * Mask the stored token and authorization header values in a text.
+ *
+ * @param string $text
+ *
+ * @return string
+ */
+function pubjet_mask_secrets($text) {
+    $text  = (string) $text;
+    $token = pubjet_token();
+    if (is_string($token) && strlen(trim($token)) > 4) {
+        $text = str_replace(trim($token), pubjet_mask_secret(trim($token)), $text);
+    }
+    $secret = '[A-Za-z0-9._~+\/=\-]{16,}';
+    // Authorization schemes, e.g. "Token xxx" or "api-key xxx"
+    $text = preg_replace_callback('/\b(Token|api-key|Bearer)(\s+)(' . $secret . ')/i', function ($matches) {
+        return $matches[1] . $matches[2] . pubjet_mask_secret($matches[3]);
+    }, $text);
+    // Raw values after an authorization key, e.g. in print_r() or JSON output
+    $text = preg_replace_callback('/(authori[a-z]*["\']?\]?\s*(?:=>|:)\s*["\']?)(' . $secret . ')/i', function ($matches) {
+        return $matches[1] . pubjet_mask_secret($matches[2]);
+    }, $text);
+    // Personal data inside free text
+    $text = preg_replace('/[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/', '[email]', $text);
+    $text = preg_replace('/(?<!\d)(?:\+98|0098|0)?9\d{2}[\s\-]?\d{3}[\s\-]?\d{4}(?!\d)/', '[phone]', $text);
+    return $text;
+}
+
+/**
+ * Keep one previous copy of the log when it grows over the size limit.
+ *
+ * @param string $file
+ *
+ * @return void
+ */
+function pubjet_rotate_log_file($file) {
+    /**
+     * The pubjet_max_log_size filter.
+     *
+     * @since 5.4.9 Default is 5 MB.
+     */
+    $max_size = (int) apply_filters('pubjet_max_log_size', 5 * MB_IN_BYTES);
+    if (!file_exists($file) || filesize($file) <= $max_size) {
+        return;
+    }
+    // Keep at most two rotated copies: debug.log.1 (newer) and debug.log.2 (older)
+    $previous_file = $file . '.1';
+    $older_file    = $file . '.2';
+    if (file_exists($older_file)) {
+        wp_delete_file($older_file);
+    }
+    if (file_exists($previous_file)) {
+        copy($previous_file, $older_file);
+        wp_delete_file($previous_file);
+    }
+    copy($file, $previous_file);
+    wp_delete_file($file);
+}
+
+/**
+ * Create the log directory and protect it from direct access.
+ *
+ * @param string $dir
+ *
+ * @return boolean
+ */
+function pubjet_prepare_log_dir($dir) {
+    if (!is_dir($dir) && !wp_mkdir_p($dir)) {
+        return false;
+    }
+    // Only add protection files to the plugin's own log directory
+    if (0 !== strpos(basename($dir), 'pubjet-logs-')) {
+        return wp_is_writable($dir);
+    }
+    $protection_files = [
+        'index.php' => "<?php\n// Silence is golden.\n",
+        '.htaccess' => "<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n",
+    ];
+    foreach ($protection_files as $name => $content) {
+        $path = trailingslashit($dir) . $name;
+        if (!file_exists($path)) {
+            file_put_contents($path, $content);
+        }
+    }
+    return wp_is_writable($dir);
+}
+
+/**
+ * Directory for the debug log, inside uploads with a random name.
+ *
+ * @return string
+ */
+function pubjet_log_dir() {
+    $key = get_option('pubjet_log_dir_key');
+    if (empty($key) || !is_string($key)) {
+        $key = wp_generate_password(20, false);
+        update_option('pubjet_log_dir_key', $key, false);
+    }
+    $uploads = wp_upload_dir(null, false);
+    return trailingslashit($uploads['basedir']) . 'pubjet-logs-' . $key;
+}
+
+/**
+ * Remove the debug log of versions before 5.4.9 from the plugin directory.
+ *
+ * @return void
+ */
+function pubjet_delete_legacy_debug_file() {
+    $legacy_file = PUBJET_DIR_PATH . 'debug.txt';
+    if (file_exists($legacy_file)) {
+        wp_delete_file($legacy_file);
+    }
 }
 
 /**
@@ -740,7 +685,53 @@ function pubjet_log($entry, $method = __METHOD__, $line = __LINE__) {
  */
 function pubjet_is_debug_mode() {
     global $pubjet_settings;
-    return boolval($pubjet_settings[\triboon\pubjet\includes\enums\EnumOptions::DebugMode]);
+    if (!boolval(pubjet_isset_value($pubjet_settings[EnumOptions::DebugMode]))) {
+        return false;
+    }
+    /**
+     * The pubjet_debug_mode_ttl filter. Debug mode is turned off after this many seconds.
+     *
+     * @since 5.4.9
+     */
+    $ttl        = (int) apply_filters('pubjet_debug_mode_ttl', DAY_IN_SECONDS);
+    $enabled_at = (int) pubjet_isset_value($pubjet_settings[EnumOptions::DebugModeEnabledAt], 0);
+    if ($ttl > 0 && $enabled_at > 0 && time() - $enabled_at > $ttl) {
+        pubjet_disable_debug_mode();
+        return false;
+    }
+    return true;
+}
+
+/**
+ * @return void
+ */
+function pubjet_disable_debug_mode() {
+    global $pubjet_settings;
+    $pubjet_settings[EnumOptions::DebugMode]          = false;
+    $pubjet_settings[EnumOptions::DebugModeEnabledAt] = 0;
+    $settings                                         = pubjet_settings();
+    $settings[EnumOptions::DebugMode]                 = false;
+    $settings[EnumOptions::DebugModeEnabledAt]        = 0;
+    update_option(EnumOptions::Settings, $settings);
+}
+
+/**
+ * Record when debug mode was turned on, so it can expire.
+ *
+ * @param array $settings Settings about to be saved.
+ *
+ * @return array
+ */
+function pubjet_stamp_debug_mode(array $settings) {
+    global $pubjet_settings;
+    if (!boolval(pubjet_isset_value($settings[EnumOptions::DebugMode]))) {
+        $settings[EnumOptions::DebugModeEnabledAt] = 0;
+    } elseif (boolval(pubjet_isset_value($pubjet_settings[EnumOptions::DebugMode])) && !empty($pubjet_settings[EnumOptions::DebugModeEnabledAt])) {
+        $settings[EnumOptions::DebugModeEnabledAt] = (int) $pubjet_settings[EnumOptions::DebugModeEnabledAt];
+    } else {
+        $settings[EnumOptions::DebugModeEnabledAt] = time();
+    }
+    return $settings;
 }
 
 /**
@@ -759,7 +750,7 @@ function pubjet_debug_dir() {
      *
      * @since 1.0.0
      */
-    return apply_filters('pubjet_debug_dir', PUBJET_DIR_PATH . 'debug.txt');
+    return apply_filters('pubjet_debug_dir', trailingslashit(pubjet_log_dir()) . 'debug.log');
 }
 
 /**
@@ -825,9 +816,8 @@ function pubjet_is_reportage($post_id) {
  */
 function pubjet_find_post_id_by_reportage_id($reportage_id) {
     global $wpdb;
-    $sql  = "SELECT `post_id` FROM  {$wpdb->postmeta} WHERE `meta_key` = %s AND `meta_value` = %s LIMIT 1";
-    $psql = $wpdb->prepare($sql, \triboon\pubjet\includes\enums\EnumPostMetakeys::ReportageId, $reportage_id);
-    return $wpdb->get_var($psql);
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- lookup by meta value, must not be cached
+    return $wpdb->get_var($wpdb->prepare("SELECT `post_id` FROM {$wpdb->postmeta} WHERE `meta_key` = %s AND `meta_value` = %s LIMIT 1", \triboon\pubjet\includes\enums\EnumPostMetakeys::ReportageId, $reportage_id));
 }
 
 /**
@@ -837,9 +827,9 @@ function pubjet_find_post_id_by_reportage_id($reportage_id) {
  */
 function pubjet_find_backlink_by_id($backlink_id) {
     global $wpdb;
-    $sql  = "SELECT * FROM  {$wpdb->pubjet_backlinks} WHERE `backlink_id` = %s LIMIT 1";
-    $psql = $wpdb->prepare($sql, $backlink_id);
-    return $wpdb->get_row($psql);
+    $table = esc_sql($wpdb->pubjet_backlinks);
+    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- table name escaped with esc_sql(), value uses a placeholder
+    return $wpdb->get_row($wpdb->prepare("SELECT * FROM `{$table}` WHERE `backlink_id` = %s LIMIT 1", $backlink_id));
 }
 
 /**
@@ -967,6 +957,7 @@ function pubjet_strings() {
         'gateway-error'              => esc_html__('Gateway 504 error', 'pubjet'),
         'pubjet-token'               => esc_html__('Pubjet Token', 'pubjet'),
         'enter-token-desc'           => esc_html__('Pubjet plugin needs an access token to work properly. Please enter the access token in the plugin settings.', 'pubjet'),
+        'reconnect-token-desc'       => esc_html__('The Pubjet access token is no longer valid. Please enter a new access token in the plugin settings.', 'pubjet'),
         'remindme-later'             => esc_html__('Remindme Later', 'pubjet'),
         'permanent-hide'             => esc_html__('Permanent Hide', 'pubjet'),
         'select-categories-hints'    => esc_html__('By default, all your categories are sent to Triboon to determine the reportage category correctly. If you only want the reportage to be published in certain categories, select them in this section.', 'pubjet'),
@@ -978,8 +969,10 @@ function pubjet_strings() {
         'add-authorCategory'         => esc_html__('Add author for Category', 'pubjet'),
         'add-reportage-source'       => esc_html__('Add source domain at the bottom of the reportage', 'pubjet'),
         'add-authorCategory-hints'   => esc_html__('You can assign a specific author to each report category.', 'pubjet'),
+        /* translators: %s: plugin version number. */
         'pubjet-update-plugin-desc'  => esc_html__('Pubjet version %s has been released. This version includes performance improvements and fixes for previous issues. Please update to get the latest features.', 'pubjet'),
         'pubjet-update-plugin-title' => esc_html__('A new version of Pubjet has been released!', 'pubjet'),
+        /* translators: %s: maximum number of categories. */
         'max-sync-categories'        => esc_html__('The number of categories that can be selected for synchronization exceeds the allowed limit (%s items).', 'pubjet'),
         'empty-sync-categories'      => esc_html__('Sync categories cannot be empty.', 'pubjet'),
         'empty-default-category'     => esc_html__('Default category cannot be empty.', 'pubjet'),
@@ -988,9 +981,22 @@ function pubjet_strings() {
         'add-reportage-source-hints' => esc_html__('By activating this option, the link that is most frequently repeated in the report will be included as the root domain (main domain) as the news source at the end of the article.', 'pubjet'),
         'switch-rep-author-hints'    => esc_html__("By default, reportage articles are published on the site without the author's name. If you would like a specific author to be considered for these articles, you can specify the author's name in this field.", 'pubjet'),
         'uninstall-hints'            => esc_html__('By enabling this option, all Pubjet settings will be completely erased after uninstalling Pubjet.', 'pubjet'),
+        'error-reporting'               => esc_html__('Send error reports to Triboon', 'pubjet'),
+        'error-reporting-hints'         => esc_html__("When enabled, errors in Pubjet itself are sent to Triboon for faster support. Only the site address, the Pubjet, PHP and WordPress versions and the error text are sent; tokens and personal data are removed. To turn it off for good, add define( 'PUBJET_ERROR_REPORTING', false ); to wp-config.php.", 'pubjet'),
+        'error-reporting-question'      => esc_html__('Send Pubjet error reports to Triboon for faster support?', 'pubjet'),
+        'error-reporting-data-title'    => esc_html__('Only this data is sent:', 'pubjet'),
+        'error-reporting-data-site'     => esc_html__('Site address', 'pubjet'),
+        'error-reporting-data-versions' => esc_html__('Pubjet, PHP and WordPress versions', 'pubjet'),
+        'error-reporting-data-error'    => esc_html__('Error text, with tokens and personal data removed', 'pubjet'),
+        'error-reporting-change-later'  => esc_html__('You can change this later in the Advanced tab.', 'pubjet'),
+        'error-reporting-yes'           => esc_html__('Yes, send reports', 'pubjet'),
+        'error-reporting-no'            => esc_html__('No', 'pubjet'),
+        'error-reporting-forced'        => esc_html__('Error reporting is set with the PUBJET_ERROR_REPORTING constant in wp-config.php.', 'pubjet'),
         'add-reportage-tags'         => esc_html__('Publish advertorials without tags', 'pubjet'),
         'add-reportage-tags-hints'   => esc_html__('By default, advertorials are published with customer-suggested tags. By enabling this option, advertorials will be published without tags.', 'pubjet'),
+        /* translators: %s: pricing plan title. */
         'empty-pricingPlans-categories' => esc_html__("%s pricing plan category cannot be empty.", 'pubjet'),
+        /* translators: %s: maximum number of categories. */
         'max-pricingPlans-categories' => esc_html__('The number of categories that can be selected for pricing plans exceeds the allowed limit (%s items).', 'pubjet'),
         'no-pricing-plans-available' => esc_html__('No pricing plans available!', 'pubjet'),
         'pubjet-triboon-connection-desc' => esc_html__('To connect Pubjet to the platform, enter pricing plan categories.', 'pubjet'),
@@ -1034,24 +1040,13 @@ function pubjet_find_authors() {
  * @return mixed|null
  */
 function pubjet_get_server_var($key, $default = null) {
-    $key_upper = strtoupper($key);
-    $key_lower = strtolower($key);
-
-    if (isset($_SERVER[$key_upper])) {
-        return $_SERVER[$key_upper];
-    } elseif (isset($_SERVER[$key_lower])) {
-        return $_SERVER[$key_lower];
-    } else {
-        // بررسی وجود متغیر با پیشوند HTTP_
-        $http_key_upper = 'HTTP_' . $key_upper;
-        $http_key_lower = 'http_' . $key_lower;
-        if (isset($_SERVER[$http_key_upper])) {
-            return $_SERVER[$http_key_upper];
-        } elseif (isset($_SERVER[$http_key_lower])) {
-            return $_SERVER[$http_key_lower];
+    $candidates = [strtoupper($key), strtolower($key), 'HTTP_' . strtoupper($key), 'http_' . strtolower($key)];
+    foreach ($candidates as $candidate) {
+        if (isset($_SERVER[$candidate])) {
+            return sanitize_text_field(wp_unslash($_SERVER[$candidate]));
         }
-        return $default;
     }
+    return $default;
 }
 
 /**
@@ -1068,7 +1063,7 @@ function pubjet__($key) {
  * @return string
  */
 function pubjet_get_request_method() {
-    return strtoupper(pubjet_isset_value($_SERVER['REQUEST_METHOD']));
+    return strtoupper((string) pubjet_get_server_var('REQUEST_METHOD', ''));
 }
 
 /**
@@ -1106,10 +1101,26 @@ function pubjet_is_request_token_valid() {
         return new \WP_Error('missing-token', pubjet__('missing-token'));
     }
     $request_token = pubjet_get_server_var('authorization');
-    if ($request_token === pubjet_token()) {
+    if (pubjet_token_matches($request_token)) {
         return true;
     }
     return new WP_Error('invalid-token', pubjet__('invalid-token'));
+}
+
+/**
+ * Compare a request token with the stored token in constant time.
+ *
+ * @param mixed $request_token
+ *
+ * @return boolean
+ */
+function pubjet_token_matches($request_token) {
+    $stored_token  = is_string(pubjet_token()) ? pubjet_token() : '';
+    $request_token = is_string($request_token) ? $request_token : '';
+    if ('' === $stored_token || '' === $request_token) {
+        return false;
+    }
+    return hash_equals($stored_token, $request_token);
 }
 
 /**
@@ -1134,25 +1145,27 @@ function pubjet_find_token_details($token) {
     ];
     $result = pubjet_request($url, EnumHttpMethods::GET, $headers, [], $args);
     pubjet_log('====== Check Token ======');
-    pubjet_log($headers);
-    pubjet_log($result);
+    pubjet_log(pubjet_redact_for_log($result, true));
     pubjet_log('====== END Check Token ======');
 
     if (is_wp_error($result)) {
-        return new \WP_Error('error', $result->get_error_message());
+        return new \WP_Error('request-failed', $result->get_error_message());
     }
 
     if (isset($result['code']) && 403 == $result['code']) {
-        return new \WP_Error('error', pubjet__('invalid-token'));
+        // "rejected" is true only for the JSON error Triboon returns for a wrong token
+        $is_json  = false !== stripos((string) pubjet_isset_value($result['content_type'], ''), 'application/json');
+        $rejected = $is_json && is_object($result['body']) && isset($result['body']->detail);
+        return new \WP_Error('invalid-token', pubjet__('invalid-token'), ['rejected' => $rejected]);
     }
 
     if (!isset($result['body']->is_valid)) { // Some error occured
-        return new \WP_Error('error', pubjet__('error-occured'));
+        return new \WP_Error('request-failed', pubjet__('error-occured'));
     }
 
     // Check if token is valid or not
     if (!$result['body']->is_valid) {
-        return new \WP_Error('error', pubjet__('invalid-token'));
+        return new \WP_Error('invalid-token', pubjet__('invalid-token'), ['rejected' => true]);
     }
 
     // we must remove "Test" plan in production
@@ -1181,57 +1194,6 @@ function pubjet_find_token_details($token) {
 }
 
 /**
- * @return bool
- */
-function pubjet_notify_version($version = false, $update = false) {
-    if (!function_exists('PUBJ')) {
-        return false;
-    }
-    $plugin_version = PUBJ()->getVersion();
-    if ($version) {
-        $plugin_version = $version;
-    }
-    if (empty($plugin_version)) {
-        return false;
-    }
-
-    /**
-     * The pubjet_should_notify_version filter.
-     *
-     * @since 1.0.0
-     */
-    if (!apply_filters('pubjet_should_notify_version', $version, $update)) {
-        return false;
-    }
-
-    /**
-     * The pubjet_notify_version_request_headers filter.
-     *
-     * @since 1.0.0
-     */
-    $headers = apply_filters('pubjet_notify_version_request_headers', [
-        'Content-Type'  => 'application/json',
-        'Authoriztaion' => 'Token ' . pubjet_token(),
-    ]);
-
-    /**
-     * The pubjet_notify_version_request_data filter.
-     *
-     * @since 1.0.0
-     */
-    $data = apply_filters('pubjet_notify_version_request_data', [
-        'version' => $plugin_version,
-        'update'  => $update,
-    ]);
-
-    $url = apply_filters('pubjet_notify_version_url', pubjet_api_root() . '/external/wp/pubjet/track');
-
-    pubjet_request($url, 'POST', $headers, json_encode($data), [
-        'data_format' => 'body',
-    ]);
-}
-
-/**
  * @param $url
  * @param $method
  * @param $headers
@@ -1244,7 +1206,6 @@ function pubjet_request($url, $method = 'GET', $headers = [], $body = [], $pargs
         'method'    => $method,
         'headers'   => $headers,
         'body'      => $body,
-        'sslverify' => false,
     ];
 
     if ($pargs) {
@@ -1260,19 +1221,7 @@ function pubjet_request($url, $method = 'GET', $headers = [], $body = [], $pargs
     $response_code = wp_remote_retrieve_response_code($response);
     $response_body = json_decode(wp_remote_retrieve_body($response));
 
-    return ['code' => $response_code, 'body' => $response_body];
-}
-
-/**
- * @param $post_md5
- *
- * @return boolean|integer
- */
-function pubjet_is_post_exists($post_md5) {
-    global $wpdb;
-    $query  = "SELECT `post_id` FROM {$wpdb->postmeta} WHERE `meta_key` = 'duplicate_guard' AND `meta_value` = %s";
-    $pquery = $wpdb->prepare($query, $post_md5);
-    return $wpdb->get_var($pquery);
+    return ['code' => $response_code, 'body' => $response_body, 'content_type' => wp_remote_retrieve_header($response, 'content-type')];
 }
 
 /**
@@ -1296,7 +1245,7 @@ function pubjet_render_condition($condition, $func_or_string) {
 
         return;
     }
-    echo $func_or_string;
+    echo wp_kses_post($func_or_string);
 }
 
 /**
@@ -1364,6 +1313,68 @@ function pubjet_find_wp_tags() {
 
 
 /**
+ * Flush the rewrite rules on the next init, after the Pubjet rule is added.
+ *
+ * @return void
+ */
+function pubjet_schedule_rewrite_flush() {
+    update_option('pubjet_flush_rewrite_rules', '1', true);
+}
+
+/**
+ * Versions before 5.4.9 stored the site's local time as the GMT date of scheduled
+ * reportages. Work out the GMT date again from the local date (with the current
+ * time zone of the site) for reportages that are scheduled and not yet published.
+ * Published reportages are not changed. Running it again changes nothing, as a
+ * correct GMT date is skipped.
+ *
+ * @return int Number of reportages fixed.
+ */
+function pubjet_fix_scheduled_reportage_gmt_dates() {
+    global $wpdb;
+
+    // Runs on plugins_loaded (before post statuses are registered), so a direct query is used
+    $ids = $wpdb->get_col($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- runs once, on update
+        "SELECT DISTINCT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID WHERE p.post_type = %s AND p.post_status = 'future' AND m.meta_key = %s",
+        pubjet_post_type(),
+        EnumPostMetakeys::ReportageId
+    ));
+
+    $fixed = 0;
+    foreach ($ids as $id) {
+        $post = get_post($id);
+        if (!$post || 'future' !== $post->post_status) {
+            continue;
+        }
+        $gmt = get_gmt_from_date($post->post_date);
+        if ($gmt === $post->post_date_gmt) {
+            continue;
+        }
+        $wpdb->update($wpdb->posts, ['post_date_gmt' => $gmt], ['ID' => $post->ID]); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- one-time fix of the date column only, without the hooks of wp_update_post(); the cache is cleaned below
+        clean_post_cache($post->ID);
+        // The publishing event of WordPress uses the GMT date
+        wp_clear_scheduled_hook('publish_future_post', [(int) $post->ID]);
+        wp_schedule_single_event(strtotime($gmt . ' GMT'), 'publish_future_post', [(int) $post->ID]);
+        $fixed++;
+    }
+    pubjet_log('Fixed the GMT date of ' . $fixed . ' scheduled reportage(s)');
+
+    return $fixed;
+}
+
+/**
+ * Run pubjet_sync_settings() soon from cron, so the request that notices an
+ * update does not wait for the token check with Triboon.
+ *
+ * @return void
+ */
+function pubjet_schedule_sync_settings() {
+    if (!wp_next_scheduled('pubjet_sync_settings')) {
+        wp_schedule_single_event(time(), 'pubjet_sync_settings');
+    }
+}
+
+/**
  * @return void
  */
 function pubjet_sync_settings() {
@@ -1403,6 +1414,7 @@ function pubjet_default_settings() {
         'token'                    => '',
         'defaultCategory'          => '',
         'debug'                    => '',
+        'debugEnabledAt'           => 0,
         'alignCenterImages'        => '',
         'nofollow'                 => '',
         'lastCategoriesSyncTime'   => '',
@@ -1456,24 +1468,360 @@ function pubjet_update_setting($option_name, $option_value) {
 
 
 /**
- * @param $message
- * @param $extra
+ * Error reporting choice made by the administrator.
+ *
+ * @return string 'yes', 'no', or '' when no choice has been made yet.
+ */
+function pubjet_error_reporting_choice() {
+    $choice = get_option('pubjet_error_reporting', '');
+    return in_array($choice, ['yes', 'no'], true) ? $choice : '';
+}
+
+/**
+ * Error reporting forced with the PUBJET_ERROR_REPORTING constant in wp-config.php.
+ *
+ * @return bool|null true or false when the constant is set to a boolean, null otherwise.
+ */
+function pubjet_error_reporting_forced() {
+    if (defined('PUBJET_ERROR_REPORTING') && is_bool(PUBJET_ERROR_REPORTING)) {
+        return PUBJET_ERROR_REPORTING;
+    }
+    return null;
+}
+
+/**
+ * Whether error reports may be sent to Triboon.
+ *
+ * Order: the PUBJET_ERROR_REPORTING constant, then the administrator's choice,
+ * then PUBJET_ERROR_REPORTING_DEFAULT.
+ *
+ * @return bool
+ */
+function pubjet_is_error_reporting_enabled() {
+    $forced = pubjet_error_reporting_forced();
+    if (null !== $forced) {
+        $enabled = $forced;
+    } else {
+        $choice  = pubjet_error_reporting_choice();
+        $enabled = '' === $choice ? (true === PUBJET_ERROR_REPORTING_DEFAULT) : 'yes' === $choice;
+    }
+    if (!$enabled) {
+        return false;
+    }
+    /**
+     * The pubjet_error_reporting_enabled filter. Can only turn error reporting off.
+     *
+     * @since 5.4.9
+     */
+    return true === apply_filters('pubjet_error_reporting_enabled', true);
+}
+
+/**
+ * Whether to ask the administrator about error reporting (until they answer).
+ *
+ * @return bool
+ */
+function pubjet_should_ask_error_reporting() {
+    return null === pubjet_error_reporting_forced()
+        && true !== PUBJET_ERROR_REPORTING_DEFAULT
+        && '' === pubjet_error_reporting_choice();
+}
+
+/**
+ * @param string $choice 'yes' or 'no'.
+ *
+ * @return void
+ */
+function pubjet_set_error_reporting($choice) {
+    update_option('pubjet_error_reporting', 'yes' === $choice ? 'yes' : 'no', false);
+}
+
+/**
+ * Error reporting state for the settings page.
+ *
+ * @param bool $ask Whether to show the question now.
+ *
+ * @return array
+ */
+function pubjet_error_reporting_state($ask = false) {
+    return [
+        'enabled' => pubjet_is_error_reporting_enabled(),
+        'choice'  => pubjet_error_reporting_choice(),
+        'forced'  => pubjet_error_reporting_forced(),
+        'ask'     => (bool) $ask,
+    ];
+}
+
+/**
+ * Send an error report to Triboon, only when error reporting is enabled.
+ *
+ * Only the cleaned error text (plus the error detail in $extra['error'], if any) and the data
+ * from pubjet_sentry_site_data() are sent. Other $extra values are not sent.
+ *
+ * @param string $message
+ * @param array  $extra
+ * @param string $level 'error' (default) or 'warning'.
+ * @param array  $tags  Only the keys in pubjet_sentry_tag_keys() are sent.
  *
  * @return \Sentry\EventId|null
  */
-function pubjet_log_sentry($message, $extra = []) {
-    $extra = pubjet_parse_args($extra, [
-        'website_url'    => site_url(),
-        'website_title'  => get_bloginfo('name'),
-        'pubjet_version' => PUBJ()->getVersion(),
-    ]);
-    \Sentry\init(['dsn' => 'https://ea145de5084460f189b3bf2d66b6af06@sentry.hamravesh.com/6647',]);
-    \Sentry\configureScope(function (Scope $scope) use ($extra) {
-        foreach ($extra as $key => $value) {
-            $scope->setExtra($key, $value);
+function pubjet_log_sentry($message, $extra = [], $level = 'error', $tags = []) {
+    if (!pubjet_is_error_reporting_enabled()) {
+        return null;
+    }
+    $message = pubjet_sentry_message($message, $extra);
+    if ('' === $message) {
+        return null;
+    }
+    $level = 'warning' === $level ? 'warning' : 'error';
+    $tags  = pubjet_sentry_clean_tags($tags);
+    if (isset($GLOBALS['pubjet_sentry_batch'])) {
+        $GLOBALS['pubjet_sentry_batch']['messages'][] = $message;
+        $GLOBALS['pubjet_sentry_batch']['tags']       = $tags + $GLOBALS['pubjet_sentry_batch']['tags'];
+        if ('error' === $level) {
+            $GLOBALS['pubjet_sentry_batch']['level'] = 'error';
         }
-    });
-    return \Sentry\captureException(new \Exception($message));
+        return null;
+    }
+    return pubjet_sentry_send($message, $level, $tags);
+}
+
+/**
+ * Collect the error reports of one task (e.g. processing a reportage) into a single report,
+ * sent at the end of the request.
+ *
+ * @param string $context Short description of the task, e.g. "Reportage 123".
+ *
+ * @return void
+ */
+function pubjet_sentry_batch_start($context) {
+    if (isset($GLOBALS['pubjet_sentry_batch'])) {
+        return;
+    }
+    $GLOBALS['pubjet_sentry_batch'] = [
+        'context'  => pubjet_sentry_clean_text($context),
+        'messages' => [],
+        'level'    => 'warning',
+        'tags'     => [],
+    ];
+    add_action('shutdown', 'pubjet_sentry_batch_flush', 0);
+}
+
+/**
+ * Drop the collected error reports without sending them.
+ *
+ * @return void
+ */
+function pubjet_sentry_batch_discard() {
+    unset($GLOBALS['pubjet_sentry_batch']);
+}
+
+/**
+ * Send the collected error reports as one report.
+ *
+ * @return void
+ */
+function pubjet_sentry_batch_flush() {
+    if (!isset($GLOBALS['pubjet_sentry_batch'])) {
+        return;
+    }
+    $batch = $GLOBALS['pubjet_sentry_batch'];
+    unset($GLOBALS['pubjet_sentry_batch']);
+    if (empty($batch['messages'])) {
+        return;
+    }
+    $unique = array_values(array_unique($batch['messages']));
+    $level  = 'error' === $batch['level'] ? 'error' : 'warning';
+    $text   = sprintf('%s: %d %s(s): %s', $batch['context'], count($batch['messages']), $level, implode(' | ', array_slice($unique, 0, 20)));
+    if (count($unique) > 20) {
+        $text .= ' | …';
+    }
+    pubjet_sentry_send(pubjet_sentry_clean_text($text), $level, $batch['tags']);
+}
+
+/**
+ * Tags that may be sent with a report.
+ *
+ * @return string[]
+ */
+function pubjet_sentry_tag_keys() {
+    return ['cause'];
+}
+
+/**
+ * Keep only the allowed tags with short plain values.
+ *
+ * @param array $tags
+ *
+ * @return array
+ */
+function pubjet_sentry_clean_tags($tags) {
+    $clean = [];
+    if (!is_array($tags)) {
+        return $clean;
+    }
+    foreach (pubjet_sentry_tag_keys() as $key) {
+        if (isset($tags[$key]) && is_scalar($tags[$key])) {
+            $value = sanitize_key((string) $tags[$key]);
+            if ('' !== $value) {
+                $clean[$key] = substr($value, 0, 32);
+            }
+        }
+    }
+    return $clean;
+}
+
+/**
+ * Build the cleaned error text of a report.
+ *
+ * @param string $message
+ * @param array  $extra
+ *
+ * @return string
+ */
+function pubjet_sentry_message($message, $extra = []) {
+    $message = is_scalar($message) ? (string) $message : '';
+    if (is_array($extra) && isset($extra['error']) && is_scalar($extra['error'])) {
+        $detail = trim((string) $extra['error']);
+        if ('' !== $detail && false === strpos($message, $detail)) {
+            $message .= ': ' . $detail;
+        }
+    }
+    return pubjet_sentry_clean_text($message);
+}
+
+/**
+ * @param string $text
+ *
+ * @return string
+ */
+function pubjet_sentry_clean_text($text) {
+    $text = pubjet_redact_for_log((string) $text);
+    $text = is_string($text) ? trim($text) : '';
+    if (strlen($text) > 2000) {
+        $text = substr($text, 0, 2000) . '…';
+    }
+    return $text;
+}
+
+/**
+ * The only site data sent with an error report.
+ *
+ * @return array
+ */
+function pubjet_sentry_site_data() {
+    return [
+        'website_url'    => site_url(),
+        'pubjet_version' => PUBJ()->getVersion(),
+        'php_version'    => PHP_VERSION,
+        'wp_version'     => get_bloginfo('version'),
+    ];
+}
+
+/**
+ * @return string
+ */
+function pubjet_sentry_dsn() {
+    $dsn = defined('PUBJET_SENTRY_DSN') ? PUBJET_SENTRY_DSN : '';
+    /**
+     * The pubjet_sentry_dsn filter.
+     *
+     * @since 5.4.9
+     */
+    $dsn = apply_filters('pubjet_sentry_dsn', $dsn);
+    return is_string($dsn) ? trim($dsn) : '';
+}
+
+/**
+ * A Sentry hub used only by Pubjet. The global Sentry hub of the site is never changed, and no
+ * default integration is used: no global error handler, no request data, no module list.
+ *
+ * @return \Sentry\State\HubInterface|null
+ */
+function pubjet_sentry_hub() {
+    static $hub = false;
+    if (false !== $hub) {
+        return $hub;
+    }
+    $hub = null;
+    $dsn = pubjet_sentry_dsn();
+    if ('' === $dsn || !class_exists('\Sentry\ClientBuilder')) {
+        return null;
+    }
+    try {
+        $client = \Sentry\ClientBuilder::create([
+            'dsn'                   => $dsn,
+            'default_integrations'  => false,
+            'integrations'          => [],
+            'send_default_pii'      => false,
+            'max_request_body_size' => 'never',
+            'attach_stacktrace'     => false,
+            'context_lines'         => null,
+            'server_name'           => (string) wp_parse_url(home_url(), PHP_URL_HOST),
+            'release'               => 'pubjet@' . PUBJ()->getVersion(),
+            // Set explicitly, so the SDK's own default is not sent
+            'environment'           => 'production',
+            'http_connect_timeout'  => 2,
+            'http_timeout'          => 3,
+            'before_send'           => 'pubjet_sentry_before_send',
+        ])->getClient();
+        $hub = new \Sentry\State\Hub($client);
+    } catch (\Throwable $e) {
+        $hub = null;
+    }
+    return $hub;
+}
+
+/**
+ * Send a new event that holds only the cleaned message and pubjet_sentry_site_data(). Anything else,
+ * including data that event processors of another Sentry setup on the site may have added
+ * (request, user, contexts, breadcrumbs, tags), is left out.
+ *
+ * @param \Sentry\Event $event
+ *
+ * @return \Sentry\Event
+ */
+function pubjet_sentry_before_send(\Sentry\Event $event) {
+    $clean = \Sentry\Event::createEvent($event->getId());
+    $clean->setSdkIdentifier($event->getSdkIdentifier());
+    $clean->setSdkVersion($event->getSdkVersion());
+    $clean->setTimestamp($event->getTimestamp());
+    $clean->setLevel($event->getLevel());
+    $clean->setServerName($event->getServerName());
+    $clean->setRelease($event->getRelease());
+    $clean->setEnvironment($event->getEnvironment());
+    $clean->setExtra(array_intersect_key($event->getExtra(), pubjet_sentry_site_data()));
+    $clean->setMessage(pubjet_sentry_clean_text((string) $event->getMessage()));
+    $clean->setTags(pubjet_sentry_clean_tags($event->getTags()));
+    return $clean;
+}
+
+/**
+ * @param string $message Cleaned error text.
+ * @param string $level   'error' or 'warning'.
+ * @param array  $tags    Cleaned tags (pubjet_sentry_clean_tags()).
+ *
+ * @return \Sentry\EventId|null
+ */
+function pubjet_sentry_send($message, $level = 'error', $tags = []) {
+    $hub = pubjet_sentry_hub();
+    if (null === $hub) {
+        return null;
+    }
+    try {
+        return $hub->withScope(function (Scope $scope) use ($hub, $message, $level, $tags) {
+            foreach (pubjet_sentry_site_data() as $key => $value) {
+                $scope->setExtra($key, $value);
+            }
+            foreach (pubjet_sentry_clean_tags($tags) as $key => $value) {
+                $scope->setTag($key, $value);
+            }
+            return $hub->captureMessage($message, 'warning' === $level ? \Sentry\Severity::warning() : \Sentry\Severity::error());
+        });
+    } catch (\Throwable $e) {
+        // Sending a report must never break the request.
+        return null;
+    }
 }
 
 /**
@@ -1515,22 +1863,10 @@ function pubjet_send_plugin_status_to_api($status) {
     if (empty(trim(pubjet_token()))) { // Check if user enter token or not
         return;
     }
-    $settings     = pubjet_settings();
 
     $url = apply_filters('pubjet_send_plugin_status_url', pubjet_api_root() . '/external/wp/pubjet-info/', pubjet_token());
 
-    $request_data = [
-        'status' => $status,
-        'pubjet_version' => PUBJ()->getVersion(),
-        'backlink_recipient_path'   => get_pubjet_path('pubjet/v1/backlink',        EnumActions::CreateBacklink, $settings),
-        'reportage_recipient_path'  => get_pubjet_path('pubjet/v1/reportage',       EnumActions::CreateReportage, $settings),
-        'status_recipient_path'     => get_pubjet_path('pubjet/v1/status',          EnumActions::PubjetStatus, $settings),
-        'category_recipient_path'   => get_pubjet_path('pubjet/v1/site/categories', EnumActions::PubjetCategories, $settings),
-        'pubjet_data' => [
-            'manualApprove' => pubjet_isset_value($settings['manualApprove'], 0),
-            'reportage_without_tags' => pubjet_isset_value($settings['addReportageTags'], 0),
-        ]
-    ];
+    $request_data = pubjet_plugin_status_data($status);
     pubjet_log($request_data);
     $response = wp_remote_post($url, [
         'headers' => [
@@ -1538,16 +1874,116 @@ function pubjet_send_plugin_status_to_api($status) {
             'Authorization' => 'Token ' . pubjet_token(),
         ],
         'method'  => 'POST',
-        'body'    => json_encode($request_data),
-        'timeout' => 30,
+        'body'    => wp_json_encode($request_data),
+        'timeout' => 5,
     ]);
-    // بررسی پاسخ API برای اشکالات احتمالی
     if (is_wp_error($response)) {
-        pubjet_log_sentry('Error sending status to API: ' . $response->get_error_message());
+        pubjet_log('Status send failed: ' . $response->get_error_message());
+        // At most one report a day; the day counts only from a report that is actually sent
+        if (pubjet_is_error_reporting_enabled() && !get_transient('pubjet_status_ping_logged')) {
+            set_transient('pubjet_status_ping_logged', 1, DAY_IN_SECONDS);
+            pubjet_log_sentry('Error sending status to API: ' . $response->get_error_message(), [], 'error', [
+                'cause' => pubjet_connection_error_cause($response->get_error_message()),
+            ]);
+        }
+        return $response;
     }
     $result = wp_remote_retrieve_body($response);
-    pubjet_log($result);
+    pubjet_log(pubjet_redact_for_log($result, true));
+    $code = (int) wp_remote_retrieve_response_code($response);
+    if ($code < 200 || $code >= 300) {
+        pubjet_log('Status send failed: HTTP ' . $code);
+        return new WP_Error('status-send-failed', 'HTTP ' . $code);
+    }
     return $result;
+}
+
+/**
+ * Probable cause of a failed connection to Triboon, from the error text.
+ *
+ * @param string $message Error text of the request.
+ *
+ * @return string melli_block, timeout, zhaket_block, firewall_block or other.
+ */
+function pubjet_connection_error_cause($message) {
+    $message = strtolower((string) $message);
+    if (false !== strpos($message, 'internet melli') || false !== strpos($message, 'melli backend')) {
+        return 'melli_block';
+    }
+    if (false !== strpos($message, 'zhaket')) {
+        return 'zhaket_block';
+    }
+    if (false !== strpos($message, 'curl error 28') || false !== strpos($message, 'timed out')) {
+        return 'timeout';
+    }
+    if (false !== strpos($message, 'blocked') || false !== strpos($message, 'مسدود')) {
+        return 'firewall_block';
+    }
+    return 'other';
+}
+
+/**
+ * Data sent to Triboon with the plugin status.
+ *
+ * @param string $status 'active' or 'inactive'.
+ *
+ * @return array
+ */
+function pubjet_plugin_status_data($status) {
+    $settings = pubjet_settings();
+
+    return [
+        'status' => $status,
+        'pubjet_version' => PUBJ()->getVersion(),
+        'backlink_recipient_path'   => pubjet_get_path('pubjet/v1/backlink',        EnumActions::CreateBacklink, $settings),
+        'reportage_recipient_path'  => pubjet_get_path('pubjet/v1/reportage',       EnumActions::CreateReportage, $settings),
+        'status_recipient_path'     => pubjet_get_path('pubjet/v1/status',          EnumActions::PubjetStatus, $settings),
+        'category_recipient_path'   => pubjet_get_path('pubjet/v1/site/categories', EnumActions::PubjetCategories, $settings),
+        'pubjet_data' => [
+            'manualApprove' => pubjet_isset_value($settings['manualApprove'], 0),
+            'reportage_without_tags' => pubjet_isset_value($settings['addReportageTags'], 0),
+        ]
+    ];
+}
+
+/**
+ * Send the plugin status from cron when it is due: when the status, version or
+ * settings changed, 24 hours after the last successful send (heartbeat), or
+ * 6 hours after a failed one. Never runs on a visitor page load.
+ *
+ * @param bool $force Send now, e.g. after settings were saved or the plugin was activated.
+ *
+ * @return void
+ */
+function pubjet_send_plugin_status_if_due($force = false) {
+    if (empty(trim(pubjet_token()))) {
+        return;
+    }
+    $hash  = md5((string) wp_json_encode(pubjet_plugin_status_data('active')));
+    $state = get_option('pubjet_status_state');
+    $state = is_array($state) ? $state : [];
+    if (!$force && isset($state['hash']) && $hash === $state['hash'] && time() < (int) ($state['next_try'] ?? 0)) {
+        return;
+    }
+
+    $result = pubjet_send_plugin_status_to_api('active');
+    $sent   = !is_wp_error($result);
+    update_option('pubjet_status_state', [
+        'hash'     => $hash,
+        'next_try' => time() + ($sent ? DAY_IN_SECONDS : 6 * HOUR_IN_SECONDS),
+        'result'   => $sent ? 'sent' : 'failed',
+    ], false);
+}
+
+/**
+ * Send the plugin status soon from cron (the current request does not wait for it).
+ *
+ * @return void
+ */
+function pubjet_schedule_plugin_status_send() {
+    if (!wp_next_scheduled('pubjet_send_status_now')) {
+        wp_schedule_single_event(time(), 'pubjet_send_status_now');
+    }
 }
 
 
@@ -1589,10 +2025,12 @@ function pubjet_http_json_request_headers() {
 }
 
 /**
+ * Send the link of a published reportage to Triboon.
+ *
  * @param $post_ID
  * @param $reportage_ID
  *
- * @return array|void
+ * @return array|void ['code' => int HTTP code (0 on a connection error), 'body' => mixed, 'error' => string]
  */
 function pubjet_publish_reportage($post_id, $reportage_id) {
     $url = pubjet_api_root() . '/external/wp/reportages/' . $reportage_id . '/publish';
@@ -1609,17 +2047,99 @@ function pubjet_publish_reportage($post_id, $reportage_id) {
         ],
         'method'      => 'POST',
         'data_format' => 'body',
-        'body'        => json_encode(['url' => get_permalink($post_id)]),
+        'body'        => wp_json_encode(['url' => get_permalink($post_id)]),
+        /**
+         * Seconds to wait for Triboon to answer the publish link request.
+         *
+         * @since 5.4.9
+         */
+        'timeout'     => max(1, (int) apply_filters('pubjet_publish_link_timeout', 20)),
     ];
 
     $response = wp_remote_post($url, $args);
 
-    pubjet_log([$response, $url, $args]);
+    pubjet_log(['url' => $url, 'response' => pubjet_redact_for_log($response, true)]);
+
+    if (is_wp_error($response)) {
+        return [
+            'code'  => 0,
+            'body'  => null,
+            'error' => $response->get_error_message(),
+        ];
+    }
 
     return [
-        'code' => wp_remote_retrieve_response_code($response),
+        'code' => (int) wp_remote_retrieve_response_code($response),
         'body' => json_decode(wp_remote_retrieve_body($response), true),
     ];
+}
+
+/**
+ * Whether Triboon accepted the publish link: 200, or 429 when it is already registered.
+ *
+ * @param mixed $result Result of pubjet_publish_reportage().
+ *
+ * @return bool
+ * @since  5.4.9
+ */
+function pubjet_publish_reportage_succeeded($result) {
+    return is_array($result) && isset($result['code']) && in_array((int) $result['code'], [200, 429], true);
+}
+
+/**
+ * Send the publish link of a post from cron instead of the current request: the post is
+ * marked for the retry task and a one-off event is scheduled for now.
+ *
+ * @param int $post_id
+ *
+ * @return void
+ * @since  5.4.9
+ */
+function pubjet_queue_publish_link($post_id) {
+    update_post_meta($post_id, EnumPostMetakeys::FailedSyncUrl, true);
+    if (!wp_next_scheduled('pubjet_sync_reportage_url_now')) {
+        wp_schedule_single_event(time(), 'pubjet_sync_reportage_url_now');
+    }
+    if (pubjet_wp_cron_disabled()) {
+        // Without WP-Cron the link is sent on the next administrator dashboard load
+        delete_transient('pubjet_sync_fallback_check');
+    }
+}
+
+/**
+ * Whether at least one post waits for its publish link (one indexed, limited query).
+ *
+ * @return bool
+ * @since  5.4.9
+ */
+function pubjet_has_pending_publish_link() {
+    global $wpdb;
+    return (bool) $wpdb->get_var($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- at most once every 5 minutes, dashboard only
+        "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s LIMIT 1",
+        EnumPostMetakeys::FailedSyncUrl
+    ));
+}
+
+/**
+ * @return bool Whether WP-Cron is turned off on page loads (DISABLE_WP_CRON).
+ * @since  5.4.9
+ */
+function pubjet_wp_cron_disabled() {
+    return defined('DISABLE_WP_CRON') && DISABLE_WP_CRON;
+}
+
+/**
+ * Start WP-Cron now (in the background) so a queued event does not wait for the next visit.
+ * Nothing is started when WP-Cron is turned off on page loads.
+ *
+ * @return bool
+ * @since  5.4.9
+ */
+function pubjet_run_cron_now() {
+    if (pubjet_wp_cron_disabled()) {
+        return false;
+    }
+    return (bool) spawn_cron();
 }
 
 /**
@@ -1635,9 +2155,9 @@ function pubjet_publish_backlink_request($backlink_id) {
         return new WP_Error('development-mode', pubjet__('dev-mode'));
     }
 
-    $result = pubjet_request($url, 'POST', pubjet_http_json_request_headers(), json_encode(['id' => $backlink_id, 'status' => 'publisher_published',]), ['data_format' => 'body']);
+    $result = pubjet_request($url, 'POST', pubjet_http_json_request_headers(), wp_json_encode(['id' => $backlink_id, 'status' => 'publisher_published',]), ['data_format' => 'body']);
 
-    pubjet_log($result);
+    pubjet_log(pubjet_redact_for_log($result, true));
 
     return $result;
 }
@@ -1657,7 +2177,6 @@ function pubjet_check_new_version() {
         if ( false === $pubjet_update_info ) {
             $api_url = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&slug=pubjet';
             $response = wp_remote_get($api_url, [
-                'sslverify' => false,
                 'timeout'   => 30
             ]);
 
@@ -1676,10 +2195,11 @@ function pubjet_check_new_version() {
                 return PUBJ()->getVersion();
             }
 
-            set_site_transient( 'pubjet_update_plugin_info', $data, 12 * HOUR_IN_SECONDS );
+            // Only the version is needed
+            set_site_transient( 'pubjet_update_plugin_info', (object) ['version' => (string) $data->version], 12 * HOUR_IN_SECONDS );
             $new_version = $data->version ;
         } else {
-            $new_version = ($pubjet_update_info === 'error') ? PUBJ()->getVersion() : ($pubjet_update_info->new_version ?? 0);
+            $new_version = ($pubjet_update_info === 'error') ? PUBJ()->getVersion() : ($pubjet_update_info->version ?? PUBJ()->getVersion());
         }
     } else {
         $plugin = $plugin_updates->response['pubjet/pubjet.php'];
@@ -1783,7 +2303,7 @@ function pubjet_send_pricing_plans_to_api($pricingPlans,$token)
     $url = pubjet_api_root() . '/external/wp/pricing-plan-relative-category/';
     $response = wp_remote_post($url, [
         'method'    => 'POST',
-        'body'      => json_encode($pricingPlansData),
+        'body'      => wp_json_encode($pricingPlansData),
         'headers'   => [
             'Authorization' => 'Token ' . trim($token),
             'Content-Type'  => 'application/json',
@@ -1802,18 +2322,18 @@ function pubjet_send_pricing_plans_to_api($pricingPlans,$token)
     $result = wp_remote_retrieve_body($response);
 
     if ($status_code !== 200) {
-        pubjet_log(['Pricing Plans API Status Code' => $status_code, 'Response' => $result]);
+        pubjet_log(['Pricing Plans API Status Code' => $status_code, 'Response' => pubjet_redact_for_log($result, true)]);
         return new WP_Error('api_error', 'API request failed with status: ' . $status_code);
     }
 
     // Validate the response
     $decoded_result = json_decode($result, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
-        pubjet_log(['Pricing Plans API Invalid JSON Response' => $result]);
+        pubjet_log(['Pricing Plans API Invalid JSON Response' => pubjet_redact_for_log($result, true)]);
         return new WP_Error('invalid_response', 'Invalid JSON response from API');
     }
 
-    pubjet_log(['Pricing Plans API Response' => $decoded_result]);
+    pubjet_log(['Pricing Plans API Response' => pubjet_redact_for_log($decoded_result, true)]);
     return true;
 }
 
@@ -1833,8 +2353,45 @@ function pubjet_prepare_settings_to_save(array $settings, int $publisherCategory
         $settings['manualApprove'] = 0;
     }
 
+    return pubjet_strip_token_details($settings);
+}
+
+/**
+ * Keep only the token check fields the settings page needs.
+ *
+ * The publisher's name, phone, email and username from the token check
+ * are shown in the browser only and are never stored.
+ *
+ * @param array $settings Settings about to be saved.
+ *
+ * @return array
+ */
+function pubjet_strip_token_details(array $settings): array
+{
+    if (!array_key_exists('checkToken', $settings)) {
+        return $settings;
+    }
+
+    $check   = is_array($settings['checkToken']) ? $settings['checkToken'] : [];
+    $payload = isset($check['payload']) && is_array($check['payload']) ? $check['payload'] : [];
+
+    $clean = [
+        'checked' => !empty($check['checked']),
+        'valid'   => !empty($check['valid']),
+        'error'   => false,
+        'payload' => [],
+    ];
+    foreach (['website_id', 'website_url', 'publisherCategory'] as $key) {
+        if (isset($payload[$key]) && is_scalar($payload[$key])) {
+            $clean['payload'][$key] = $payload[$key];
+        }
+    }
+
+    $settings['checkToken'] = $clean;
+
     return $settings;
 }
+
 
 
 /**
@@ -1872,7 +2429,7 @@ function pubjet_validate_pricing_plans(array $pricingPlans): void
  * @param $new_url
  * @return array|void|WP_Error
  */
-function send_permalink_change_to_api($post_id, $reportage_id, $new_url) {
+function pubjet_send_permalink_change_to_api($post_id, $reportage_id, $new_url) {
     if (empty(trim(pubjet_token()))) return;
 
     pubjet_log('====== START Update Permalink ======');
@@ -1891,7 +2448,7 @@ function send_permalink_change_to_api($post_id, $reportage_id, $new_url) {
 
     $args = [
         'timeout' => 30,
-        'body' => json_encode($body),
+        'body' => wp_json_encode($body),
         'headers' => $headers,
         'method' => 'POST'
     ];
@@ -1947,10 +2504,10 @@ function pubjet_get_reportage_count(): int
 /**
  * @return mixed|string
  */
-function get_current_subdomain()
+function pubjet_get_current_subdomain()
 {
     $site_url = home_url('/');
-    $parsed = parse_url($site_url);
+    $parsed = wp_parse_url($site_url);
     return isset($parsed['path']) ? trim($parsed['path'], '/') : '';
 }
 
@@ -1961,9 +2518,9 @@ function get_current_subdomain()
  * @return string
  */
 
-function get_pubjet_path($endpoint, $action, $settings)
+function pubjet_get_path($endpoint, $action, $settings)
 {
-    $base_url    = get_current_subdomain();
+    $base_url    = pubjet_get_current_subdomain();
     $rest_prefix = rest_get_url_prefix();
     $use_query   = pubjet_isset_value($settings['processDataByQueryString']);
 
@@ -1980,11 +2537,10 @@ function get_pubjet_path($endpoint, $action, $settings)
  * @return void
  */
 function pubjet_delete_first_image_option() {
-    error_log("pubjet_delete_first_image_option");
     if (get_option('pubjet_migration_delete_first_image_v530') !== 'completed') {
         global $pubjet_settings;
         if (isset($pubjet_settings['deleteFirstImage'])) {
-            migrate_delete_first_image_option();
+            pubjet_migrate_delete_first_image_option();
         } else {
             update_option('pubjet_migration_delete_first_image_v530', 'completed');
         }
@@ -1994,7 +2550,7 @@ function pubjet_delete_first_image_option() {
 /**
  * @return void
  */
-function migrate_delete_first_image_option() {
+function pubjet_migrate_delete_first_image_option() {
     pubjet_log("migrate delete first image");
 
     global $pubjet_settings, $wpdb;

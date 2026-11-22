@@ -1,6 +1,5 @@
 .git
 node_modules
-/composer.json
 /src/
 version
 debug.txt
@@ -14,3 +13,6 @@ package-lock.json
 webpack.dev.js
 webpack.prod.js
 private_key
+/AGENTS.md
+/START-PROMPT.md
+/agent/

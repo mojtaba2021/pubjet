@@ -1,16 +1,5 @@
 {
     "name": "triboon/pubjet",
-    "autoload": {
-        "psr-4": {
-            "Triboon\\Pubjet\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "Siavash",
-            "email": "vbnetgenius@gmail.com"
-        }
-    ],
     "require": {
         "php": ">=7.4",
         "sentry/sentry": "^4.7",

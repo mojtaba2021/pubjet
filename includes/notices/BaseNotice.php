@@ -67,7 +67,7 @@ abstract class BaseNotice {
                 pubjet_render_condition($this->showTitle(), function () {
                     ?>
                     <div class="pubjet-notice__title">
-                        <?php echo $this->getTitle(); ?>
+                        <?php echo wp_kses_post($this->getTitle()); ?>
                     </div>
                     <?php
                 });
@@ -76,7 +76,7 @@ abstract class BaseNotice {
                 pubjet_render_condition($this->showText(), function () {
                     ?>
                     <div class="pubjet-notice__message">
-                        <?php echo $this->getText(); ?>
+                        <?php echo wp_kses_post($this->getText()); ?>
                     </div>
                     <?php
                 });
@@ -98,8 +98,8 @@ abstract class BaseNotice {
                         ?>
                         <a href="#"
                            class="button pubjet-notice__remindme pubjet-call-to-rate-btn-close pubjet-notice-remind-me"
-                           data-security="<?php echo wp_create_nonce('pubjet-admin-notice'); ?>">
-                            <?php echo $this->getRemindMeText(); ?>
+                           data-security="<?php echo esc_attr(wp_create_nonce('pubjet-admin-notice')); ?>">
+                            <?php echo esc_html($this->getRemindMeText()); ?>
                         </a>
                         <?php
                     });
@@ -108,8 +108,8 @@ abstract class BaseNotice {
                         ?>
                         <a href="#"
                            class="button pubjet-notice__permanenthide pubjet-call-to-rate-btn-close pubjet-notice-permanent-hide"
-                           data-security="<?php echo wp_create_nonce('pubjet-admin-notice'); ?>">
-                            <?php echo $this->getPermanentHideText(); ?>
+                           data-security="<?php echo esc_attr(wp_create_nonce('pubjet-admin-notice')); ?>">
+                            <?php echo esc_html($this->getPermanentHideText()); ?>
                         </a>
                         <?php
                     });
@@ -141,13 +141,13 @@ abstract class BaseNotice {
                                            ]);
         ?>
         <a
-                href="<?php echo esc_attr($args['url']); ?>"
-                class="<?php echo pubjet_flat_string($button_class); ?>"
+                href="<?php echo esc_url($args['url']); ?>"
+                class="<?php echo esc_attr(pubjet_flat_string($button_class)); ?>"
             <?php pubjet_html_tag_atts($args['atts']); ?>
         >
             <?php
-            echo $args['icon'];
-            echo $args['text'];
+            echo wp_kses($args['icon'], pubjet_allowed_svg_tags());
+            echo esc_html($args['text']);
             ?>
         </a>
         <?php
@@ -193,13 +193,15 @@ abstract class BaseNotice {
         if (in_array($pagenow, $pages)) {
             return true;
         }
-        if (empty($_GET['page'])) {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only decides whether a notice is shown
+        $current_page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+        if (empty($current_page)) {
             return false;
         }
         foreach ($pages as $page) {
             if (strpos($page, '*') !== false) {
                 $ppage = str_replace('*', '', $page);
-                if (strpos($_GET['page'], $ppage) !== false) {
+                if (strpos($current_page, $ppage) !== false) {
                     return true;
                 }
             }

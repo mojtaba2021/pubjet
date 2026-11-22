@@ -1,17 +1,20 @@
 <?php
 /*
-    Plugin Name: Pubjet
+    Plugin Name: Pubjet | پاب‌جت
     Description: Pubjet is your assistant in publishing advertisement reportage. In fact, Pubjet allows the automatic publication of reportage.
     Author: Triboon
     Author URI:  https://triboon.net
     License: GPL v2 or later
     License URI: http://www.gnu.org/licenses/gpl-2.0.txt
-    Version: 5.4.8
+    Version: 5.4.9
+    Requires at least: 5.6
 */
 
 use triboon\pubjet\includes\enums\EnumOldOptions;
 use triboon\pubjet\includes\enums\EnumOptions;
 use triboon\pubjet\includes\Initializer;
+
+defined('ABSPATH') || exit;
 
 if (!class_exists('Pubjet')) {
     final class Pubjet {
@@ -97,7 +100,6 @@ if (!class_exists('Pubjet')) {
             $this->defineConstant('PUBJET_TPLS_DIR', trailingslashit(PUBJET_DIR) . 'templates/');
             $this->defineConstant('PUBJET_INC_DIR', PUBJET_DIR . 'includes/');
             $this->defineConstant('PUBJET_LIBS_DIR', PUBJET_DIR . 'includes/libs/');
-            $this->defineConstant('PUBJET_VERSION', '1.0');
             $this->defineConstant('PUBJET_PREFIX', 'pubjet_');
             $this->defineConstant('PUBJET_PREFIX_DASH', 'pubjet-');
             $this->defineConstant('PUBJET_MAIN_URL', trailingslashit(plugin_dir_url(__FILE__)));
@@ -107,6 +109,11 @@ if (!class_exists('Pubjet')) {
             $this->defineConstant('PUBJET_JS_URL', PUBJET_ASSETS_URL . "js/");
             $this->defineConstant('PUBJET_VERSION', $this->getScriptsVersion());
             $this->defineConstant('PUBJET_DB_VERSION', '1.0.0');
+            // Error reporting when neither PUBJET_ERROR_REPORTING nor the administrator has decided. Keep false
+            // unless WordPress.org confirms it may be on by default; setting it to true also removes the question.
+            $this->defineConstant('PUBJET_ERROR_REPORTING_DEFAULT', false);
+            // Error reports go to Triboon's error tracker. Can be overridden in wp-config.php; an empty value turns reporting off.
+            $this->defineConstant('PUBJET_SENTRY_DSN', 'https://ea145de5084460f189b3bf2d66b6af06@sentry.hamravesh.com/6647');
             $this->defineConstant('PUBJET_API_ROOT', 'https://api.triboon.net');
             $this->defineConstant('PUBJET_CDN_ROOT', 'https://cdn.triboon.net/media/reportage_images');
             $this->defineConstant('PUBJET_TBL_NAME', 'pubjet_reportages');
@@ -165,7 +172,7 @@ if (!class_exists('Pubjet')) {
             }
             $plugin_data = get_file_data( __FILE__, ['Version' => 'Version'], 'plugin' );
 
-            return (defined('WP_ENVIRONMENT') && "development" === WP_ENVIRONMENT) ? time() : $plugin_data['Version'];
+            return (function_exists('pubjet_is_dev_mode') && pubjet_is_dev_mode()) ? time() : $plugin_data['Version'];
         }
 
         /**
@@ -277,12 +284,54 @@ if (!class_exists('Pubjet')) {
 
             if ($stored_version !== $current_version) {
 
-                pubjet_sync_settings();
+                // The new version is sent to Triboon from cron
+                pubjet_schedule_plugin_status_send();
+                pubjet_schedule_rewrite_flush();
+                \triboon\pubjet\includes\Cron::scheduleAll();
+                pubjet_schedule_sync_settings();
                 pubjet_delete_first_image_option();
+
+                if (empty($stored_version) || version_compare($stored_version, '5.4.9', '<')) {
+                    $this->upgradeTo549();
+                }
 
                 $pubjet_settings[EnumOptions::ActivationVersion] = $current_version;
                 update_option(EnumOptions::Settings, $pubjet_settings);
             }
+        }
+
+        /**
+         * One-time steps when updating to 5.4.9.
+         *
+         * @return void
+         * @since  5.4.9
+         */
+        private function upgradeTo549() {
+            global $pubjet_settings;
+
+            pubjet_delete_legacy_debug_file();
+
+            // The status is sent from cron now (pubjet_send_status)
+            delete_transient('pubjet_daily_plugin_status_check');
+            // Cron events are no longer registered on page loads
+            delete_transient('pubjet_register_cron_lock');
+
+            // Scheduled reportages of earlier versions have the local time as GMT date
+            pubjet_fix_scheduled_reportage_gmt_dates();
+
+            // Earlier versions stored the publisher's contact details from the token check
+            if (is_array($pubjet_settings)) {
+                $pubjet_settings = pubjet_strip_token_details($pubjet_settings);
+            }
+
+            // Debug mode that is already on expires one day after the update
+            if (!empty($pubjet_settings[EnumOptions::DebugMode]) && empty($pubjet_settings[EnumOptions::DebugModeEnabledAt])) {
+                $pubjet_settings[EnumOptions::DebugModeEnabledAt] = time();
+            }
+
+            \triboon\pubjet\includes\Cron::scheduleStoredTokenCheck();
+
+            \triboon\pubjet\includes\Actions::getInstance()->createDbTables();
         }
 
         /**
@@ -291,9 +340,11 @@ if (!class_exists('Pubjet')) {
          * @author Triboon
          */
         public function onActivation() {
-            pubjet_send_plugin_status_to_api('active');
+            pubjet_schedule_plugin_status_send();
             $this->migrate();
-            flush_rewrite_rules();
+            \triboon\pubjet\includes\Actions::getInstance()->createDbTables();
+            \triboon\pubjet\includes\Cron::scheduleAll();
+            pubjet_schedule_rewrite_flush();
         }
 
         /**
@@ -302,7 +353,9 @@ if (!class_exists('Pubjet')) {
          * @author Triboon
          */
         public function onDeactivation() {
+            // Sent right away: cron does not run for an inactive plugin
             pubjet_send_plugin_status_to_api('inactive');
+            delete_option('pubjet_status_state');
             $cron = \triboon\pubjet\includes\Cron::getInstance();
             $cron->deactivateAllCronJobs();
         }

@@ -14,6 +14,7 @@ class EnumPostMetakeys {
     const WithoutTriboonTag   = 'pubjet_without_triboon_tag';
     const ManualApprove       = 'pubjet_manual_approve';
     const FailedSyncUrl       = 'pubjet_failed_sync_url';
+    const SyncUrlAttempts     = 'pubjet_sync_url_attempts';
     const MetaTitle           = 'pubjet_meta_title';
     const MetaDescription     = 'pubjet_meta_description';
     const deleteFirstImage    = 'pubjet_delete_first_image';

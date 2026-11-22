@@ -91,10 +91,15 @@ class Backlinks extends Widget_Base {
         $settings                        = $this->get_settings_for_display();
         $settings['elementor_widget_id'] = $this->get_id();
         $settings['elementor_preview']   = \Elementor\Plugin::$instance->editor->is_edit_mode();
-        echo \triboon\pubjet\includes\Shortcodes::getInstance()->renderBacklinks([
+        $html = \triboon\pubjet\includes\Shortcodes::getInstance()->renderBacklinks([
                                                                                      'position' => $settings['position'],
                                                                                      'style'    => $settings['dlayout'],
                                                                                  ]);
+        echo wp_kses($html, [
+            'style' => [],
+            'div'   => ['class' => true],
+            'a'     => ['href' => true, 'class' => true, 'rel' => true],
+        ]);
     }
 
 }

@@ -9,10 +9,14 @@ const axios = getAxios();
  */
 export const saveOptions = () => {
     const options = getStore(getStoreKey());
+    // The publisher's contact details from the token check are not saved
+    const {checked = false, valid = false, payload = {}} = options.checkToken || {};
+    const {website_id, website_url, publisherCategory} = payload || {};
+    const checkToken = {checked, valid, error: false, payload: {website_id, website_url, publisherCategory}};
 
     return axios.post(getAdminAjaxUrl(), {
         action: 'pubjet-save-options',
-        settings: JSON.stringify({...options, modal: false}),
+        settings: JSON.stringify({...options, checkToken, modal: false}),
         security: getSecurityNonce(),
     }).then(response => {
         if (response.success) {
@@ -62,12 +66,11 @@ export const doCheckToken = () => {
                 payload: {},
             },
         });
-        axios.get(getAdminAjaxUrl(), {
-            params: {
-                action: 'pubjet-check-token',
-                token: curstate.token,
-                security: getSecurityNonce(),
-            },
+        axios.post(getAdminAjaxUrl(), {
+            action: 'pubjet-check-token',
+            token: curstate.token,
+            security: getSecurityNonce(),
+        }, {
             hideError: true,
         }).then(response => {
             if (response.success) {
@@ -90,6 +93,9 @@ export const doCheckToken = () => {
                     },
                     pricingPlansChanged: false,
                 });
+                if (response.payload.errorReporting) {
+                    setStore('errorReporting', response.payload.errorReporting);
+                }
                 resolve(response);
             } else {
                 setStore(getStoreKey(), {
@@ -116,6 +122,25 @@ export const doCheckToken = () => {
                 },
             });
         });
+    });
+};
+
+/**
+ * Save the administrator's error reporting choice ('yes' or 'no').
+ *
+ * @since 5.4.9
+ */
+export const setErrorReporting = (choice) => {
+    return axios.post(getAdminAjaxUrl(), {
+        action: 'pubjet-set-error-reporting',
+        choice,
+        security: getSecurityNonce(),
+    }).then(response => {
+        if (response.success) {
+            setStore('errorReporting', {...response.payload, ask: false});
+            return response;
+        }
+        return Promise.reject(response.error);
     });
 };
 

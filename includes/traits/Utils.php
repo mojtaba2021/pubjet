@@ -38,7 +38,7 @@ trait Utils {
         }
         // Get from $_SERVER header
         if (!$nonce) {
-            $nonce = pubjet_isset_value($_SERVER['HTTP_X_PUBJET_NONCE']);
+            $nonce = isset($_SERVER['HTTP_X_PUBJET_NONCE']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_PUBJET_NONCE'])) : '';
         }
         if (!wp_verify_nonce($nonce, 'pubjet-nonce')) {
             $this->permissionError();
@@ -78,11 +78,8 @@ trait Utils {
      * @author Triboon
      */
     public function checkAdminPermission() {
-        if (!is_user_logged_in()) {
-            $this->permissionError();
-        }
-        if (!pubjet_is_admin()) {
-            $this->permissionError();
+        if (!is_user_logged_in() || !pubjet_is_admin()) {
+            $this->error(pubjet__('permission-error'), 403);
         }
     }
 
@@ -111,7 +108,8 @@ trait Utils {
      * @return mixed|string
      */
     public function get($name, $default = '') {
-        return (isset($_GET[$name]) && !empty($_GET[$name])) ? sanitize_text_field($_GET[$name]) : $default;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- generic reader; callers check the nonce or token
+        return (isset($_GET[$name]) && !empty($_GET[$name])) ? sanitize_text_field(wp_unslash($_GET[$name])) : $default;
     }
 
     /**
@@ -121,7 +119,8 @@ trait Utils {
      * @return mixed|string
      */
     public function post($name, $default = '') {
-        return (isset($_POST[$name]) && !empty($_POST[$name])) ? sanitize_textarea_field($_POST[$name]) : $default;
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- generic reader; callers check the nonce
+        return (isset($_POST[$name]) && !empty($_POST[$name])) ? sanitize_textarea_field(wp_unslash($_POST[$name])) : $default;
     }
 
     /**

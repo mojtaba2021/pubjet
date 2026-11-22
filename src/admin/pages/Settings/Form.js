@@ -7,6 +7,7 @@ import CheckTokenResult from "./CheckTokenResult";
 import { pubjet__ } from "../../../shared/scripts/utils";
 import {CheckCircleFilled, CloseCircleFilled, LoadingOutlined, ReloadOutlined} from "@ant-design/icons";
 import PricingPlans from "./PricingPlans";
+import ErrorReportingQuestion from "./ErrorReportingQuestion";
 
 
 const { TextArea } = Input;
@@ -63,6 +64,7 @@ const Form = props => {
             })}
         </AntForm.Item>
         <CheckTokenResult />
+        {token && checkToken?.valid ? <ErrorReportingQuestion /> : null}
         {
             token && checkToken?.valid ? (
                 pricingPlans?.length > 0 ? (

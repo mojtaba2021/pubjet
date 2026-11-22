@@ -226,3 +226,47 @@ msgstr ""
 #. Author URI of the plugin/theme
 msgid "https://triboon.net"
 msgstr ""
+
+#: includes/functions.php
+msgid "The Pubjet access token is no longer valid. Please enter a new access token in the plugin settings."
+msgstr ""
+
+#: includes/functions.php
+msgid "Send error reports to Triboon"
+msgstr ""
+
+#: includes/functions.php
+msgid "When enabled, errors in Pubjet itself are sent to Triboon for faster support. Only the site address, the Pubjet, PHP and WordPress versions and the error text are sent; tokens and personal data are removed. To turn it off for good, add define( 'PUBJET_ERROR_REPORTING', false ); to wp-config.php."
+msgstr ""
+
+#: includes/functions.php
+msgid "Send Pubjet error reports to Triboon for faster support?"
+msgstr ""
+
+#: includes/functions.php
+msgid "Only this data is sent:"
+msgstr ""
+
+#: includes/functions.php
+msgid "Site address"
+msgstr ""
+
+#: includes/functions.php
+msgid "Pubjet, PHP and WordPress versions"
+msgstr ""
+
+#: includes/functions.php
+msgid "Error text, with tokens and personal data removed"
+msgstr ""
+
+#: includes/functions.php
+msgid "You can change this later in the Advanced tab."
+msgstr ""
+
+#: includes/functions.php
+msgid "Yes, send reports"
+msgstr ""
+
+#: includes/functions.php
+msgid "Error reporting is set with the PUBJET_ERROR_REPORTING constant in wp-config.php."
+msgstr ""

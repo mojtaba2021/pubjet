@@ -21,6 +21,7 @@ class Initializer extends Singleton {
         $notices = apply_filters('pubjet_admin_notices_classes', [
             UpdatePlugin::class,
             EnterToken::class,
+            ReconnectToken::class,
 
         ]);
         if (is_array($notices) && !empty($notices)) {

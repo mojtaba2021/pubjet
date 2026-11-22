@@ -25,7 +25,13 @@ class RewriteRequest extends Singleton {
      */
     public function setRewriteRules() {
         add_rewrite_rule('^' . self::$prefix . '/([^/]*)/?([^/]*)/?', 'index.php?pubjet_rest_query=$matches[1]&pubjet_rest_param=$matches[2]', 'top');
-        flush_rewrite_rules();
+
+        // Flushed once after activation or an update, once the rule above is added
+        // (an autoloaded option, so reading it costs no query)
+        if ('1' === (string) get_option('pubjet_flush_rewrite_rules', '0')) {
+            update_option('pubjet_flush_rewrite_rules', '0', true);
+            flush_rewrite_rules();
+        }
     }
 
     /**

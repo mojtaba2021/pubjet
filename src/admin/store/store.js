@@ -43,6 +43,13 @@ export const state = {
         },
     },
     modal  : false,
+    // Kept outside `options`, so it is never sent with pubjet-save-options.
+    errorReporting: {
+        enabled: false,
+        choice : '',
+        forced : null,
+        ask    : false,
+    },
 };
 
 export default createStore(state, composeEnhancers(applyMiddleware(thunk)));

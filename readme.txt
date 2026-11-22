@@ -1,11 +1,14 @@
 === Pubjet | پاب‌جت ===
 Contributors: mojtabam2021
 Tags: seo,reportage
-Stable tag: 5.4.8
+Stable tag: 5.4.9
+Requires at least: 5.6
 Tested up to: 7.1
 Requires PHP: 7.4
 License: GPL v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+
+Automatically publish Triboon sponsored posts (reportages) on your WordPress site, with images, SEO meta and scheduled publishing.
 
 == Description ==
 <p>پاب‌جت دستیار شما در انتشار رپورتاژ آگهی است. در واقع پاب‌جت امکان انتشار خودکار رپورتاژ را فراهم می‌آورد.</p>
@@ -27,7 +30,7 @@ By using the Pubjet plugin, data may be transmitted between your website and the
 </ul>
 Legal Compliance
 
-To ensure legal compliance regarding data transmissions, please review and adhere to the terms and conditions outlined in Triboon's<a href="https://panel.triboon.net/terms/publisher"> Terms of Use</a> and<a href="https://panel.triboon.net/terms/publisher"> Privacy Policy</a>. By using the Pubjet plugin, you acknowledge and accept any legal responsibilities associated with data transmissions between your website and the Triboon platform.
+To ensure legal compliance regarding data transmissions, please review and adhere to the terms and conditions outlined in Triboon's<a href="https://panel.triboon.net/terms/publisher"> Terms of Use</a> and<a href="https://www.triboon.net/pubjet/#privacy-en"> Privacy Policy</a>. By using the Pubjet plugin, you acknowledge and accept any legal responsibilities associated with data transmissions between your website and the Triboon platform.
 
 <strong>Getting Started</strong>
 
@@ -39,8 +42,52 @@ To integrate the Pubjet plugin with your website and leverage the features of th
 </ul>
 For further details on Triboon's policies, refer to their official documentation, and contact their support for specific inquiries.
 
-== Short Description ==
-Pubjet is your assistant in publishing advertisement reportage. In fact, Pubjet allows the automatic publication of reportage.
+= Source code =
+
+The JavaScript and CSS files in the `assets` folder are compiled. The uncompiled source code and the build configuration are available at <a href="https://github.com/mojtaba2021/pubjet">github.com/mojtaba2021/pubjet</a>.
+
+= External services =
+
+This plugin connects to the following external services.
+
+**Triboon API (api.triboon.net)**
+
+Triboon is the platform that sends sponsored posts (reportages) and backlinks to your site. The plugin sends requests to the Triboon API:
+
+* When an administrator checks or saves the connection token: the token, to verify it.
+* After the plugin is updated, and if the verification fails, once an hour for a limited number of attempts: the stored token, to verify it.
+* When the plugin is activated, deactivated or updated, when the token is checked or the settings are saved, and otherwise at most once a day (sent in the background, not while a page loads): the plugin status (active or inactive), the plugin version, the addresses of the plugin's REST endpoints on your site, and the "manual approve" and "publish without tags" settings.
+* When the pricing plan settings are saved: the plan IDs and the ID, name and slug of the categories selected for each plan.
+* After a reportage is published, or its address changes: the reportage ID and the address of the post on your site.
+* After a backlink is published: the backlink ID and its status.
+
+Every request includes the connection token. Terms of use: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a> Privacy policy: https://www.triboon.net/pubjet/#privacy-en
+
+**Triboon CDN (cdn.triboon.net)**
+
+When Triboon sends a reportage, the plugin downloads its content and images from the Triboon CDN. Only a standard WordPress HTTP request is sent, which includes your site address in the user agent. Terms of use: <a href="https://panel.triboon.net/terms/publisher">https://panel.triboon.net/terms/publisher</a> Privacy policy: https://www.triboon.net/pubjet/#privacy-en
+
+**Triboon error reports (Sentry)**
+
+Error reporting is opt-in. After the connection token is saved, the settings page asks the administrator whether Pubjet error reports may be sent to Triboon; nothing is preselected and nothing is sent until the administrator answers "Yes". The choice can be changed at any time in the Advanced tab of the Pubjet settings.
+
+When enabled, the plugin sends a report to Triboon's Sentry error-tracking service at sentry.hamravesh.com (hosted by Hamravesh) when Pubjet itself fails, for example when a token check, a reportage delivery or an image download fails. Errors of other plugins, themes or WordPress are never sent. Each report contains only:
+
+* the error text, with tokens, e-mail addresses, phone numbers and other personal data removed (it may name the Triboon ID of the reportage or post concerned);
+* for connection errors, the probable cause worked out from that error text (blocked by the national internet, timeout, blocked by Zhaket Booster, blocked by a firewall or another plugin, or other);
+* the site address and the site's domain;
+* the Pubjet, PHP and WordPress versions, and the Pubjet release name (for example "pubjet@5.4.9");
+* the error level (for example error or warning) and the time of the error;
+* the name and version of the Sentry SDK;
+* the environment name ("production").
+
+No request data, cookies, user data or file contents are sent.
+
+To turn error reporting off for good and hide the question, add this line to wp-config.php: `define( 'PUBJET_ERROR_REPORTING', false );` (with `true` it is turned on). Privacy policy: https://www.triboon.net/pubjet/#privacy-en
+
+**WordPress.org Plugin API (api.wordpress.org)**
+
+To show a notice in the dashboard when a new version of Pubjet is available, the plugin requests the public information of the Pubjet plugin from WordPress.org at most once every 12 hours. Only a standard WordPress HTTP request is sent, which includes your site address in the user agent. Privacy policy: <a href="https://wordpress.org/about/privacy/">https://wordpress.org/about/privacy/</a>
 
 == Installation ==
 After installing and activating the plugin, go to Pubjet settings menu and enter the connection token to your Triboon account and save the settings.
@@ -49,6 +96,15 @@ After installing and activating the plugin, go to Pubjet settings menu and enter
 لطفا اگه از نسخه های قبل از 2.7.1 استفاده می کنید، پس از بروزرسانی به نسخه جدید یکبار تنظیمات توکن را مجددا انجام دهید.
 
 == Changelog ==
+
+= 5.4.9 =
+* Security fix: hardened token verification.
+* Error reports to Triboon are sent only with the site administrator's consent.
+* Fixed: featured image and content images from the Triboon CDN on some servers.
+* Fixed: scheduled reportages now use the correct GMT date.
+* Fixed: the publish link is sent again when it did not reach Triboon.
+* Improved: no background work or database writes on visitor page loads.
+* Improved: compatibility with WordPress.org plugin guidelines.
 
 = 5.4.8 =
 * رفع خطای Composer روی سایت‌های با PHP 7.4 (سازگاری وابستگی‌ها با PHP 7.4)

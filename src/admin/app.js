@@ -36,7 +36,12 @@ elements.map(item => {
  * @since 1.0.0
  */
 const initOptions = () => {
-    const {options = {}} = pubjet_params;
+    const {options = {}, errorReporting = {}} = pubjet_params;
+    setStore('errorReporting', {
+        ...getStore('errorReporting'),
+        ...errorReporting,
+        ask: false,
+    });
     if (Object.keys(options).length === 0) {
         return;
     }
